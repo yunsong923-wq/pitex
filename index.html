@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- 폰 화면 폭에 맞춰 보이게 (이 줄이 없으면 PC 화면을 작게 줄여서 보여 줌) -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>pitex</title>
+<!-- PWA(설치되는 웹앱) 설정: 앱 이름·아이콘이 적힌 파일 -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#6a4fe0">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+/* ────────────────────────────────────────────────
+   pitex 2단계 — 메모장(notepad) 모양 + A4 종이
+   화면 배치(위→아래): 창틀(제목줄·메뉴판·도구 줄·찾기 막대) / 책상(A4 종이) / 상태 표시줄
+   바깥 화면은 고정되어 움직이지 않고, 가운데 '책상'만 위아래·옆으로 밀림
+   ──────────────────────────────────────────────── */
+:root {
+  --chrome: #f0f0f3;      /* 창틀(메뉴판·도구 줄) 바탕 */
+  --desk: #d9d8e0;        /* 종이 바깥 '책상' 색 = 페이지 사이 간격 색 */
+  --paper: #ffffff;       /* 글 쓰는 종이 */
+  --fg: #000000;          /* 기본 글자 */
+  --muted: #64626f;       /* 흐린 글자 */
+  --line: #d6d5de;        /* 구분선 */
+  --hover: #e2e1ea;       /* 마우스·손가락을 올렸을 때 */
+  --accent: #6a4fe0;      /* 강조(보라) — smartDir과 같은 색 */
+  --accent-soft: rgba(106,79,224,.12);
+  --danger: #d23b3b;
+  --box-bg: #f6f4fd;      /* 빈 그림 상자 바탕 */
+  --menu-bg: #ffffff;     /* 펼친 메뉴·대화 창 바탕 */
+  --card: #f6f6f9;        /* 설정 화면의 카드 바탕 */
+  --toast-bg: #1d1c24; --toast-fg: #fff;
+  --font-ui: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;  /* 메뉴 글꼴 */
+  --font-text: "Malgun Gothic", sans-serif;   /* 글 글꼴 (설정에서 바꿈) */
+  --text-size: 14.67px;   /* 글자 크기 (11pt) */
+  --text-weight: 400;     /* 굵기 (Bold면 700) */
+  --text-style: normal;   /* 기울임 (Italic이면 italic) */
+  --line-h: 25px;         /* 한 줄 높이 — 페이지를 나누는 기준 */
+}
+/* 다크 모드: 달 단추를 누르면 켜짐. 종이 바탕은 진검정 #000000 */
+:root[data-theme="dark"] {
+  --chrome: #111114; --desk: #2c2b33; --paper: #000000; --fg: #ecebf2; --muted: #9a98a8; --line: #2f2e39; --hover: #2b2a35;
+  --accent: #9d86ff; --accent-soft: rgba(157,134,255,.18); --danger: #ff6b6b; --box-bg: #15141b; --menu-bg: #1d1c24; --card: #26252e;
+  --toast-bg: #ecebf2; --toast-fg: #121117; color-scheme: dark; }
+
+[hidden] { display: none !important; }   /* 숨김 표시된 것은 확실히 감추기 */
+/* 바깥 화면 고정: 화면 전체는 움직이지 않음 (수정사항 8) */
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body { display: flex; flex-direction: column; height: 100dvh; background: var(--chrome); color: var(--fg); font-family: var(--font-ui); font-size: 14px; -webkit-tap-highlight-color: transparent; }
+
+/* ── 위쪽 창틀 ── */
+.chrome { flex: none; position: relative; z-index: 6; background: var(--chrome); border-bottom: 1px solid var(--line);
+  padding: env(safe-area-inset-top, 0px) max(8px, env(safe-area-inset-right, 0px)) 0 max(8px, env(safe-area-inset-left, 0px)); }
+.titlebar { display: flex; align-items: center; gap: 6px; padding: 5px 0 1px 4px; font-size: 13px; color: var(--muted); }
+.titlebar .logo { flex: none; font-weight: 700; color: var(--accent); }
+#docName { flex: 0 1 auto; min-width: 60px; width: 14ch; font: 500 13px var(--font-ui); color: var(--fg); background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 2px 4px; }
+#docName:hover, #docName:focus { border-color: var(--line); background: var(--paper); outline: none; }
+.titlebar .ext, .titlebar .dirty { flex: none; }
+.titlebar .dirty { color: var(--accent); }
+/* 오른쪽 위 달 모양 단추: 누를 때마다 밝게 ↔ 다크 (수정사항 4) */
+#themeBtn { flex: none; margin-left: auto; width: 42px; height: 36px; display: grid; place-items: center; background: transparent; border: 1px solid transparent; border-radius: 8px; color: var(--fg); cursor: pointer; }
+#themeBtn:hover { background: var(--hover); }
+#themeBtn svg { width: 26px; height: 26px; }
+:root[data-theme="dark"] #themeBtn { color: #ffd95a; }
+
+/* 메뉴판: 파일 · 편집 · 찾기 · 보기 · 인코딩 · 그림 · 도움말 (좁으면 옆으로 밀어서) */
+.menubar { display: flex; overflow-x: auto; scrollbar-width: none; }
+.menubar::-webkit-scrollbar { display: none; }
+.menubar > button { flex: none; font: 14px var(--font-ui); color: var(--fg); background: transparent; border: 0; border-radius: 4px; padding: 6px 11px; cursor: pointer; }
+.menubar > button:hover, .menubar > button.open { background: var(--hover); }
+.dropdown { position: fixed; z-index: 30; min-width: 240px; max-width: calc(100vw - 16px); background: var(--menu-bg); border: 1px solid var(--line);
+  border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; max-height: 75vh; overflow-y: auto; }
+.dropdown button { display: flex; width: 100%; gap: 10px; align-items: center; font: 14px var(--font-ui); color: var(--fg); background: transparent;
+  border: 0; border-radius: 4px; padding: 9px 10px; cursor: pointer; text-align: left; }
+.dropdown button:hover:not(:disabled) { background: var(--hover); }
+.dropdown button:disabled { color: var(--muted); opacity: .6; cursor: default; }
+.dropdown .ck { width: 16px; flex: none; color: var(--accent); }        /* ✓ 표시 자리 */
+.dropdown .lb { flex: 1; }
+.dropdown .key { color: var(--muted); font-size: 12px; }                 /* Ctrl+S 같은 단축키 */
+.dropdown hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+.dropdown .sub { padding-left: 22px; border-left: 2px solid var(--accent-soft); margin: 0 0 4px 16px; }   /* 보내기 ▸ 하위 항목 */
+
+/* 도구 줄: 자주 쓰는 것만 작은 단추로 */
+.toolbar { display: flex; gap: 2px; align-items: center; padding: 3px 0 6px; overflow-x: auto; scrollbar-width: none; }
+.toolbar::-webkit-scrollbar { display: none; }
+.tb { flex: none; min-width: 36px; height: 34px; font: 15px var(--font-ui); color: var(--fg); background: transparent; border: 1px solid transparent; border-radius: 5px; cursor: pointer; padding: 0 8px; }
+.tb:hover:not(:disabled) { background: var(--hover); }
+.tb.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.tb:disabled { opacity: .35; cursor: default; }
+.tb.wide { font-size: 13.5px; }
+.sep { flex: none; width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
+.tb:focus-visible, .menubar > button:focus-visible, .dropdown button:focus-visible, #themeBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 찾기·바꾸기 막대 */
+.findbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 0 8px; border-top: 1px solid var(--line); }
+.findbar input[type=text] { flex: 1 1 140px; min-width: 0; font: 14px var(--font-ui); color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 5px; padding: 7px 9px; }
+.findbar .fb { flex: none; font: 13.5px var(--font-ui); color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 5px; padding: 7px 10px; cursor: pointer; }
+.findbar label { font-size: 13px; color: var(--muted); display: flex; gap: 4px; align-items: center; }
+.findbar .msg { font-size: 12.5px; color: var(--muted); }
+.hint { margin: 0 0 8px; font-size: 13px; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 8px 10px; }
+
+/* ── 책상(밀리는 곳)과 A4 종이 ── */
+#desk { flex: 1; min-height: 0; overflow: auto; background: var(--desk); overscroll-behavior: contain; position: relative; }
+#desk.quiet { scrollbar-width: none; }               /* 1페이지일 때는 옆 수직 막대를 숨김 (수정사항 8·9) */
+#desk.quiet::-webkit-scrollbar { display: none; }
+#sizer { position: relative; margin: 0 auto; }       /* 확대·축소한 종이 크기만큼 자리를 잡아 주는 틀 */
+#paper { position: absolute; left: 16px; top: 16px; width: 794px; background: var(--paper); transform-origin: 0 0; box-shadow: 0 1px 4px rgba(0,0,0,.18); }  /* 794px = A4 폭 210mm */
+body.nowrap #paper { width: max-content; min-width: 794px; }   /* 자동 줄 바꿈을 끄면 긴 줄만큼 종이가 넓어짐 */
+#editor { box-sizing: border-box; padding: 76px; outline: none; font-family: var(--font-text); font-size: var(--text-size); font-weight: var(--text-weight); font-style: var(--text-style);
+  line-height: var(--line-h); white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; caret-color: var(--accent); color: var(--fg); }   /* 76px = 여백 20mm */
+body.nowrap #editor { white-space: pre; }
+#editor p { margin: 0; display: flow-root; }   /* flow-root: 그림 상자가 자기 문단 안에 머물게 */
+/* 페이지 사이 간격 (약 6px 굵은 띠) — 수정사항 9 */
+.pb { position: absolute; left: -1px; right: -1px; height: 6px; background: var(--desk); pointer-events: none; z-index: 2; }
+
+/* 그림 상자 (높이는 줄 높이에 맞춰 딱 떨어지게 → 페이지가 줄 사이에서 나뉨) */
+.box { display: block; margin: 0 0 6px; position: relative; border-radius: 6px; box-sizing: border-box; user-select: none; -webkit-user-select: none; cursor: pointer; white-space: normal; }
+.box[data-side="left"]  { float: left;  margin-right: 14px; }   /* 왼쪽에 붙음 → 글은 오른쪽으로 흐름 */
+.box[data-side="right"] { float: right; margin-left: 14px; }    /* 오른쪽에 붙음 → 글은 왼쪽으로 흐름 */
+.box[data-side="full"]  { width: 100% !important; }              /* 전체 폭 → 글은 위아래로 */
+.box img { width: 100%; height: 100%; display: block; border-radius: 6px; pointer-events: none; }
+.box[data-fit="cover"] img { object-fit: cover; }
+.box[data-fit="contain"] img { object-fit: contain; background: var(--box-bg); }
+.box .ph { display: grid; width: 100%; height: 100%; border: 2px dashed var(--accent); border-radius: 6px; background: var(--box-bg); box-sizing: border-box; place-items: center; color: var(--accent); }
+.box .ph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.box .ph b { position: relative; font-size: 26px; font-weight: 700; font-family: var(--font-ui); font-style: normal; }
+.box.sel { outline: 3px solid var(--accent); outline-offset: 2px; touch-action: none; }
+.box .grip { display: none; position: absolute; right: -9px; bottom: -9px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); border: 3px solid var(--paper); touch-action: none; cursor: nwse-resize; }
+.box.sel .grip { display: block; }
+.box.lifting { opacity: .35; }
+body.hide-layer .box { display: none; }
+
+#draw { position: absolute; inset: 0; z-index: 3; cursor: crosshair; touch-action: none; background: rgba(106,79,224,.04); }
+#draw .rect { position: absolute; border: 2px dashed var(--accent); background: var(--accent-soft); border-radius: 4px; }
+#draw .size { position: absolute; transform: translateY(8px); background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#boxbar { position: absolute; z-index: 4; display: flex; gap: 4px; flex-wrap: wrap; padding: 5px; background: var(--menu-bg); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.15); max-width: 600px; font-style: normal; font-weight: 400; }
+#boxbar button { font: 13.5px var(--font-ui); color: var(--fg); background: var(--chrome); border: 1px solid transparent; border-radius: 5px; padding: 7px 10px; cursor: pointer; }
+#boxbar button.on { background: var(--accent); color: #fff; }
+#boxbar button.danger { color: var(--danger); }
+#ghost { position: fixed; z-index: 30; pointer-events: none; border: 2px dashed var(--accent); border-radius: 6px; background: var(--accent-soft); }
+
+/* ── 맨 아래: 상태 표시줄 ── */
+.statusbar { flex: none; display: flex; background: var(--chrome); border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--muted); overflow-x: auto; scrollbar-width: none; font-variant-numeric: tabular-nums;
+  padding: 0 max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px)); }
+.statusbar::-webkit-scrollbar { display: none; }
+.statusbar span { flex: none; padding: 6px 10px; border-left: 1px solid var(--line); white-space: nowrap; }
+.statusbar span:first-child { border-left: 0; }
+.statusbar .grow { flex: 1; }
+#sbPage { color: var(--fg); font-weight: 600; }   /* 지금 페이지 (수정사항 10) */
+body.nostatus .statusbar { display: none; }
+
+/* ── 대화 창(아래에서 올라옴) ── */
+.dim { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 20; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--menu-bg); border-radius: 14px 14px 0 0;
+  padding: 18px max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+  max-height: 86vh; overflow-y: auto; display: grid; gap: 12px; max-width: 760px; margin: 0 auto; box-sizing: border-box; }
+.sheet h2 { margin: 0; font-size: 18px; }
+.sheet h3 { margin: 4px 0 0; font-size: 14px; color: var(--fg); font-weight: 600; }
+.sheet p { margin: 0; color: var(--muted); line-height: 1.6; }
+.btn { font: 500 14px var(--font-ui); color: var(--fg); background: var(--chrome); border: 1px solid var(--line); border-radius: 6px; padding: 10px 13px; cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.fitpick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fitpick button { border: 2px solid var(--line); background: var(--paper); border-radius: 10px; padding: 8px; cursor: pointer; color: var(--fg); font: 500 13.5px var(--font-ui); display: grid; gap: 6px; }
+.fitpick button.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.fitpick .pv { height: 64px; border-radius: 6px; overflow: hidden; background: var(--box-bg); }
+.fitpick .pv img { width: 100%; height: 100%; display: block; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(44px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  background: var(--toast-bg); color: var(--toast-fg); padding: 10px 14px; border-radius: 8px; font-size: 14px; max-width: calc(100% - 40px); }
+
+/* ── 설정 화면: Windows 메모장 '텍스트 서식'과 같은 모양 (수정사항 5) ── */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+.card + .card { margin-top: -6px; }
+.cardhead { box-sizing: border-box; display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; background: transparent; border: 0; color: var(--fg); font: 15px var(--font-ui); cursor: pointer; text-align: left; }
+.cardhead .ic { width: 24px; flex: none; text-align: center; font-size: 16px; }
+.cardhead .tx { flex: 1; display: grid; gap: 2px; }
+.cardhead .tx small { color: var(--muted); font-size: 12.5px; }
+.cardhead .chev { transition: transform .15s; }
+.card.closed .cardhead .chev { transform: rotate(180deg); }
+.card.closed .cardbody { display: none; }
+.cardbody { border-top: 1px solid var(--line); }
+.rowf { display: grid; grid-template-columns: 1fr minmax(150px, 250px); align-items: center; gap: 12px; padding: 10px 16px 10px 54px; border-bottom: 1px solid var(--line); }
+.rowf select { font: 14px var(--font-ui); color: var(--fg); background: var(--menu-bg); border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; width: 100%; }
+.preview { padding: 26px 16px; text-align: center; color: var(--fg); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.fontnote { padding: 0 16px 12px 54px; font-size: 12.5px; color: var(--muted); }
+.fontnote button { font: 12.5px var(--font-ui); color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+/* 켬/끔 스위치 */
+.sw { display: flex; align-items: center; gap: 10px; background: none; border: 0; color: var(--fg); font: 14px var(--font-ui); cursor: pointer; flex: none; }
+.sw i { width: 40px; height: 20px; border-radius: 10px; border: 1px solid var(--muted); position: relative; box-sizing: border-box; }
+.sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: left .15s; }
+.sw[aria-checked="true"] i { background: var(--accent); border-color: var(--accent); }
+.sw[aria-checked="true"] i::after { left: 23px; background: #fff; }
+
+/* 그림·PDF로 만들 때: 고름 표시·페이지 띠를 숨기고 밝은 색으로 */
+body.exporting .pb, body.exporting #boxbar, body.exporting #draw, body.exporting .grip { display: none !important; }
+body.exporting .box.sel { outline: 0; }
+
+/* 인쇄: 창틀은 숨기고 종이만 A4로 */
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body { height: auto; overflow: visible; background: #fff; display: block; }
+  .chrome, .statusbar, #overlay, #menuLayer, #toastBox, .pb, #boxbar, #draw { display: none !important; }
+  #desk { overflow: visible; background: #fff; }
+  #sizer { width: auto !important; height: auto !important; }
+  #paper { position: static; transform: none !important; box-shadow: none; width: 210mm; background: #fff; }
+  #editor { color: #000; }
+  .box.sel { outline: 0; }
+}
+@media (prefers-reduced-motion: no-preference) { .sheet { animation: up .18s ease-out; } @keyframes up { from { transform: translateY(20px); opacity: .6; } } }
+</style>
+</head>
+<body>
+
+<!-- 위쪽 창틀 -->
+<header class="chrome">
+  <div class="titlebar">
+    <span class="logo">pitex</span><span>·</span>
+    <input id="docName" aria-label="파일 이름" value="제목 없음"><span class="ext">.txt</span>
+    <span class="dirty" id="dirty" hidden>●</span>
+    <!-- 달 모양 단추: 밝게 ↔ 다크 -->
+    <button id="themeBtn" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.9 9.9 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/></svg>
+    </button>
+  </div>
+  <!-- 메뉴판 (이름은 언어에 따라 스크립트가 채움) -->
+  <nav class="menubar" id="menubar">
+    <button type="button" data-menu="file"></button>
+    <button type="button" data-menu="edit"></button>
+    <button type="button" data-menu="find"></button>
+    <button type="button" data-menu="view"></button>
+    <button type="button" data-menu="enc"></button>
+    <button type="button" data-menu="pic"></button>
+    <button type="button" data-menu="help"></button>
+  </nav>
+  <!-- 도구 줄 -->
+  <div class="toolbar">
+    <button class="tb" id="tbNew" type="button">📄</button>
+    <button class="tb" id="tbOpen" type="button">📂</button>
+    <button class="tb" id="tbSave" type="button">💾</button>
+    <span class="sep"></span>
+    <button class="tb" id="undoBtn" type="button">↶</button>
+    <button class="tb" id="redoBtn" type="button">↷</button>
+    <span class="sep"></span>
+    <button class="tb" id="tbFind" type="button">🔍</button>
+    <button class="tb wide" id="boxBtn" type="button"></button>
+    <span class="sep"></span>
+    <button class="tb" id="tbZoomOut" type="button">A−</button>
+    <button class="tb" id="tbZoomIn" type="button">A+</button>
+  </div>
+  <!-- 찾기·바꾸기 막대 (찾기 메뉴에서 켬) -->
+  <div class="findbar" id="findbar" hidden>
+    <input type="text" id="findText">
+    <input type="text" id="replText">
+    <button class="fb" id="findNext" type="button"></button>
+    <button class="fb" id="replOne" type="button"></button>
+    <button class="fb" id="replAll" type="button"></button>
+    <label><input type="checkbox" id="findCase"> <span id="findCaseLb"></span></label>
+    <span class="msg" id="findMsg"></span>
+    <button class="fb" id="findClose" type="button">✕</button>
+  </div>
+  <p class="hint" id="drawHint" hidden></p>
+</header>
+
+<!-- 책상: 이 안의 A4 종이만 밀림. 종이 = 아래층 글 + 위층 그림 상자 -->
+<main id="desk">
+  <div id="sizer">
+    <div id="paper">
+      <div id="editor" contenteditable="true" spellcheck="false"></div>
+      <div id="breaks"></div>
+      <div id="draw" hidden></div>
+      <div id="boxbar" hidden></div>
+    </div>
+  </div>
+</main>
+
+<!-- 상태 표시줄 -->
+<footer class="statusbar" id="statusbar">
+  <span id="sbPos"></span>
+  <span id="sbPage"></span>
+  <span id="sbChars"></span>
+  <span id="sbBoxes"></span>
+  <span id="sbSaved" class="grow"></span>
+  <span id="sbZoom"></span>
+  <span id="sbEol"></span>
+  <span id="sbEnc"></span>
+</footer>
+
+<div id="overlay"></div>
+<div id="menuLayer"></div>
+<div id="toastBox"></div>
+<input type="file" id="pickImage" accept="image/*" hidden>
+<input type="file" id="pickCamera" accept="image/*" capture="environment" hidden>
+<!-- 진짜 파일 창이 없는 브라우저(폰 등)에서 쓰는 열기: txt와 짝꿍 파일을 함께 고를 수 있음 -->
+<input type="file" id="pickOpen" accept=".txt,.pitex,text/plain" multiple hidden>
+
+<script>
+/* ════════════════════════════════════════════════
+   pitex 2단계
+   - 글은 contenteditable(폰 기본 글자판·한글 입력을 그대로 씀)
+   - 그림 상자는 그 문단의 맨 앞에 붙는 "편집 안 되는 조각" → 글을 고쳐도 문단을 따라 움직임
+   - A4 종이: 한 페이지 = 정해진 줄 수. 그림 상자 높이도 줄 높이에 맞춰 페이지가 줄 사이에서 나뉨
+   - 파일: Edge·Chrome(PC)에서는 진짜 파일 열기·저장, 그 밖에서는 내려받기
+   ════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const root = document.documentElement;
+const ed = $('editor'), paper = $('paper'), desk = $('desk'), sizer = $('sizer'), drawLayer = $('draw'), bar = $('boxbar');
+const images = new Map();          // 상자 번호 → { url(화면용 주소), data(저장용 글자 그림), name(파일 이름) }
+let selBox = null;                 // 지금 고른 그림 상자
+let boxMode = false;               // '그림 상자' 그리기 켜짐?
+const IS_WIN = /Windows/i.test(navigator.userAgent);
+const DEFAULT_EOL = IS_WIN ? 'CRLF' : 'LF';           // Windows판은 CR LF가 기본 (수정사항 7)
+let fileInfo = { enc: 'UTF-8', eol: DEFAULT_EOL };   // 지금 글의 인코딩·줄 끝 방식 (저장할 때 그대로 지킴)
+let seq = 0;                       // 상자 번호를 붙이는 일련번호
+const newId = () => 'b' + Date.now().toString(36) + (++seq);
+try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (_) {} // Enter = 새 문단(<p>)
+
+/* ════════════════════════════════════════════════
+   0. 언어 (한국어 글자를 열쇠로, 다른 언어 번역을 찾아 씀)
+   ════════════════════════════════════════════════ */
+const LANGS = [                                    // smartDir과 같은 언어 + 중국어 번체 (아랍어는 나중에)
+  ['ko', '한국어'], ['en', 'English'], ['ja', '日本語'], ['zh', '中文(简体)'], ['zh-TW', '中文(繁體)'],
+  ['vi', 'Tiếng Việt'], ['de', 'Deutsch'], ['fr', 'Français'], ['pt', 'Português'], ['es', 'Español'],
+];
+let LANG = 'ko';
+const I18N = {};                   // 번역은 맨 아래 번역표(ROWS)에서 채움
+const t = s => (LANG !== 'ko' && I18N[LANG] && I18N[LANG][s]) || s;                 // 번역 1개
+const tf = (s, ...a) => t(s).replace(/\{(\d)\}/g, (_, i) => a[i]);                  // {0}{1} 자리에 값 넣기
+
+/* ── 작은 도구들 ── */
+function h(tag, text, cls) { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; }
+function btn(label, fn, cls) { const b = h('button', label, 'btn' + (cls ? ' ' + cls : '')); b.type = 'button'; b.onclick = fn; return b; }
+let toastT;
+function toast(msg, ms) { const box = $('toastBox'); box.innerHTML = ''; box.append(h('div', msg, 'toast')); clearTimeout(toastT); toastT = setTimeout(() => box.innerHTML = '', ms || 2600); }
+function openSheet(fill) {                          // 아래에서 올라오는 창
+  const ov = $('overlay'); ov.innerHTML = '';
+  const dim = h('div', '', 'dim'); dim.onclick = closeSheet;
+  const sh = h('div', '', 'sheet'); sh.setAttribute('role', 'dialog');
+  fill(sh); ov.append(dim, sh);
+  return sh;
+}
+function closeSheet() { $('overlay').innerHTML = ''; }
+const store = {                                     // 브라우저 보관함 (실패해도 앱은 동작)
+  get: k => { try { return localStorage.getItem('pitex.' + k); } catch (_) { return null; } },
+  set: (k, v) => { try { localStorage.setItem('pitex.' + k, v); return true; } catch (_) { return false; } },
+};
+const docName = () => ($('docName').value.trim() || t('제목 없음'));
+
+/* ════════════════════════════════════════════════
+   1. 설정값 (글꼴·스타일·크기·자동 줄 바꿈·화면·언어)
+   ════════════════════════════════════════════════ */
+const prefs = { theme: 'light', font: 'Malgun Gothic', style: 'Regular', size: 11, wrap: true, lang: 'ko' };
+try { Object.assign(prefs, JSON.parse(store.get('prefs2') || '{}')); } catch (_) {}
+if (prefs.theme !== 'dark') prefs.theme = 'light';                 // '자동'은 없앰 → 밝게가 기본 (수정사항 4)
+const STYLES = ['Regular', 'Italic', 'Bold', 'Bold Italic'];          // 메모장과 같은 4가지
+const PT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];   // 글자 크기 (pt)
+function savePrefs() { store.set('prefs2', JSON.stringify(prefs)); applyPrefs(); }
+function applyPrefs() {
+  root.setAttribute('data-theme', prefs.theme);
+  $('themeBtn').setAttribute('aria-pressed', prefs.theme === 'dark');
+  root.style.setProperty('--font-text', `"${prefs.font}", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif`);
+  root.style.setProperty('--text-weight', /Bold/.test(prefs.style) ? 700 : 400);
+  root.style.setProperty('--text-style', /Italic/.test(prefs.style) ? 'italic' : 'normal');
+  document.body.classList.toggle('nowrap', !prefs.wrap);
+  if (LANG !== prefs.lang) { LANG = prefs.lang; applyLang(); }
+  geometry(); allBoxes().forEach(sizeBox); layoutSoon(); placeBar();
+}
+/* 달 단추: 누를 때마다 밝게 ↔ 다크 */
+$('themeBtn').onclick = () => { prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark'; savePrefs(); };
+
+/* ════════════════════════════════════════════════
+   2. A4 종이와 페이지 나누기 (수정사항 8·9·10)
+   한 줄 높이 = 글자 크기 × 1.7  →  한 페이지 = (A4 높이 − 위아래 여백) 안에 들어가는 줄 수
+   ════════════════════════════════════════════════ */
+const A4W = 794, A4H = 1123, MARGIN = 76, BOXM = 6;   // A4 = 794×1123점(96dpi), 여백 20mm = 76점, 상자 아래 간격 6점
+let lineH = 25, perPage = 38, pageH = 950, pages = 1, Z = 1;   // Z = 화면 확대 배율
+const ZOOMS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+function geometry() {
+  const px = prefs.size * 4 / 3;                    // pt → 화면 점(px)
+  lineH = Math.round(px * 1.7);
+  perPage = Math.max(1, Math.floor((A4H - 2 * MARGIN) / lineH));
+  pageH = perPage * lineH;
+  root.style.setProperty('--text-size', px + 'px');
+  root.style.setProperty('--line-h', lineH + 'px');
+}
+let layoutQueued = false;
+function layoutSoon() { if (!layoutQueued) { layoutQueued = true; requestAnimationFrame(() => { layoutQueued = false; layoutPages(); }); } }
+function layoutPages() {
+  const ps = paras(), last = ps[ps.length - 1];
+  const contentH = last ? last.offsetTop + last.offsetHeight - MARGIN : lineH;   // 글이 차지한 높이
+  pages = Math.max(1, Math.ceil((contentH - 1) / pageH));
+  ed.style.minHeight = (2 * MARGIN + pages * pageH) + 'px';                       // 마지막 페이지도 끝까지 종이로
+  const br = $('breaks'); br.innerHTML = '';                                      // 페이지 사이 띠 다시 그리기
+  for (let k = 1; k < pages; k++) { const d = h('div', '', 'pb'); d.style.top = (MARGIN + k * pageH - 3) + 'px'; br.append(d); }
+  paper.style.transform = Z === 1 ? '' : `scale(${Z})`;
+  sizer.style.width = (paper.offsetWidth * Z + 32) + 'px';
+  sizer.style.height = (paper.offsetHeight * Z + 32) + 'px';
+  // 1페이지이고 옆으로도 다 들어가면 수직 막대를 숨김 → 다음 페이지로 넘어가면 막대가 생김
+  desk.classList.toggle('quiet', pages === 1 && sizer.offsetWidth <= desk.clientWidth);
+  status();
+}
+window.addEventListener('resize', () => { layoutSoon(); placeBar(); });
+/* 화면 점(마우스 위치) → 종이 안 좌표 (확대·축소를 되돌려 계산) */
+function local(e) { const r = paper.getBoundingClientRect(); return { x: (e.clientX - r.left) / Z, y: (e.clientY - r.top) / Z }; }
+const contentW = () => paper.offsetWidth - 2 * MARGIN;   // 글이 들어가는 폭
+
+/* ════════════════════════════════════════════════
+   3. 그림 상자 만들기
+   ════════════════════════════════════════════════ */
+const X_SVG = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" stroke-opacity=".35" stroke-width="1" vector-effect="non-scaling-stroke"/><line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" stroke-opacity=".35" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>';
+/* b = { id, side('left'|'right'|'full'), w(글 폭에 대한 비율 0~1), h(높이 px), fit('cover'|'contain') } */
+function makeBox(b) {
+  const f = document.createElement('span');   // span: 문단(<p>) 안에 들어갈 수 있는 조각
+  f.className = 'box'; f.contentEditable = 'false';   // 상자 안은 글자처럼 고쳐지지 않음
+  f.dataset.id = b.id; f.dataset.side = b.side; f.dataset.fit = b.fit || 'cover';
+  f.dataset.w = b.w; f.dataset.h = b.h;
+  sizeBox(f); fillBox(f);
+  return f;
+}
+function sizeBox(f) {                                 // 데이터(비율·높이)대로 크기 맞추기
+  f.style.width = f.dataset.side === 'full' ? '100%' : (Math.round(f.dataset.w * 1000) / 10) + '%';
+  const k = Math.max(2, Math.round((+f.dataset.h + BOXM) / lineH));   // 상자+아래 간격이 줄 높이의 정수배가 되게
+  f.style.height = (k * lineH - BOXM) + 'px';
+}
+function fillBox(f) {                                 // 그림이 있으면 그림, 없으면 X 표시
+  const im = images.get(f.dataset.id);
+  f.innerHTML = im ? '' : '<span class="ph">' + X_SVG + '<b>✕</b></span>';
+  if (im) { const img = document.createElement('img'); img.src = im.url; img.alt = im.name; img.draggable = false; f.append(img); }
+  f.append(h('span', '', 'grip'));                    // 오른쪽 아래 동그라미: 끌어서 크기 바꾸기
+}
+const allBoxes = () => [...ed.querySelectorAll('.box')];
+const paras = () => [...ed.children].filter(n => n.tagName === 'P');
+
+/* ════════════════════════════════════════════════
+   4. 글 ↔ 저장 내용 (글은 txt, 상자는 짝꿍 파일)
+   ════════════════════════════════════════════════ */
+/* 화면 → 저장할 내용: 문단마다 한 줄, 상자는 "몇 번째 문단에 붙었는지 + 그 문단 앞부분 글"로 기억 */
+function toModel() {
+  const lines = [], boxes = [];
+  paras().forEach((p, i) => {
+    const c = p.cloneNode(true); c.querySelectorAll('.box').forEach(x => x.remove());
+    const tx = c.textContent.replace(/​/g, '');   // 순수 글자만
+    lines.push(tx);
+    p.querySelectorAll('.box').forEach(f => {
+      const im = images.get(f.dataset.id);
+      boxes.push({ id: f.dataset.id, para: i, paraText: tx.slice(0, 30), side: f.dataset.side,
+        w: +(+f.dataset.w).toFixed(3), h: +f.dataset.h, fit: f.dataset.fit, image: im ? 'images/' + im.name : null });
+    });
+  });
+  return { text: lines.join('\n'), boxes };
+}
+/* 저장된 내용 → 화면: 줄마다 문단을 만들고, 상자를 그 문단 맨 앞에 붙임 */
+function fromModel(text, boxes) {
+  ed.innerHTML = '';
+  text.split('\n').forEach(tx => { const p = document.createElement('p'); if (tx) p.textContent = tx; else p.append(document.createElement('br')); ed.append(p); });
+  const ps = paras();
+  (boxes || []).forEach(b => {
+    let p = ps[b.para];
+    // 다른 메모장에서 글을 고쳐 문단 위치가 바뀌었으면 → 기억해 둔 앞부분 글로 가장 비슷한 문단을 찾아 붙임
+    if (b.paraText && (!p || !p.textContent.startsWith(b.paraText))) {
+      const found = ps.find(q => q.textContent.startsWith(b.paraText));
+      if (found) p = found;
+    }
+    p = p || ps[ps.length - 1];
+    p.insertBefore(makeBox(b), p.firstChild);
+  });
+  ensureShape(); layoutSoon();
+}
+/* 글자판·붙여넣기 뒤에 문단 모양이 흐트러지면 바로잡기 (모든 줄이 <p> 하나씩이 되게) */
+function ensureShape() {
+  [...ed.childNodes].forEach(n => {
+    if (n.nodeType === 1 && n.tagName === 'P') return;
+    if (n.nodeType === 3 && !n.textContent.trim()) { n.remove(); return; }
+    const p = document.createElement('p');
+    if (n.nodeType === 1 && n.tagName === 'DIV') { while (n.firstChild) p.append(n.firstChild); n.replaceWith(p); }
+    else if (n.nodeType === 1 && n.tagName === 'BR') { p.append(document.createElement('br')); n.replaceWith(p); }
+    else { n.replaceWith(p); p.append(n); }
+  });
+  if (!ed.firstChild) { const p = document.createElement('p'); p.append(document.createElement('br')); ed.append(p); }
+}
+
+/* ════════════════════════════════════════════════
+   5. 상태 표시줄 · 자동 보관(이 브라우저에)
+   ════════════════════════════════════════════════ */
+let saveT = null, fileSaved = true, curPage = 1;
+function status() {
+  const m = toModel();
+  const chars = m.text.replace(/\n/g, '').length;
+  const empty = m.boxes.filter(b => !b.image).length;
+  $('sbPage').textContent = tf('페이지 {0} / {1}', Math.min(curPage, pages), pages);
+  $('sbChars').textContent = tf('글 {0}자', chars.toLocaleString());
+  $('sbBoxes').textContent = tf('그림 상자 {0}', m.boxes.length) + (empty ? ' ' + tf('(빈 상자 {0})', empty) : '');
+  $('sbSaved').textContent = fileSaved ? t('저장됨') : t('저장 안 됨');
+  $('dirty').hidden = fileSaved;
+  $('sbEol').textContent = fileInfo.eol === 'CRLF' ? 'Windows (CR LF)' : 'Unix (LF)';
+  $('sbEnc').textContent = fileInfo.enc;
+  $('sbZoom').textContent = Math.round(Z * 100) + '%';
+}
+function changed() {                                  // 무언가 바뀔 때마다: 표시 + 1초 뒤 브라우저에 보관
+  fileSaved = false; layoutSoon();
+  clearTimeout(saveT); saveT = setTimeout(autosave, 1000);
+}
+function autosave() {                                 // 앱이 갑자기 꺼져도 글을 잃지 않게 이 브라우저에 보관
+  const m = toModel();
+  const imgs = {}; images.forEach((v, k) => { if (m.boxes.some(b => b.id === k)) imgs[k] = { name: v.name, data: v.data }; });
+  let ok = store.set('doc', JSON.stringify({ name: $('docName').value, text: m.text, boxes: m.boxes, images: imgs, fileInfo }));
+  if (!ok) store.set('doc', JSON.stringify({ name: $('docName').value, text: m.text, boxes: m.boxes, images: {}, fileInfo })); // 그림이 너무 크면 글·상자만
+}
+window.addEventListener('beforeunload', e => {        // 파일로 저장하지 않은 글이 있으면 닫기 전에 물어봄
+  if (!fileSaved && toModel().text.trim()) { e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ════════════════════════════════════════════════
+   6. 실행 취소 · 다시 실행 (글과 그림 상자 모두)
+   화면 모습을 통째로 찍어 두었다가 되돌림. 글은 0.5초 쉬면 한 번, 상자는 바뀔 때마다 바로 찍음
+   ════════════════════════════════════════════════ */
+const hist = []; let hi = -1, histT = null;
+function snap() {
+  clearTimeout(histT); histT = null;
+  const s = ed.innerHTML;
+  if (hist[hi] === s) return;
+  hist.splice(hi + 1); hist.push(s); if (hist.length > 100) hist.shift();
+  hi = hist.length - 1; undoState();
+}
+function undoState() { $('undoBtn').disabled = hi <= 0; $('redoBtn').disabled = hi >= hist.length - 1; }
+function goHist(d) {
+  if (histT) snap();                                  // 아직 찍지 않은 글 변화가 있으면 먼저 찍음
+  const j = hi + d; if (j < 0 || j >= hist.length) return;
+  hi = j; ed.innerHTML = hist[hi];
+  ed.querySelectorAll('.box').forEach(f => { f.classList.remove('sel', 'lifting'); sizeBox(f); });
+  selBox = null; selectBox(null); undoState(); changed();
+}
+$('undoBtn').onclick = () => goHist(-1);
+$('redoBtn').onclick = () => goHist(1);
+ed.addEventListener('beforeinput', e => {             // 폰·PC의 기본 실행 취소 대신 pitex의 것을 씀
+  if (e.inputType === 'historyUndo') { e.preventDefault(); goHist(-1); }
+  if (e.inputType === 'historyRedo') { e.preventDefault(); goHist(1); }
+});
+ed.addEventListener('input', () => {
+  ensureShape();
+  clearTimeout(histT); histT = setTimeout(snap, 500);
+  changed(); placeBar();
+});
+/* 붙여넣기: 글자만 받음 (다른 곳의 색·글꼴이 섞여 들어오지 않게). 여러 줄이면 줄마다 문단 */
+ed.addEventListener('paste', e => {
+  e.preventDefault();
+  const tx = (e.clipboardData || window.clipboardData).getData('text/plain').replace(/\r\n?/g, '\n');
+  tx.split('\n').forEach((line, i) => { if (i) document.execCommand('insertParagraph'); if (line) document.execCommand('insertText', false, line); });
+});
+
+/* ════════════════════════════════════════════════
+   7. 그림 상자 그리기 (탭 → 대각선으로 끌기 → X 상자)
+   ════════════════════════════════════════════════ */
+function setBoxMode(on) {
+  boxMode = on; drawLayer.hidden = !on; $('drawHint').hidden = !on;
+  $('boxBtn').classList.toggle('on', on);
+  if (on) { toast(t('그림 상자 그리기: 대각선으로 끌어 보세요.')); selectBox(null); }
+}
+$('boxBtn').onclick = () => setBoxMode(!boxMode);
+let dr = null;                                        // 그리는 중인 상자 { x0, y0, el, lab }
+drawLayer.addEventListener('pointerdown', e => {
+  const p = local(e);
+  dr = { x0: p.x, y0: p.y, el: h('div', '', 'rect'), lab: h('div', '', 'size') };
+  drawLayer.append(dr.el, dr.lab);
+  try { drawLayer.setPointerCapture(e.pointerId); } catch (_) {}
+  e.preventDefault();
+});
+drawLayer.addEventListener('pointermove', e => {
+  if (!dr) return;
+  const { x, y } = local(e);
+  dr.x = Math.min(dr.x0, x); dr.y = Math.min(dr.y0, y); dr.w = Math.abs(x - dr.x0); dr.h = Math.abs(y - dr.y0);
+  Object.assign(dr.el.style, { left: dr.x + 'px', top: dr.y + 'px', width: dr.w + 'px', height: dr.h + 'px' });
+  Object.assign(dr.lab.style, { left: dr.x + 'px', top: (dr.y + dr.h) + 'px' });
+  dr.lab.textContent = '↘ ' + t('끌어서 크기 정하기') + ' · ' + Math.round(dr.w) + '×' + Math.round(dr.h);
+});
+drawLayer.addEventListener('pointerup', () => {
+  if (!dr) return;
+  const d = dr; dr = null; drawLayer.innerHTML = '';
+  if (!d.w || d.w < 40 || d.h < 30) return toast(t('조금 더 크게 끌어 주세요.'));
+  addBoxAt(d.x, d.y, d.w, d.h);
+  setBoxMode(false);
+});
+drawLayer.addEventListener('pointercancel', () => { dr = null; drawLayer.innerHTML = ''; });
+
+/* 위치(종이 안 높이)에 맞는 문단 찾기: 그 높이에 있는 문단, 글 아래 빈 곳이면 새 문단을 만듦 */
+function paraAt(y) {
+  const ps = paras();
+  let best = ps[0];
+  for (const p of ps) { if (p.offsetTop <= y + 4) best = p; }
+  const last = ps[ps.length - 1];
+  if (last && y > last.offsetTop + last.offsetHeight + 24) {   // 글 아래 빈 곳에 그렸으면
+    const p = document.createElement('p'); p.append(document.createElement('br')); ed.append(p); best = p;
+  }
+  return best;
+}
+/* 좌우 위치로 붙을 쪽 정하기 (스냅): 넓으면 전체 폭, 아니면 가까운 쪽 */
+function sideFor(x, w) {
+  const W = contentW(), cx = x - MARGIN;
+  if (w > W * 0.7) return 'full';
+  return cx + w / 2 < W / 2 ? 'left' : 'right';
+}
+function addBoxAt(x, y, w, hgt) {
+  const b = { id: newId(), side: sideFor(x, w), w: Math.min(0.95, Math.max(0.3, w / contentW())), h: Math.round(Math.min(600, Math.max(60, hgt))), fit: 'cover' };
+  const p = paraAt(y), f = makeBox(b);
+  p.insertBefore(f, p.firstChild);
+  snap(); changed(); selectBox(f);
+  toast(t('그림 자리가 생겼습니다. 상자를 누르면 그림을 넣습니다.'));
+}
+
+/* ════════════════════════════════════════════════
+   8. 상자 고르기 · 옮기기(끌기) · 크기 바꾸기
+   ════════════════════════════════════════════════ */
+function selectBox(f) {
+  if (selBox) selBox.classList.remove('sel');
+  selBox = f;
+  if (f) f.classList.add('sel');
+  placeBar();
+}
+function placeBar() {                                 // 고른 상자 아래에 단추 줄
+  if (!selBox || !ed.contains(selBox)) { bar.hidden = true; selBox = null; return; }
+  bar.innerHTML = '';
+  const side = selBox.dataset.side, fit = selBox.dataset.fit, has = images.has(selBox.dataset.id);
+  const sideBtn = (s, label) => { const b = btn(t(label), () => setSide(s)); b.className = side === s ? 'on' : ''; return b; };
+  bar.append(sideBtn('left', '왼쪽'), sideBtn('right', '오른쪽'), sideBtn('full', '전체 폭'),
+    btn(has ? t('그림 바꾸기') : t('그림 넣기'), () => pictureSheet(selBox)),
+    ...(has ? [btn(fit === 'cover' ? t('다 보이게') : t('꽉 차게'), () => setFit(fit === 'cover' ? 'contain' : 'cover'))] : []),
+    btn(t('삭제'), removeBox, 'danger'));
+  bar.hidden = false;
+  const pr = paper.getBoundingClientRect(), r = selBox.getBoundingClientRect();
+  bar.style.top = ((r.bottom - pr.top) / Z + 12) + 'px';
+  bar.style.left = Math.max(6, Math.min((r.left - pr.left) / Z, paper.offsetWidth - bar.offsetWidth - 6)) + 'px';
+}
+function setSide(s) { selBox.dataset.side = s; sizeBox(selBox); snap(); changed(); placeBar(); }
+function setFit(v) { selBox.dataset.fit = v; snap(); changed(); placeBar(); }
+function removeBox() { const f = selBox; selectBox(null); f.remove(); snap(); changed(); toast(t('그림 상자를 지웠습니다. ↶로 되돌릴 수 있습니다.')); }
+
+/* 상자를 누르기 / 끌기 / 오른쪽 아래 동그라미로 크기 바꾸기 */
+let mv = null;                                        // 움직이는 중 { f, kind:'move'|'size', sx, sy, w0, h0, ghost }
+ed.addEventListener('pointerdown', e => {
+  const f = e.target.closest('.box'); if (!f) return;
+  e.preventDefault();                                 // 상자를 누를 때 글자판이 뜨지 않게
+  const r = f.getBoundingClientRect();
+  mv = { f, kind: e.target.classList.contains('grip') ? 'size' : 'move', sx: e.clientX, sy: e.clientY, w0: r.width, h0: r.height, moved: false, wasSel: f === selBox };
+  try { f.setPointerCapture(e.pointerId); } catch (_) {}
+});
+ed.addEventListener('pointermove', e => {
+  if (!mv) return;
+  const dx = e.clientX - mv.sx, dy = e.clientY - mv.sy;
+  if (!mv.moved && Math.hypot(dx, dy) < 8) return;   // 손가락이 조금 흔들린 것은 '누르기'로 봄
+  if (!mv.wasSel && mv.kind === 'move' && !mv.moved) { mv.f = null; }  // 고르지 않은 상자는 먼저 눌러 고른 뒤에 끔
+  if (!mv.f) return;
+  mv.moved = true;
+  if (mv.kind === 'size') {                           // 크기 바꾸기 (화면 배율을 되돌려 계산)
+    if (mv.f.dataset.side !== 'full') mv.f.dataset.w = Math.min(0.95, Math.max(0.25, (mv.w0 + dx) / Z / contentW()));
+    mv.f.dataset.h = Math.round(Math.min(600, Math.max(40, (mv.h0 + dy) / Z)));
+    sizeBox(mv.f); placeBar();
+  } else {                                            // 옮기기: 손가락을 따라오는 점선 상자
+    if (!mv.ghost) { mv.ghost = h('div'); mv.ghost.id = 'ghost'; document.body.append(mv.ghost); mv.f.classList.add('lifting'); bar.hidden = true; }
+    Object.assign(mv.ghost.style, { left: (e.clientX - mv.w0 / 2) + 'px', top: (e.clientY - 20) + 'px', width: mv.w0 + 'px', height: mv.h0 + 'px' });
+  }
+});
+ed.addEventListener('pointerup', e => {
+  if (!mv) return;
+  const m = mv; mv = null;
+  if (!m.f) return;
+  if (!m.moved) {                                     // 그냥 누름
+    if (!images.has(m.f.dataset.id)) { selectBox(m.f); pictureSheet(m.f); }   // 빈 상자 → 그림 넣기
+    else selectBox(m.f);
+    return;
+  }
+  if (m.kind === 'size') { snap(); changed(); return; }
+  m.ghost && m.ghost.remove(); m.f.classList.remove('lifting');
+  const { x, y } = local(e), W = contentW(), cx = x - MARGIN;
+  m.f.dataset.side = cx < W * 0.35 ? 'left' : cx > W * 0.65 ? 'right' : 'full';   // 놓은 곳에서 가까운 쪽에 붙음
+  sizeBox(m.f);
+  const p = paraAt(y);
+  p.insertBefore(m.f, p.firstChild);
+  snap(); changed(); selectBox(m.f);
+});
+ed.addEventListener('pointercancel', () => { if (mv && mv.ghost) { mv.ghost.remove(); mv.f.classList.remove('lifting'); } mv = null; });
+ed.addEventListener('click', e => { if (!e.target.closest('.box')) selectBox(null); });
+
+/* ════════════════════════════════════════════════
+   9. 그림 불러오기 (갤러리 · 파일 · 카메라) + 상자에 맞추는 방법
+   ════════════════════════════════════════════════ */
+let target = null, pickFit = 'cover';
+function pictureSheet(f) {
+  target = f; pickFit = f.dataset.fit || 'cover';
+  openSheet(sh => {
+    sh.append(h('h2', t('그림 불러오기')));
+    const src = h('div', '', 'row');
+    src.append(btn('🖼 ' + t('갤러리'), () => $('pickImage').click()), btn('📁 ' + t('파일'), () => $('pickImage').click()), btn('📷 ' + t('카메라'), () => $('pickCamera').click()));
+    sh.append(src, h('h3', t('상자에 맞추는 방법 (fit in box)')));
+    const fp = h('div', '', 'fitpick');
+    const sample = samplePic('sky');
+    [['cover', '꽉 차게 (가장자리 잘림)'], ['contain', '다 보이게 (여백 생김)']].forEach(([v, label]) => {
+      const b = h('button'); b.type = 'button'; if (v === pickFit) b.classList.add('on');
+      const pv = h('div', '', 'pv'); const im = document.createElement('img'); im.src = sample; im.alt = ''; im.style.objectFit = v; pv.append(im);
+      b.append(pv, h('span', t(label)));
+      b.onclick = () => { pickFit = v; fp.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); };
+      fp.append(b);
+    });
+    sh.append(fp, h('p', t('상자 크기는 그대로 두고, 그림을 상자에 맞춥니다.')), btn(t('닫기'), closeSheet));
+  });
+}
+['pickImage', 'pickCamera'].forEach(id => $(id).addEventListener('change', async e => {
+  const file = e.target.files && e.target.files[0]; e.target.value = '';
+  if (!file || !target) return;
+  closeSheet(); toast(t('그림을 맞추는 중…'));
+  try {
+    const { url, data } = await shrink(file);         // 큰 사진은 줄여서 (폰 사진 5MB → 수백 KB)
+    images.set(target.dataset.id, { url, data, name: uniqName(file.name || 'picture.jpg') });
+    target.dataset.fit = pickFit; fillBox(target);
+    snap(); changed(); selectBox(target); toast(t('그림을 넣었습니다.'));
+  } catch (_) { toast(t('이 그림을 읽지 못했습니다. 다른 그림을 골라 주세요.')); }
+}));
+function uniqName(n) {                                // 짝꿍 파일 안에서 그림 이름이 겹치지 않게
+  n = n.replace(/[\\/:*?"<>|]/g, '_').replace(/\.[^.]+$/, '') + '.jpg';
+  const used = new Set([...images.values()].map(v => v.name));
+  if (!used.has(n)) return n;
+  const b = n.slice(0, -4); let i = 2; while (used.has(`${b} (${i}).jpg`)) i++; return `${b} (${i}).jpg`;
+}
+/* 사진을 긴 쪽 1600점까지 줄이고 JPG로 (화면용 주소 + 저장용 글자 그림) */
+function shrink(file) {
+  return new Promise((ok, no) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+      const data = c.toDataURL('image/jpeg', .85);
+      ok({ url: data, data });
+    };
+    img.onerror = no; img.src = u;
+  });
+}
+/* 예시 그림 (실제 사진 대신 그린 풍경) */
+function samplePic(kind) {
+  const c = document.createElement('canvas'); c.width = 640; c.height = 420; const g = c.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, 420);
+  if (kind === 'dusk') { sky.addColorStop(0, '#f6b49a'); sky.addColorStop(1, '#c792c9'); } else { sky.addColorStop(0, '#7ab8f5'); sky.addColorStop(1, '#cfe6fb'); }
+  g.fillStyle = sky; g.fillRect(0, 0, 640, 420);
+  g.fillStyle = kind === 'dusk' ? '#a6e3f5' : '#ffd95a'; g.beginPath(); g.arc(kind === 'dusk' ? 420 : 470, kind === 'dusk' ? 170 : 110, kind === 'dusk' ? 95 : 55, 0, 7); g.fill();
+  g.fillStyle = kind === 'dusk' ? '#a77bbd' : '#4f9a5c'; g.fillRect(0, 250, 640, 170);
+  g.fillStyle = kind === 'dusk' ? '#8a5fa3' : '#2f7343';
+  [[60, 420, 260, 250], [300, 420, 520, 250]].forEach(([a, b, c2, d]) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c2, d); g.lineTo(c2 + 110, d); g.lineTo(a + 110, b); g.fill(); });
+  return c.toDataURL('image/jpeg', .85);
+}
+
+/* ════════════════════════════════════════════════
+   10. 글자 방식(인코딩) 읽기·쓰기
+   ════════════════════════════════════════════════ */
+/* txt 파일 → 글자: 앞머리 표시(BOM)를 보고, 없으면 UTF-8로 읽어 보고, 깨지면 EUC-KR(옛 한글)로 */
+function decodeTxt(buf) {
+  const b = new Uint8Array(buf); let enc = 'UTF-8', text;
+  if (b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) { text = new TextDecoder('utf-8').decode(b.subarray(3)); enc = 'UTF-8 BOM'; }
+  else if (b[0] === 0xFF && b[1] === 0xFE) { text = new TextDecoder('utf-16le').decode(b.subarray(2)); enc = 'UTF-16'; }
+  else if (b[0] === 0xFE && b[1] === 0xFF) { text = new TextDecoder('utf-16be').decode(b.subarray(2)); enc = 'UTF-16'; }
+  else { try { text = new TextDecoder('utf-8', { fatal: true }).decode(b); } catch (_) { text = new TextDecoder('euc-kr').decode(b); enc = 'EUC-KR'; } }
+  const eol = /\r\n/.test(text) ? 'CRLF' : (/\n/.test(text) ? 'LF' : DEFAULT_EOL);   // 줄 끝 방식도 알아냄
+  return { text: text.replace(/\r\n?/g, '\n'), info: { enc, eol } };
+}
+/* 글자 → txt 파일 바이트: 고른 인코딩·줄 끝대로. lost = EUC-KR로 바꿀 수 없어 ?가 된 글자 수 */
+let eucMap = null;
+function encodeTxt(text, info) {
+  const s = info.eol === 'CRLF' ? text.replace(/\n/g, '\r\n') : text;
+  if (info.enc === 'UTF-16') {                        // 앞머리 FF FE + 글자마다 2바이트
+    const out = new Uint8Array(2 + s.length * 2); out[0] = 0xFF; out[1] = 0xFE;
+    for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); out[2 + i * 2] = c & 255; out[3 + i * 2] = c >> 8; }
+    return { bytes: out, lost: 0 };
+  }
+  if (info.enc === 'EUC-KR') {                        // 브라우저는 EUC-KR로 쓰는 기능이 없어 읽기 표를 거꾸로 만들어 씀
+    if (!eucMap) {
+      eucMap = new Map(); const d = new TextDecoder('euc-kr');
+      for (let a = 0x81; a <= 0xFE; a++) for (let c = 0x41; c <= 0xFE; c++) {
+        const ch = d.decode(new Uint8Array([a, c])); if (ch.length === 1 && ch !== '�' && !eucMap.has(ch)) eucMap.set(ch, [a, c]);
+      }
+    }
+    const out = []; let lost = 0;
+    for (const ch of s) { const c = ch.codePointAt(0); if (c < 0x80) out.push(c); else { const m = eucMap.get(ch); if (m) out.push(m[0], m[1]); else { out.push(0x3F); lost++; } } }
+    return { bytes: new Uint8Array(out), lost };
+  }
+  const u = new TextEncoder().encode(s);
+  if (info.enc === 'UTF-8 BOM') { const out = new Uint8Array(u.length + 3); out.set([0xEF, 0xBB, 0xBF]); out.set(u, 3); return { bytes: out, lost: 0 }; }
+  return { bytes: u, lost: 0 };
+}
+/* 짝꿍 파일(.txtx.pitex) 내용 / 묶음 파일(.pitex) 내용 */
+function layerJson(withText) {
+  const m = toModel(), imgs = {};
+  m.boxes.forEach(b => { const im = images.get(b.id); if (im) imgs[b.id] = { name: im.name, data: im.data }; });
+  const o = { format: withText ? 'pitex-bundle' : 'pitex-layer', version: 2, boxes: m.boxes, images: imgs };
+  if (withText) Object.assign(o, { name: docName(), text: m.text, enc: fileInfo.enc, eol: fileInfo.eol });   // 묶음: 글까지 한 파일에
+  return JSON.stringify(o);
+}
+
+/* ════════════════════════════════════════════════
+   11. 진짜 파일 열기 · 저장 (수정사항 1·2)
+   Edge·Chrome(PC): 파일 창을 쓰고, 마지막에 쓴 폴더를 기억함 (id: 'pitex')
+   그 밖(폰 브라우저 등): 고르기 + 내려받기
+   ════════════════════════════════════════════════ */
+const hasFS = 'showOpenFilePicker' in window;
+let handles = { txt: null, layer: null };             // 지금 열려 있는 진짜 파일 (txt, 짝꿍)
+const T_TXT = () => ({ description: t('텍스트 문서'), accept: { 'text/plain': ['.txt'] } });
+const T_PIT = () => ({ description: t('pitex 파일'), accept: { 'application/x-pitex': ['.pitex'] } });
+async function writeHandle(hd, data) { const w = await hd.createWritable(); await w.write(data); await w.close(); }
+function download(data, name, type) {                 // 내려받기 (진짜 파일 창이 없을 때)
+  const a = document.createElement('a'); a.href = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type }));
+  a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+/* 보내기용 저장: 파일 창(마지막 폴더) 또는 내려받기 */
+async function saveBlob(blob, name, type) {
+  if (!hasFS) { download(blob, name); return true; }
+  try { const hd = await showSaveFilePicker({ id: 'pitex', suggestedName: name, types: [type] }); await writeHandle(hd, blob); return true; }
+  catch (e) { if (e.name !== 'AbortError') toast(t('저장하지 못했습니다.') + ' ' + e.message); return false; }
+}
+
+/* 열기: txt와 짝꿍 파일(.txtx.pitex)을 함께 고를 수 있음 — Ctrl을 누르고 둘 다 고르면 그림까지 */
+async function openDialog() {
+  if (!hasFS) return $('pickOpen').click();
+  let hs; try { hs = await showOpenFilePicker({ id: 'pitex', multiple: true, types: [{ description: t('pitex 문서 (txt · pitex)'), accept: { 'text/plain': ['.txt'], 'application/x-pitex': ['.pitex'] } }] }); }
+  catch (_) { return; }                               // 취소
+  await openFiles(await Promise.all(hs.map(async hd => ({ handle: hd, file: await hd.getFile() }))));
+}
+$('pickOpen').addEventListener('change', async e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) await openFiles(fs.map(f => ({ handle: null, file: f }))); });
+let openTipShown = false;
+async function openFiles(list) {
+  const txt = list.find(x => /\.txt$/i.test(x.file.name));
+  const pit = list.find(x => /\.pitex$/i.test(x.file.name));
+  if (!txt && !pit) return toast(t('txt 또는 pitex 파일을 골라 주세요.'));
+  let layer = null;
+  if (pit) {
+    try { layer = JSON.parse(await pit.file.text()); } catch (_) { layer = null; }
+    if (!layer || !/^pitex/.test(layer.format || '')) return toast(t('pitex 파일을 읽지 못했습니다.'));
+  }
+  let text, info;
+  if (txt) ({ text, info } = decodeTxt(await txt.file.arrayBuffer()));
+  else if (typeof layer.text === 'string') { text = layer.text; info = { enc: layer.enc || 'UTF-8', eol: layer.eol || DEFAULT_EOL }; }   // 묶음 파일 하나만
+  else return toast(t('짝꿍 파일만으로는 열 수 없습니다. 같은 이름의 txt도 함께 골라 주세요.'), 4000);
+  if (fileSaved === false && toModel().text.trim() && !confirmDiscard()) return;
+  images.clear();
+  Object.entries((layer && layer.images) || {}).forEach(([id, v]) => { if (v && v.data) images.set(id, { url: v.data, data: v.data, name: v.name }); });
+  $('docName').value = (txt ? txt.file.name : pit.file.name).replace(/(\.txtx)?\.pitex$|\.txt$/i, ''); fitName();
+  fileInfo = info;
+  fromModel(text, (layer && layer.boxes) || []);
+  handles = { txt: txt ? txt.handle : null, layer: pit && layer.format === 'pitex-layer' ? pit.handle : null };
+  hist.length = 0; hi = -1; snap(); fileSaved = true; selectBox(null); layoutSoon(); desk.scrollTo(0, 0);
+  if (txt && !pit && !openTipShown) { openTipShown = true; toast(t('열었습니다. 그림까지 열려면 짝꿍 파일(.txtx.pitex)도 함께 고르세요.'), 4500); }
+  else toast(tf('열었습니다: {0}', docName()));
+}
+function confirmDiscard() { return window.confirm(t('저장하지 않은 글이 있습니다. 그래도 열까요?')); }
+
+/* 저장 (Ctrl+S): 열었던 파일에 그대로. 처음이면 '다른 이름으로 저장' */
+async function saveDoc() {
+  if (histT) snap(); autosave();
+  if (!hasFS) return downloadSave();
+  if (!handles.txt) return saveAs();
+  try { await writeBoth(); toast(tf('저장했습니다: {0}', handles.txt.name)); }
+  catch (e) { if (e.name !== 'AbortError') toast(t('저장하지 못했습니다.') + ' ' + e.message, 4000); }
+}
+async function writeBoth() {
+  const { bytes, lost } = encodeTxt(toModel().text, fileInfo);
+  await writeHandle(handles.txt, bytes);
+  const n = toModel().boxes.length;
+  if (n || handles.layer) {                           // 그림 상자가 있으면 짝꿍 파일도 (같은 폴더에서 시작)
+    if (!handles.layer) {
+      toast(t('그림 상자가 있어 짝꿍 파일도 저장합니다. 같은 폴더에 저장해 주세요.'), 4000);
+      handles.layer = await showSaveFilePicker({ suggestedName: handles.txt.name.replace(/\.txt$/i, '') + '.txtx.pitex', startIn: handles.txt, types: [T_PIT()] });
+    }
+    await writeHandle(handles.layer, layerJson(false));
+  }
+  fileSaved = true; status();
+  if (lost) toast(tf('EUC-KR로 바꿀 수 없는 글자 {0}개는 ?로 저장되었습니다.', lost), 4500);
+}
+/* 다른 이름으로 저장: 파일 창이 마지막에 쓴 폴더를 보여 줌 (수정사항 2) */
+async function saveAs() {
+  if (histT) snap();
+  if (!hasFS) return saveAsSheet();
+  try {
+    const hd = await showSaveFilePicker({ id: 'pitex', suggestedName: docName() + '.txt', types: [T_TXT()] });
+    handles = { txt: hd, layer: null };
+    $('docName').value = hd.name.replace(/\.txt$/i, ''); fitName();
+    await writeBoth(); toast(tf('저장했습니다: {0}', hd.name));
+  } catch (e) { if (e.name !== 'AbortError') toast(t('저장하지 못했습니다.') + ' ' + e.message, 4000); }
+}
+/* 파일 창이 없는 곳: 이름을 받아 내려받기 */
+function saveAsSheet() {
+  openSheet(sh => {
+    const inp = document.createElement('input'); inp.value = $('docName').value; inp.setAttribute('aria-label', t('새 파일 이름'));
+    inp.style.cssText = 'font:16px var(--font-ui);padding:11px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--fg)';
+    const err = h('p', ''); err.style.color = 'var(--danger)';
+    const ok = () => {
+      const v = inp.value.trim().replace(/\.txt$/i, '');
+      if (!v) return err.textContent = t('이름을 넣어 주세요.');
+      if (/[\\/:*?"<>|]/.test(v)) return err.textContent = t('이름에 / \\ : * ? " < > | 는 쓸 수 없습니다.');
+      closeSheet(); $('docName').value = v; fitName(); downloadSave();
+    };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); });
+    const row = h('div', '', 'row'); row.append(btn(t('취소'), closeSheet), btn(t('저장'), ok, 'primary'));
+    sh.append(h('h2', t('다른 이름으로 저장')), h('p', t('이 브라우저는 파일 창을 쓸 수 없어 내려받기로 저장합니다.')), inp, err, row);
+    setTimeout(() => { inp.focus(); inp.select(); }, 60);
+  });
+}
+function downloadSave() {
+  const { bytes } = encodeTxt(toModel().text, fileInfo);
+  download(new Blob([bytes], { type: 'text/plain' }), docName() + '.txt');
+  if (toModel().boxes.length) download(new Blob([layerJson(false)], { type: 'application/x-pitex' }), docName() + '.txtx.pitex');
+  fileSaved = true; status(); toast(tf('내려받았습니다: {0}', docName() + '.txt'));
+}
+/* 새로 만들기 · 닫기 */
+function blankDoc() {
+  images.clear(); fromModel('', []); $('docName').value = t('제목 없음'); fitName();
+  fileInfo = { enc: 'UTF-8', eol: DEFAULT_EOL }; handles = { txt: null, layer: null };
+  hist.length = 0; hi = -1; snap(); fileSaved = true; selectBox(null); layoutSoon(); autosave();
+}
+function newDoc() { if (!fileSaved && toModel().text.trim() && !confirmDiscard2()) return; blankDoc(); ed.focus(); toast(t('새 글입니다.')); }
+function closeDoc() { if (!fileSaved && toModel().text.trim() && !confirmDiscard2()) return; blankDoc(); toast(t('닫았습니다.')); }
+function confirmDiscard2() { return window.confirm(t('저장하지 않은 글이 있습니다. 저장하지 않고 닫을까요?')); }
+/* 휴지통으로 보내기: 이 시험판은 화면에서만 지움 (진짜 파일을 휴지통으로 보내는 것은 Tauri 판에서) */
+let lastTrash = null;
+function trashDoc() {
+  const name = docName();
+  openSheet(sh => {
+    const row = h('div', '', 'row');
+    row.append(btn(t('취소'), closeSheet), btn(t('지우기'), () => {
+      closeSheet(); if (histT) snap();
+      lastTrash = { name, model: toModel(), imgs: new Map(images), info: { ...fileInfo }, handles: { ...handles } };
+      blankDoc();
+      const box = $('toastBox'); box.innerHTML = '';
+      const tt = h('div', '', 'toast'); tt.style.cssText = 'display:flex;gap:14px;align-items:center';
+      const u = h('button', t('되돌리기')); u.type = 'button';
+      u.style.cssText = 'font:700 14px var(--font-ui);color:var(--accent);background:none;border:0;cursor:pointer;padding:0';
+      u.onclick = () => {
+        box.innerHTML = ''; if (!lastTrash) return;
+        lastTrash.imgs.forEach((v, k) => images.set(k, v));
+        fromModel(lastTrash.model.text, lastTrash.model.boxes); $('docName').value = lastTrash.name; fitName();
+        fileInfo = lastTrash.info; handles = lastTrash.handles; lastTrash = null; snap(); changed(); toast(t('되살렸습니다.'));
+      };
+      tt.append(h('span', tf('지웠습니다: {0}', name)), u); box.append(tt);
+      clearTimeout(toastT); toastT = setTimeout(() => box.innerHTML = '', 6000);
+    }, 'primary'));
+    sh.append(h('h2', tf('‘{0}’을(를) 지울까요?', name)),
+      h('p', t('이 시험판(PWA)에서는 화면의 글만 지우고, PC의 파일은 그대로 둡니다. 파일을 휴지통으로 보내는 기능은 Tauri(.exe) 판에서 넣습니다.')), row);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   12. 보내기 5가지: PITEX · 텍스트 · 그림(JPG/PNG) · PDF · HTML (수정사항 3)
+   ════════════════════════════════════════════════ */
+const LIB = {                                         // 그림·PDF를 만드는 도구 (처음 쓸 때만 내려받음)
+  h2c: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  pdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+};
+function loadScript(src) {
+  return new Promise((ok, no) => {
+    if (document.querySelector(`script[data-src="${src}"]`)) return ok();
+    const s = document.createElement('script'); s.src = src; s.dataset.src = src; s.onload = ok; s.onerror = () => { s.remove(); no(new Error('load')); }; document.head.append(s);
+  });
+}
+/* ① PITEX: 글 + 그림 상자 + 그림을 한 파일(.pitex)로 묶음 — pitex 사용자에게 보내기 좋음 */
+async function exportPitex() { if (await saveBlob(new Blob([layerJson(true)], { type: 'application/x-pitex' }), docName() + '.pitex', T_PIT())) toast(t('PITEX 파일로 보냈습니다.')); }
+/* ② 텍스트: 글만 (그림 없음) */
+async function exportTxt() { const { bytes } = encodeTxt(toModel().text, fileInfo); if (await saveBlob(new Blob([bytes], { type: 'text/plain' }), docName() + '.txt', T_TXT())) toast(t('텍스트로 보냈습니다.')); }
+/* ⑤ HTML: 웹브라우저로 바로 열리는 한 파일 (그림 포함) */
+async function exportHtml() {
+  const m = toModel(), esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const byPara = {}; m.boxes.forEach(b => (byPara[b.para] = byPara[b.para] || []).push(b));
+  const body = m.text.split('\n').map((line, i) => {
+    const figs = (byPara[i] || []).map(b => {
+      const im = images.get(b.id); if (!im) return '';
+      const st = b.side === 'full' ? 'width:100%' : `width:${(b.w * 100).toFixed(1)}%;float:${b.side};margin-${b.side === 'left' ? 'right' : 'left'}:14px`;
+      return `<img src="${im.data}" alt="${esc(im.name)}" style="${st};height:${b.h}px;object-fit:${b.fit};display:block;margin-bottom:6px;border-radius:6px">`;
+    }).join('');
+    return `<p>${figs}${esc(line) || '<br>'}</p>`;
+  }).join('\n');
+  const font = `${/Italic/.test(prefs.style) ? 'italic ' : ''}${/Bold/.test(prefs.style) ? '700' : '400'} ${prefs.size}pt/1.7 "${prefs.font}", "Malgun Gothic", sans-serif`;
+  const html = `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${esc(docName())}</title>\n<style>body{max-width:642px;margin:0 auto;padding:48px 20px;font:${font};color:#111;background:#fff}p{margin:0;display:flow-root;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}</style>\n</head>\n<body>\n${body}\n</body>\n</html>\n`;
+  if (await saveBlob(new Blob([html], { type: 'text/html' }), docName() + '.html', { description: 'HTML', accept: { 'text/html': ['.html'] } })) toast(t('HTML로 보냈습니다.'));
+}
+/* 종이를 A4 페이지 그림들로 찍기 (그림·PDF 보내기에서 함께 씀) */
+async function renderPages() {
+  await loadScript(LIB.h2c);
+  selectBox(null); if (boxMode) setBoxMode(false);
+  const S = 2, keepZ = Z, keepScroll = [desk.scrollLeft, desk.scrollTop];
+  Z = 1; layoutPages(); desk.scrollTo(0, 0);           // 찍는 동안만 100%로
+  try {
+    const full = await html2canvas(paper, { scale: S, backgroundColor: '#ffffff', logging: false, windowHeight: paper.offsetHeight + 200,
+      onclone: doc => {                                // 복사본에서만: 밝은 색, 고름 표시·페이지 띠 숨김, 책상 펼치기
+        doc.documentElement.setAttribute('data-theme', 'light'); doc.body.classList.add('exporting');
+        doc.documentElement.style.overflow = doc.body.style.overflow = 'visible'; doc.body.style.height = 'auto';
+        const d = doc.getElementById('desk'); d.style.overflow = 'visible'; d.style.flex = 'none';
+        // 그림 찍는 도구가 '꽉 차게/다 보이게'(object-fit)를 몰라 그림이 찌그러짐 → 배경 그림 방식으로 바꿔 찍음
+        doc.querySelectorAll('.box img').forEach(im => {
+          const fit = im.closest('.box').dataset.fit === 'contain' ? 'contain' : 'cover';
+          const dv = doc.createElement('div');
+          dv.style.cssText = `width:100%;height:100%;border-radius:6px;background:url("${im.src}") center/${fit} no-repeat` + (fit === 'contain' ? ',#f6f4fd' : '');
+          im.replaceWith(dv);
+        });
+      } });
+    const out = [], W = Math.min(full.width, A4W * S);
+    for (let k = 0; k < pages; k++) {                 // 페이지마다 A4 한 장: 위 여백 + 그 페이지의 줄들 + 아래 여백
+      const c = document.createElement('canvas'); c.width = A4W * S; c.height = A4H * S;
+      const g = c.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height);
+      const sy = (MARGIN + k * pageH) * S, sh = Math.min(pageH * S, full.height - sy);
+      if (sh > 0) g.drawImage(full, 0, sy, W, sh, 0, MARGIN * S, W, sh);
+      out.push(c);
+    }
+    return out;
+  } finally { Z = keepZ; layoutPages(); desk.scrollTo(keepScroll[0], keepScroll[1]); }
+}
+/* ③ 그림: JPG 또는 PNG를 고르면 모든 페이지를 위아래로 이어 붙인 한 장 */
+function exportImageSheet() {
+  openSheet(sh => {
+    const row = h('div', '', 'row');
+    row.append(btn('JPG', () => { closeSheet(); exportImage('jpeg'); }, 'primary'), btn('PNG', () => { closeSheet(); exportImage('png'); }));
+    sh.append(h('h2', t('그림으로 보내기')), h('p', t('JPG는 파일이 작고, PNG는 글자가 더 또렷합니다. 여러 페이지는 위아래로 이어 붙여 한 장으로 만듭니다.')), row, btn(t('닫기'), closeSheet));
+  });
+}
+async function exportImage(fmt) {
+  toast(t('그림을 만드는 중…'), 10000);
+  try {
+    const ps = await renderPages(), gap = 24;
+    const c = document.createElement('canvas'); c.width = ps[0].width; c.height = ps.length * ps[0].height + (ps.length - 1) * gap;
+    const g = c.getContext('2d'); g.fillStyle = '#d9d8e0'; g.fillRect(0, 0, c.width, c.height);
+    ps.forEach((p, i) => g.drawImage(p, 0, i * (p.height + gap)));
+    const blob = await new Promise(ok => c.toBlob(ok, 'image/' + fmt, .92));
+    const ext = fmt === 'png' ? '.png' : '.jpg';
+    if (await saveBlob(blob, docName() + ext, { description: fmt.toUpperCase(), accept: { ['image/' + fmt]: [ext] } })) toast(t('그림으로 보냈습니다.'));
+  } catch (e) { toast(t('그림을 만들지 못했습니다. 인터넷 연결을 확인해 주세요.'), 4000); }
+}
+/* ④ PDF: A4 페이지 그대로 */
+async function exportPdf() {
+  toast(t('PDF를 만드는 중…'), 10000);
+  try {
+    const ps = await renderPages(); await loadScript(LIB.pdf);
+    const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+    ps.forEach((c, i) => { if (i) doc.addPage(); doc.addImage(c.toDataURL('image/jpeg', .92), 'JPEG', 0, 0, 210, 297); });
+    if (await saveBlob(doc.output('blob'), docName() + '.pdf', { description: 'PDF', accept: { 'application/pdf': ['.pdf'] } })) toast(t('PDF로 보냈습니다.'));
+  } catch (e) { toast(t('PDF를 만들지 못했습니다. 인터넷 연결을 확인해 주세요.'), 4000); }
+}
+
+/* ════════════════════════════════════════════════
+   13. 설정: 텍스트 서식(글꼴·스타일·크기) · 자동 줄 바꿈 · 언어 (수정사항 5·6·7)
+   화면(밝게/다크)은 오른쪽 위 달 단추로 옮김. 새 글의 인코딩·줄 끝은 뺌
+   ════════════════════════════════════════════════ */
+const FONT_KO = { 'Malgun Gothic': '맑은 고딕', 'Gulim': '굴림', 'GulimChe': '굴림체', 'Dotum': '돋움', 'DotumChe': '돋움체', 'Batang': '바탕', 'BatangChe': '바탕체',
+  'Gungsuh': '궁서', 'GungsuhChe': '궁서체', 'NanumGothic': '나눔고딕', 'NanumGothicCoding': '나눔고딕코딩', 'NanumMyeongjo': '나눔명조', 'NanumBarunGothic': '나눔바른고딕' };
+const FALLBACK_FONTS = ['Malgun Gothic', 'Gulim', 'Dotum', 'Batang', 'Gungsuh', 'D2Coding', 'Consolas', 'Arial', 'Times New Roman', 'Courier New', 'Segoe UI', 'Tahoma', 'Verdana'];
+const fontLabel = f => (LANG === 'ko' && FONT_KO[f]) || f;
+let localFonts = null;                                // PC에 설치된 글꼴 목록 (처음 한 번 허락을 받음)
+async function loadLocalFonts() {
+  if (localFonts) return localFonts;
+  if (!('queryLocalFonts' in window)) return null;
+  try { const fs = await window.queryLocalFonts(); const set = [...new Set(fs.map(f => f.family))]; if (set.length) localFonts = set; } catch (_) {}
+  return localFonts;
+}
+function settingsSheet() {
+  const fontsPromise = loadLocalFonts();              // 메뉴를 누른 바로 그때 물어야 허락 창이 뜸
+  openSheet(sh => {
+    sh.append(h('h2', t('설정')), h('h3', t('텍스트 서식')));
+    // ── 글꼴 카드 ──
+    const card = h('div', '', 'card');
+    const head = h('button', '', 'cardhead'); head.type = 'button';
+    head.append(h('span', 'ᴬA', 'ic'), Object.assign(h('span', '', 'tx'), { textContent: t('글꼴') }), h('span', '⌃', 'chev'));
+    head.onclick = () => card.classList.toggle('closed');
+    const body = h('div', '', 'cardbody');
+    const sel = (label, options, cur, onPick) => {     // 왼쪽 이름 + 오른쪽 고르기 칸 한 줄
+      const r = h('div', '', 'rowf'); const s = document.createElement('select'); s.setAttribute('aria-label', label);
+      options.forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; if (String(v) === String(cur)) o.selected = true; s.append(o); });
+      s.onchange = () => onPick(s.value); r.append(h('span', label), s); return { r, s };
+    };
+    const fillFonts = list => {                        // 글꼴 목록 채우기 (가나다 순, 지금 글꼴은 꼭 들어가게)
+      const all = [...new Set([...(list || FALLBACK_FONTS), prefs.font])].sort((a, b) => fontLabel(a).localeCompare(fontLabel(b), LANG));
+      fSel.s.innerHTML = '';
+      all.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = fontLabel(f); o.style.fontFamily = `"${f}"`; if (f === prefs.font) o.selected = true; fSel.s.append(o); });
+    };
+    const fSel = sel(t('글꼴 목록'), [], prefs.font, v => { prefs.font = v; savePrefs(); preview(); });
+    const sSel = sel(t('스타일'), STYLES.map(s => [s, s]), prefs.style, v => { prefs.style = v; savePrefs(); preview(); });
+    const zSel = sel(t('크기'), PT_SIZES.map(n => [n, n]), prefs.size, v => { prefs.size = +v; savePrefs(); preview(); });
+    const pv = h('div', t('바다의 파도 소리가 내 영혼을 차분하게 합니다.'), 'preview');   // 미리보기 문장 (사진과 같게)
+    const preview = () => Object.assign(pv.style, { fontFamily: `"${prefs.font}", "Malgun Gothic", sans-serif`, fontSize: prefs.size + 'pt', fontWeight: /Bold/.test(prefs.style) ? 700 : 400, fontStyle: /Italic/.test(prefs.style) ? 'italic' : 'normal' });
+    const note = h('div', '', 'fontnote');
+    fillFonts(localFonts); preview();
+    if (!localFonts) {                                 // 설치된 글꼴을 아직 못 불러왔으면
+      if ('queryLocalFonts' in window) {
+        note.textContent = t('설치된 글꼴을 불러오는 중… ');
+        fontsPromise.then(list => {
+          if (list) { fillFonts(list); note.textContent = tf('설치된 글꼴 {0}개', list.length); }
+          else { note.textContent = t('설치된 글꼴을 보려면 허락이 필요합니다. '); const b = h('button', t('다시 불러오기')); b.type = 'button'; b.onclick = async () => { const l = await loadLocalFonts(); if (l) { fillFonts(l); note.textContent = tf('설치된 글꼴 {0}개', l.length); } }; note.append(b); }
+        });
+      } else note.textContent = t('이 브라우저는 설치된 글꼴 목록을 보여 줄 수 없어 자주 쓰는 글꼴만 보입니다.');
+    } else note.textContent = tf('설치된 글꼴 {0}개', localFonts.length);
+    body.append(fSel.r, sSel.r, zSel.r, pv, note);
+    card.append(head, body);
+    // ── 자동 줄 바꿈 카드 ──
+    const card2 = h('div', '', 'card');
+    const row2 = h('div', '', 'cardhead'); row2.style.cursor = 'default';
+    const tx2 = h('span', '', 'tx'); tx2.append(h('span', t('자동 줄 바꿈')), h('small', t('기본적으로 창 안에 텍스트 맞춤')));
+    const sw = h('button', '', 'sw'); sw.type = 'button'; sw.setAttribute('role', 'switch');
+    const swShow = () => { sw.setAttribute('aria-checked', prefs.wrap); sw.innerHTML = ''; sw.append(h('span', prefs.wrap ? t('켬') : t('끔')), h('i')); };
+    sw.onclick = () => { prefs.wrap = !prefs.wrap; savePrefs(); swShow(); };
+    swShow(); row2.append(h('span', '↵', 'ic'), tx2, sw); card2.append(row2);
+    // ── 언어 ──
+    const card3 = h('div', '', 'card');
+    const lSel = sel(t('언어 · Language'), LANGS, prefs.lang, v => { prefs.lang = v; savePrefs(); settingsSheet(); });
+    lSel.r.style.cssText = 'padding:12px 16px;border:0';
+    card3.append(lSel.r);
+    sh.append(card, card2, h('h3', t('언어')), card3, h('p', t('언어는 smartDir 번역표와 같고, 중국어 번체를 더했습니다. (아랍어는 나중에 결정)')), btn(t('닫기'), closeSheet, 'primary'));
+  });
+}
+/* 파일 이름 칸: 글자 수만큼만 넓게 (한글은 두 칸) */
+function fitName() { const v = $('docName').value; let w = 1; for (const c of v) w += c.charCodeAt(0) > 0x1100 ? 1.7 : 1; $('docName').style.width = Math.min(40, w) + 'ch'; }
+$('docName').addEventListener('input', () => { fitName(); fileSaved = false; status(); });
+
+/* ════════════════════════════════════════════════
+   14. 보기: 확대·축소 (종이를 크게·작게 보기 — 페이지 나눔은 그대로)
+   ════════════════════════════════════════════════ */
+function zoom(d) {                                    // d = +1 확대, -1 축소, 0 기본
+  let i = ZOOMS.indexOf(Z); if (i < 0) i = ZOOMS.indexOf(1);
+  Z = d === 0 ? 1 : ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, i + d))];
+  store.set('zoom', Z); layoutPages(); placeBar();
+}
+$('tbZoomIn').onclick = () => zoom(1);
+$('tbZoomOut').onclick = () => zoom(-1);
+
+/* ════════════════════════════════════════════════
+   15. 메뉴판 (파일 · 편집 · 찾기 · 보기 · 인코딩 · 그림 · 도움말)
+   메뉴 이름을 누르면 아래로 목록이 펼쳐짐. ✓ 는 지금 켜져 있는 것, ▸ 는 하위 항목
+   ════════════════════════════════════════════════ */
+const MENUS = { file: '파일', edit: '편집', find: '찾기', view: '보기', enc: '인코딩', pic: '그림', help: '도움말' };
+const flag = cls => document.body.classList.contains(cls);
+function menuItems(name) {                            // 메뉴마다 [이름, 할 일, {단축키, 체크, 꺼짐, 하위}] — '-' 는 구분선
+  const hasSel = !!selBox, hasImg = hasSel && images.has(selBox.dataset.id);
+  const side = hasSel ? selBox.dataset.side : '';
+  switch (name) {
+    case 'file': return [
+      ['새로 만들기', newDoc, { key: 'Ctrl+N' }],
+      ['열기…', openDialog, { key: 'Ctrl+O' }],                      // (txt) 뺌 — txt와 짝꿍 파일을 함께 엶 (수정사항 1)
+      ['저장', saveDoc, { key: 'Ctrl+S' }],
+      ['다른 이름으로 저장…', saveAs, { key: 'Ctrl+Shift+S' }],
+      ['닫기', closeDoc, { key: 'Ctrl+W' }],
+      '-',
+      ['보내기', null, { sub: [                                       // 하위 5가지 (수정사항 3)
+        ['PITEX', exportPitex],
+        ['텍스트', exportTxt],
+        ['그림(JPG/PNG)', exportImageSheet],
+        ['PDF', exportPdf],
+        ['HTML', exportHtml],
+      ] }],
+      ['인쇄…', () => window.print(), { key: 'Ctrl+P' }],
+      '-',
+      ['설정…', settingsSheet],
+      '-',
+      ['휴지통으로 보내기', trashDoc],
+    ];
+    case 'edit': return [
+      ['실행 취소', () => goHist(-1), { key: 'Ctrl+Z', off: hi <= 0 }],
+      ['다시 실행', () => goHist(1), { key: 'Ctrl+Y', off: hi >= hist.length - 1 }],
+      '-',
+      ['모두 선택', selectAllText, { key: 'Ctrl+A' }],
+      ['날짜·시간 넣기', insertDate, { key: 'F5' }],
+    ];
+    case 'find': return [
+      ['찾기…', openFind, { key: 'Ctrl+F' }],
+      ['바꾸기…', () => openFind(true), { key: 'Ctrl+H' }],
+      ['다음 찾기', () => findNext(), { key: 'F3' }],
+    ];
+    case 'view': return [
+      ['확대', () => zoom(1), { key: 'Ctrl++' }],
+      ['축소', () => zoom(-1), { key: 'Ctrl+−' }],
+      ['기본 크기', () => zoom(0), { key: 'Ctrl+0' }],
+      '-',
+      ['자동 줄 바꿈', () => { prefs.wrap = !prefs.wrap; savePrefs(); }, { check: prefs.wrap }],
+      ['그림 레이어 보이기', () => { document.body.classList.toggle('hide-layer'); selectBox(null); layoutSoon(); }, { check: !flag('hide-layer') }],
+      ['상태 표시줄', () => document.body.classList.toggle('nostatus'), { check: !flag('nostatus') }],
+      '-',
+      ['줄 끝: Windows (CR LF)', () => setEol('CRLF'), { check: fileInfo.eol === 'CRLF' }],   // 줄 끝은 보기 메뉴에서 고름 (수정사항 7)
+      ['줄 끝: Unix·폰 (LF)', () => setEol('LF'), { check: fileInfo.eol === 'LF' }],
+      '-',
+      ['줄 번호', null, { off: true, note: '다음 단계' }],
+    ];
+    case 'enc': return [
+      ['UTF-8', () => setEnc('UTF-8'), { check: fileInfo.enc === 'UTF-8' }],
+      ['UTF-8 (BOM)', () => setEnc('UTF-8 BOM'), { check: fileInfo.enc === 'UTF-8 BOM' }],
+      ['EUC-KR (옛 한글)', () => setEnc('EUC-KR'), { check: fileInfo.enc === 'EUC-KR' }],
+      ['UTF-16', () => setEnc('UTF-16'), { check: fileInfo.enc === 'UTF-16' }],
+    ];
+    case 'pic': return [
+      ['그림 상자 그리기', () => setBoxMode(!boxMode), { check: boxMode }],
+      '-',
+      [hasImg ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(selBox), { off: !hasSel, note: !hasSel && '상자를 먼저 고르세요' }],
+      ['왼쪽에 붙이기', () => setSide('left'), { check: side === 'left', off: !hasSel }],
+      ['오른쪽에 붙이기', () => setSide('right'), { check: side === 'right', off: !hasSel }],
+      ['전체 폭', () => setSide('full'), { check: side === 'full', off: !hasSel }],
+      ['꽉 차게', () => setFit('cover'), { check: hasImg && selBox.dataset.fit === 'cover', off: !hasImg }],
+      ['다 보이게', () => setFit('contain'), { check: hasImg && selBox.dataset.fit === 'contain', off: !hasImg }],
+      '-',
+      ['상자 지우기', removeBox, { off: !hasSel }],
+    ];
+    case 'help': return [
+      ['pitex 2단계 시험판에 대하여', aboutSheet],
+    ];
+  }
+  return [];
+}
+let openMenu = null;
+function closeMenu() { $('menuLayer').innerHTML = ''; if (openMenu) openMenu.classList.remove('open'); openMenu = null; }
+function menuButton(it) {                             // 메뉴 한 줄 만들기
+  const [label, fn, o = {}] = it;
+  const x = h('button'); x.type = 'button'; x.setAttribute('role', 'menuitem');
+  const right = o.sub ? '▸' : o.note ? t(o.note) : (o.key || '');
+  x.append(h('span', o.check ? '✓' : '', 'ck'), h('span', t(label), 'lb'), h('span', right, 'key'));
+  if (o.sub) {                                        // 보내기 ▸ : 누르면 아래에 하위 항목이 펼쳐짐
+    const sub = h('div', '', 'sub'); sub.hidden = true;
+    o.sub.forEach(s => sub.append(menuButton(s)));
+    x.onclick = () => { sub.hidden = !sub.hidden; x.querySelector('.key').textContent = sub.hidden ? '▸' : '▾'; };
+    const wrap = document.createElement('div'); wrap.append(x, sub); return wrap;
+  }
+  if (!fn || o.off) x.disabled = true;
+  else x.onclick = () => { closeMenu(); fn(); };
+  return x;
+}
+$('menubar').addEventListener('click', e => {
+  const b = e.target.closest('button[data-menu]'); if (!b) return;
+  if (openMenu === b) return closeMenu();
+  closeMenu(); openMenu = b; b.classList.add('open');
+  const dd = h('div', '', 'dropdown'); dd.setAttribute('role', 'menu');
+  menuItems(b.dataset.menu).forEach(it => dd.append(it === '-' ? document.createElement('hr') : menuButton(it)));
+  $('menuLayer').append(dd);
+  const r = b.getBoundingClientRect();
+  dd.style.top = (r.bottom + 2) + 'px';
+  dd.style.left = Math.max(8, Math.min(r.left, innerWidth - dd.offsetWidth - 8)) + 'px';
+});
+document.addEventListener('pointerdown', e => { if (openMenu && !e.target.closest('.dropdown') && !e.target.closest('#menubar')) closeMenu(); });
+function setEnc(v) { fileInfo.enc = v; changed(); toast(tf('저장할 때 {0}(으)로 저장합니다.', v)); }
+function setEol(v) { fileInfo.eol = v; changed(); toast(v === 'CRLF' ? t('줄 끝: Windows (CR LF) — PC 메모장과 같게') : t('줄 끝: Unix (LF) — 폰 방식')); }
+function selectAllText() { ed.focus(); const r = document.createRange(); r.selectNodeContents(ed); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+function insertDate() {                               // 2026-11-10 (화) 20:15
+  const d = new Date(), z = v => String(v).padStart(2, '0');
+  const wd = new Intl.DateTimeFormat(LANG === 'zh' ? 'zh-CN' : LANG, { weekday: 'short' }).format(d);   // 요일을 고른 언어로 (화, Tue, 火 …)
+  const tx = `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())} (${wd}) ${z(d.getHours())}:${z(d.getMinutes())}`;
+  ed.focus(); document.execCommand('insertText', false, tx);
+}
+function aboutSheet() {
+  openSheet(sh => {
+    sh.append(h('h2', t('pitex 2단계 시험판')),
+      h('p', t('글은 순수 txt로, 그림 상자는 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.')),
+      h('p', t('2단계에서 바뀐 것: A4 페이지, 진짜 파일 열기·저장(Edge·Chrome), 보내기 5가지, 메모장식 글꼴 설정, 달 단추(밝게·다크), 언어.')),
+      h('p', t('PC에 설치하려면 Edge 주소창 오른쪽의 ‘앱 설치’ 단추를 누르세요.')),
+      btn(t('확인'), closeSheet, 'primary'));
+  });
+}
+$('tbNew').onclick = newDoc;
+$('tbOpen').onclick = openDialog;
+$('tbSave').onclick = saveDoc;
+$('tbFind').onclick = () => $('findbar').hidden ? openFind() : closeFind();
+/* 단축키 */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (openMenu) closeMenu(); else if (!$('findbar').hidden) closeFind(); else if ($('overlay').innerHTML) closeSheet(); else if (boxMode) setBoxMode(false); else selectBox(null); return; }
+  if (e.key === 'F3') { e.preventDefault(); findNext(); return; }
+  if (e.key === 'F5') { e.preventDefault(); insertDate(); return; }
+  if (!(e.ctrlKey || e.metaKey)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); goHist(-1); }
+  else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); goHist(1); }
+  else if (k === 's' && e.shiftKey) { e.preventDefault(); saveAs(); }
+  else if (k === 's') { e.preventDefault(); saveDoc(); }
+  else if (k === 'f' || k === 'h') { e.preventDefault(); openFind(k === 'h'); }
+  else if (k === 'w') { e.preventDefault(); closeDoc(); }
+  else if (k === 'o') { e.preventDefault(); openDialog(); }
+  else if (k === 'n') { e.preventDefault(); newDoc(); }
+  else if (k === 'p') { e.preventDefault(); window.print(); }
+  else if (k === '=' || k === '+') { e.preventDefault(); zoom(1); }
+  else if (k === '-') { e.preventDefault(); zoom(-1); }
+  else if (k === '0') { e.preventDefault(); zoom(0); }
+});
+
+/* ════════════════════════════════════════════════
+   16. 찾기 · 바꾸기
+   문단마다 글자만 모아서 찾고(그림 상자는 건너뜀), 찾은 곳을 선택해 보여 줌
+   ════════════════════════════════════════════════ */
+function openFind(repl) {
+  $('findbar').hidden = false; $('tbFind').classList.add('on');
+  const s = getSelection().toString();
+  if (s && !s.includes('\n')) $('findText').value = s;    // 선택한 말이 있으면 그대로 찾을 말로
+  (repl && $('findText').value ? $('replText') : $('findText')).focus();
+}
+function closeFind() { $('findbar').hidden = true; $('tbFind').classList.remove('on'); $('findMsg').textContent = ''; }
+$('findClose').onclick = closeFind;
+/* 문단 p 안의 글자 조각들(text node)과 그 위치표 */
+function textMap(p) {
+  const nodes = [], w = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('.box') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  let n, text = ''; while ((n = w.nextNode())) { nodes.push({ n, at: text.length }); text += n.nodeValue; }
+  return { nodes, text };
+}
+function rangeIn(map, start, end) {                   // 문단 글자 위치(시작~끝) → 화면에서 선택할 범위
+  const pos = i => { for (let k = map.nodes.length - 1; k >= 0; k--) if (map.nodes[k].at <= i) return [map.nodes[k].n, i - map.nodes[k].at]; };
+  const r = document.createRange(); const [a, ao] = pos(start), [b, bo] = pos(end);
+  r.setStart(a, ao); r.setEnd(b, bo); return r;
+}
+function findNext(silent) {
+  const q = $('findText').value; if (!q) { openFind(); return false; }
+  const cs = $('findCase').checked, norm = s => cs ? s : s.toLowerCase();
+  const ps = paras(), sel = getSelection();
+  let startP = 0, startAt = 0;                        // 지금 커서(선택) 뒤에서부터 찾음
+  if (sel.rangeCount && ed.contains(sel.anchorNode)) {
+    const r = sel.getRangeAt(0), p = (r.endContainer.nodeType === 1 ? r.endContainer : r.endContainer.parentElement).closest('p');
+    if (p) { startP = Math.max(0, ps.indexOf(p)); const m = textMap(p); const e = m.nodes.find(x => x.n === r.endContainer); startAt = e ? e.at + r.endOffset : 0; }
+  }
+  for (let k = 0; k <= ps.length; k++) {
+    const i = (startP + k) % ps.length, m = textMap(ps[i]);
+    const from = k === 0 ? startAt : 0;
+    const at = norm(m.text).indexOf(norm(q), from);
+    if (at >= 0 && !(k === ps.length && at < startAt)) {
+      const r = rangeIn(m, at, at + q.length); sel.removeAllRanges(); sel.addRange(r);
+      const rc = r.getBoundingClientRect(), dr2 = desk.getBoundingClientRect();
+      if (rc.top < dr2.top + 20 || rc.bottom > dr2.bottom - 20) desk.scrollBy(0, rc.top - dr2.top - dr2.height / 3);   // 찾은 곳이 보이게 책상을 밀기
+      $('findMsg').textContent = '';
+      return true;
+    }
+  }
+  if (!silent) $('findMsg').textContent = t('찾는 말이 없습니다.');
+  return false;
+}
+$('findNext').onclick = () => findNext();
+$('findText').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); findNext(); } });
+$('replOne').onclick = () => {                        // 지금 선택된 것이 찾는 말이면 바꾸고 다음으로
+  const q = $('findText').value, s = getSelection(), cs = $('findCase').checked;
+  if (q && s.rangeCount && ed.contains(s.anchorNode) && (cs ? s.toString() === q : s.toString().toLowerCase() === q.toLowerCase())) {
+    document.execCommand('insertText', false, $('replText').value);
+  }
+  findNext();
+};
+$('replAll').onclick = () => {                        // 모든 문단에서 한꺼번에 바꾸기 (그림 상자는 그대로)
+  const q = $('findText').value; if (!q) return openFind();
+  const cs = $('findCase').checked, rv = $('replText').value; let n = 0;
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), cs ? 'g' : 'gi');
+  paras().forEach(p => textMap(p).nodes.forEach(({ n: tn }) => { const v = tn.nodeValue.replace(re, () => { n++; return rv; }); if (v !== tn.nodeValue) tn.nodeValue = v; }));
+  if (n) { snap(); changed(); }
+  $('findMsg').textContent = n ? tf('{0}곳을 바꿨습니다.', n) : t('찾는 말이 없습니다.');
+};
+
+/* ════════════════════════════════════════════════
+   17. 상태 표시줄의 '줄, 열'과 '지금 페이지' (커서가 있는 곳)
+   ════════════════════════════════════════════════ */
+document.addEventListener('selectionchange', () => {
+  const s = getSelection(); if (!s.rangeCount || !ed.contains(s.focusNode)) return;
+  const node = s.focusNode, p = (node.nodeType === 1 ? node : node.parentElement).closest('p'); if (!p || !ed.contains(p)) return;
+  const m = textMap(p), e = m.nodes.find(x => x.n === node);
+  const col = e ? e.at + s.focusOffset : 0;
+  $('sbPos').textContent = tf('줄 {0}, 열 {1}', paras().indexOf(p) + 1, col + 1);
+  // 커서의 높이로 몇 번째 페이지인지 계산
+  let y = p.offsetTop;
+  const rc = s.getRangeAt(0).getBoundingClientRect();
+  if (rc.height) y = (rc.top - paper.getBoundingClientRect().top) / Z;
+  curPage = Math.max(1, Math.min(pages, Math.floor((y - MARGIN) / pageH) + 1));
+  $('sbPage').textContent = tf('페이지 {0} / {1}', curPage, pages);
+});
+
+/* ════════════════════════════════════════════════
+   18. 언어 바꾸기: 화면에 고정된 글자들을 다시 씀
+   ════════════════════════════════════════════════ */
+function applyLang() {
+  root.lang = LANG;
+  document.querySelectorAll('#menubar [data-menu]').forEach(b => b.textContent = t(MENUS[b.dataset.menu]));
+  const tips = { tbNew: '새로 만들기', tbOpen: '열기', tbSave: '저장 (Ctrl+S)', undoBtn: '실행 취소 (Ctrl+Z)', redoBtn: '다시 실행 (Ctrl+Y)', tbFind: '찾기 (Ctrl+F)', boxBtn: '그림 상자 그리기', tbZoomOut: '축소', tbZoomIn: '확대' };
+  Object.entries(tips).forEach(([id, s]) => { $(id).title = t(s); $(id).setAttribute('aria-label', t(s)); });
+  $('themeBtn').title = t('밝게 / 다크'); $('themeBtn').setAttribute('aria-label', t('밝게 / 다크'));
+  $('boxBtn').textContent = '□ ' + t('그림 상자');
+  $('findText').placeholder = t('찾을 말'); $('replText').placeholder = t('바꿀 말');
+  $('findNext').textContent = t('다음 찾기'); $('replOne').textContent = t('바꾸기'); $('replAll').textContent = t('모두 바꾸기');
+  $('findCaseLb').textContent = t('대소문자 구분');
+  $('drawHint').textContent = t('시작점을 누른 채 대각선으로 끌면 그림 자리(X 상자)가 생깁니다. □ 그림 상자를 다시 누르면 그리기를 끕니다.');
+  $('docName').setAttribute('aria-label', t('파일 이름')); ed.setAttribute('aria-label', t('글'));
+  $('menubar').setAttribute('aria-label', t('메뉴'));
+  $('sbPos').textContent = tf('줄 {0}, 열 {1}', 1, 1);
+  status();
+}
+
+/* ════════════════════════════════════════════════
+   19. 시작: 지난번 글이 있으면 그것, 없으면 예시(제주 여행 메모)
+   ════════════════════════════════════════════════ */
+function loadSample() {
+  images.clear();
+  images.set('s1', { url: samplePic('sky'), data: '', name: '성산일출봉.jpg' });
+  images.set('s2', { url: samplePic('dusk'), data: '', name: '섭지코지.jpg' });
+  images.forEach(v => v.data = v.url);
+  $('docName').value = '여행 메모'; fileInfo = { enc: 'UTF-8', eol: DEFAULT_EOL };
+  fromModel([
+    '제주 둘째 날. 아침 일찍 성산일출봉에 올랐다. 바람이 세서 모자를 손으로 잡고 걸어야 했지만, 정상에서 본 바다는 그 수고를 다 잊게 했다.',
+    '',
+    '내려오는 길에 해녀의 집에 들러 전복죽을 먹었다. 창밖으로 물질을 마친 해녀들이 걸어 나오는 모습이 보였다.',
+    '',
+    '오후에는 섭지코지를 천천히 걸었다. 노을이 등대 뒤로 내려앉을 때까지 한참을 앉아 있었다.',
+  ].join('\n'), [
+    { id: 's1', para: 0, side: 'right', w: 0.44, h: 160, fit: 'cover' },
+    { id: 's2', para: 4, side: 'full', w: 1, h: 130, fit: 'cover' },
+  ]);
+}
+function start() {
+  LANG = prefs.lang; applyLang(); applyPrefs();
+  const z = +store.get('zoom'); if (ZOOMS.includes(z)) Z = z;
+  let d = null; try { d = JSON.parse(store.get('doc') || 'null'); } catch (_) { d = null; }
+  if (d && typeof d.text === 'string') {             // 지난번 글 되살리기 (파일 연결은 다시 열어야 함)
+    images.clear();
+    Object.entries(d.images || {}).forEach(([k, v]) => { if (v && v.data) images.set(k, { url: v.data, data: v.data, name: v.name }); });
+    $('docName').value = d.name || t('제목 없음'); fileInfo = d.fileInfo || fileInfo;
+    if (fileInfo.enc === 'UTF-16 BE') fileInfo.enc = 'UTF-16';
+    fromModel(d.text, d.boxes || []);
+  } else loadSample();
+  fitName(); snap(); fileSaved = true; layoutPages();
+}
+/* PWA: 설치·오프라인용 도우미 등록, PC에서 txt를 더블클릭해 열었을 때 받기 */
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('launchQueue' in window) window.launchQueue.setConsumer(async p => {
+  if (p.files && p.files.length) openFiles(await Promise.all(p.files.map(async hd => ({ handle: hd, file: await hd.getFile() }))));
+});
+
+/* ════════════════════════════════════════════════
+   20. 영어 번역 (한국어 글자 → English)
+   ════════════════════════════════════════════════ */
+/* 번역표: 한 줄 = 한 문장. 한국어(열쇠): [English, 日本語, 中文(简体), 中文(繁體), Tiếng Việt, Deutsch, Français, Português(브라질), Español(중남미)]
+   smartDir 번역표와 같은 9개 언어 + 중국어 번체 = 한국어 포함 10개 언어. {0} {1}은 숫자·이름이 들어갈 자리 */
+const ROWS = {
+  "(빈 상자 {0})": ["({0} empty)", "(空 {0})", "(空 {0})", "(空 {0})", "({0} trống)", "({0} leer)", "({0} vide(s))", "({0} vazia(s))", "({0} vacía(s))"],
+  "2단계에서 바뀐 것: A4 페이지, 진짜 파일 열기·저장(Edge·Chrome), 보내기 5가지, 메모장식 글꼴 설정, 달 단추(밝게·다크), 언어.": ["New in stage 2: A4 pages, real file open/save (Edge·Chrome), 5 export formats, Notepad-style font settings, moon button (light/dark), languages.", "ステージ2の変更点：A4ページ、実際のファイルの開く・保存（Edge・Chrome）、5種類のエクスポート、メモ帳風のフォント設定、月ボタン（ライト・ダーク）、言語。", "第2阶段更新：A4 页面、真实文件打开/保存（Edge·Chrome）、5 种导出、记事本式字体设置、月亮按钮（浅色/深色）、语言。", "第2階段更新：A4 頁面、真實檔案開啟/儲存（Edge·Chrome）、5 種匯出、記事本式字型設定、月亮按鈕（淺色/深色）、語言。", "Mới ở giai đoạn 2: trang A4, mở/lưu tệp thật (Edge·Chrome), 5 kiểu xuất, cài đặt phông kiểu Notepad, nút mặt trăng (sáng/tối), ngôn ngữ.", "Neu in Stufe 2: A4-Seiten, echtes Öffnen/Speichern (Edge·Chrome), 5 Exportformate, Schrift-Einstellungen wie im Editor, Mond-Taste (hell/dunkel), Sprachen.", "Nouveautés étape 2 : pages A4, ouverture/enregistrement de vrais fichiers (Edge·Chrome), 5 formats d’export, réglages de police façon Bloc-notes, bouton lune (clair/sombre), langues.", "Novo na etapa 2: páginas A4, abrir/salvar arquivos reais (Edge·Chrome), 5 formatos de exportação, fonte estilo Bloco de Notas, botão lua (claro/escuro), idiomas.", "Novedades de la etapa 2: páginas A4, abrir/guardar archivos reales (Edge·Chrome), 5 formatos de exportación, fuente estilo Bloc de notas, botón luna (claro/oscuro), idiomas."],
+  "EUC-KR (옛 한글)": ["EUC-KR (legacy Korean)", "EUC-KR（旧韓国語）", "EUC-KR（旧韩文）", "EUC-KR（舊韓文）", "EUC-KR (tiếng Hàn cũ)", "EUC-KR (altes Koreanisch)", "EUC-KR (ancien coréen)", "EUC-KR (coreano antigo)", "EUC-KR (coreano antiguo)"],
+  "EUC-KR로 바꿀 수 없는 글자 {0}개는 ?로 저장되었습니다.": ["{0} characters could not be converted to EUC-KR and were saved as ?.", "EUC-KRに変換できない{0}文字は ? として保存されました。", "有 {0} 个字符无法转换为 EUC-KR，已保存为 ?。", "有 {0} 個字元無法轉換為 EUC-KR，已儲存為 ?。", "{0} ký tự không chuyển được sang EUC-KR đã được lưu thành ?.", "{0} Zeichen ließen sich nicht in EUC-KR umwandeln und wurden als ? gespeichert.", "{0} caractère(s) non convertible(s) en EUC-KR enregistré(s) comme ?.", "{0} caracteres não puderam ser convertidos para EUC-KR e foram salvos como ?.", "{0} caracteres no se pudieron convertir a EUC-KR y se guardaron como ?."],
+  "HTML로 보냈습니다.": ["Exported as HTML.", "HTMLで書き出しました。", "已导出为 HTML。", "已匯出為 HTML。", "Đã xuất dạng HTML.", "Als HTML exportiert.", "Exporté en HTML.", "Exportado como HTML.", "Exportado como HTML."],
+  "JPG는 파일이 작고, PNG는 글자가 더 또렷합니다. 여러 페이지는 위아래로 이어 붙여 한 장으로 만듭니다.": ["JPG files are smaller; PNG keeps text sharper. Multiple pages are stacked into one image.", "JPGはファイルが小さく、PNGは文字がよりくっきりします。複数ページは上下につなげて1枚にします。", "JPG 文件更小，PNG 文字更清晰。多页会上下拼接成一张图。", "JPG 檔案更小，PNG 文字更清晰。多頁會上下拼接成一張圖。", "JPG nhẹ hơn, PNG chữ sắc nét hơn. Nhiều trang sẽ được ghép dọc thành một ảnh.", "JPG ist kleiner, PNG hat schärferen Text. Mehrere Seiten werden untereinander zu einem Bild zusammengefügt.", "JPG est plus léger, PNG garde un texte plus net. Plusieurs pages sont empilées en une seule image.", "JPG é menor; PNG deixa o texto mais nítido. Várias páginas são empilhadas em uma só imagem.", "JPG es más liviano; PNG deja el texto más nítido. Varias páginas se apilan en una sola imagen."],
+  "PC에 설치하려면 Edge 주소창 오른쪽의 ‘앱 설치’ 단추를 누르세요.": ["To install on your PC, click the “Install app” button at the right of the Edge address bar.", "PCにインストールするには、Edgeのアドレスバー右側の「アプリをインストール」ボタンを押してください。", "要安装到电脑，请点击 Edge 地址栏右侧的“安装应用”按钮。", "要安裝到電腦，請點選 Edge 位址列右側的“安裝應用”按鈕。", "Để cài lên PC, nhấn nút “Cài đặt ứng dụng” ở bên phải thanh địa chỉ Edge.", "Zum Installieren auf dem PC auf „App installieren“ rechts in der Edge-Adressleiste klicken.", "Pour installer sur le PC, cliquez sur « Installer l’application » à droite de la barre d’adresse d’Edge.", "Para instalar no PC, clique em “Instalar aplicativo” à direita da barra de endereços do Edge.", "Para instalar en la PC, haz clic en “Instalar aplicación” a la derecha de la barra de direcciones de Edge."],
+  "PDF로 보냈습니다.": ["Exported as PDF.", "PDFで書き出しました。", "已导出为 PDF。", "已匯出為 PDF。", "Đã xuất dạng PDF.", "Als PDF exportiert.", "Exporté en PDF.", "Exportado como PDF.", "Exportado como PDF."],
+  "PDF를 만드는 중…": ["Creating PDF…", "PDFを作成中…", "正在生成 PDF…", "正在生成 PDF…", "Đang tạo PDF…", "PDF wird erstellt…", "Création du PDF…", "Criando PDF…", "Creando PDF…"],
+  "PDF를 만들지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not create the PDF. Please check your internet connection.", "PDFを作成できませんでした。インターネット接続を確認してください。", "无法生成 PDF。请检查网络连接。", "無法生成 PDF。請檢查網路連線。", "Không tạo được PDF. Vui lòng kiểm tra kết nối Internet.", "PDF konnte nicht erstellt werden. Bitte Internetverbindung prüfen.", "Impossible de créer le PDF. Vérifiez votre connexion Internet.", "Não foi possível criar o PDF. Verifique sua conexão com a internet.", "No se pudo crear el PDF. Revisa tu conexión a internet."],
+  "PITEX 파일로 보냈습니다.": ["Exported as a PITEX file.", "PITEXファイルで書き出しました。", "已导出为 PITEX 文件。", "已匯出為 PITEX 檔案。", "Đã xuất dạng tệp PITEX.", "Als PITEX-Datei exportiert.", "Exporté en fichier PITEX.", "Exportado como arquivo PITEX.", "Exportado como archivo PITEX."],
+  "pitex 2단계 시험판": ["pitex stage 2 trial", "pitex ステージ2 試用版", "pitex 第2阶段试用版", "pitex 第2階段試用版", "pitex bản thử giai đoạn 2", "pitex Testversion Stufe 2", "pitex version d’essai étape 2", "pitex versão de teste etapa 2", "pitex versión de prueba etapa 2"],
+  "pitex 2단계 시험판에 대하여": ["About pitex stage 2 trial", "pitex ステージ2 試用版について", "关于 pitex 第2阶段试用版", "關於 pitex 第2階段試用版", "Giới thiệu pitex bản thử giai đoạn 2", "Über pitex Testversion Stufe 2", "À propos de pitex version d’essai étape 2", "Sobre o pitex versão de teste etapa 2", "Acerca de pitex versión de prueba etapa 2"],
+  "pitex 문서 (txt · pitex)": ["pitex documents (txt · pitex)", "pitex 文書 (txt · pitex)", "pitex 文档 (txt · pitex)", "pitex 文件 (txt · pitex)", "Tài liệu pitex (txt · pitex)", "pitex-Dokumente (txt · pitex)", "Documents pitex (txt · pitex)", "Documentos pitex (txt · pitex)", "Documentos pitex (txt · pitex)"],
+  "pitex 파일": ["pitex file", "pitex ファイル", "pitex 文件", "pitex 檔案", "Tệp pitex", "pitex-Datei", "Fichier pitex", "Arquivo pitex", "Archivo pitex"],
+  "pitex 파일을 읽지 못했습니다.": ["Could not read the pitex file.", "pitex ファイルを読み込めませんでした。", "无法读取 pitex 文件。", "無法讀取 pitex 檔案。", "Không đọc được tệp pitex.", "pitex-Datei konnte nicht gelesen werden.", "Impossible de lire le fichier pitex.", "Não foi possível ler o arquivo pitex.", "No se pudo leer el archivo pitex."],
+  "txt 또는 pitex 파일을 골라 주세요.": ["Please choose a txt or pitex file.", "txt または pitex ファイルを選んでください。", "请选择 txt 或 pitex 文件。", "請選擇 txt 或 pitex 檔案。", "Vui lòng chọn tệp txt hoặc pitex.", "Bitte eine txt- oder pitex-Datei wählen.", "Choisissez un fichier txt ou pitex.", "Escolha um arquivo txt ou pitex.", "Elige un archivo txt o pitex."],
+  "{0}곳을 바꿨습니다.": ["Replaced {0}.", "{0}か所を置換しました。", "已替换 {0} 处。", "已替換 {0} 處。", "Đã thay {0} chỗ.", "{0} Stellen ersetzt.", "{0} remplacement(s) effectué(s).", "{0} substituições feitas.", "{0} reemplazos hechos."],
+  "‘{0}’을(를) 지울까요?": ["Clear “{0}”?", "「{0}」を消去しますか？", "要清除“{0}”吗？", "要清除“{0}”嗎？", "Xóa “{0}”?", "„{0}“ leeren?", "Effacer « {0} » ?", "Limpar “{0}”?", "¿Borrar “{0}”?"],
+  "갤러리": ["Gallery", "ギャラリー", "图库", "相簿", "Thư viện", "Galerie", "Galerie", "Galeria", "Galería"],
+  "그림": ["Picture", "画像", "图片", "圖片", "Hình", "Bild", "Image", "Imagem", "Imagen"],
+  "그림 넣기": ["Insert picture", "画像を挿入", "插入图片", "插入圖片", "Chèn hình", "Bild einfügen", "Insérer une image", "Inserir imagem", "Insertar imagen"],
+  "그림 넣기…": ["Insert picture…", "画像を挿入…", "插入图片…", "插入圖片…", "Chèn hình…", "Bild einfügen…", "Insérer une image…", "Inserir imagem…", "Insertar imagen…"],
+  "그림 레이어 보이기": ["Show picture layer", "画像レイヤーを表示", "显示图片图层", "顯示圖片圖層", "Hiện lớp hình", "Bildebene anzeigen", "Afficher le calque d’images", "Mostrar camada de imagens", "Mostrar capa de imágenes"],
+  "그림 바꾸기": ["Change picture", "画像を変更", "更换图片", "更換圖片", "Đổi hình", "Bild ändern", "Changer l’image", "Trocar imagem", "Cambiar imagen"],
+  "그림 바꾸기…": ["Change picture…", "画像を変更…", "更换图片…", "更換圖片…", "Đổi hình…", "Bild ändern…", "Changer l’image…", "Trocar imagem…", "Cambiar imagen…"],
+  "그림 불러오기": ["Load picture", "画像を読み込む", "载入图片", "載入圖片", "Tải hình", "Bild laden", "Charger une image", "Carregar imagem", "Cargar imagen"],
+  "그림 상자": ["Picture box", "画像ボックス", "图片框", "圖片框", "Khung hình", "Bildrahmen", "Cadre d’image", "Caixa de imagem", "Cuadro de imagen"],
+  "그림 상자 {0}": ["Picture boxes {0}", "画像ボックス {0}", "图片框 {0}", "圖片框 {0}", "Khung hình {0}", "Bildrahmen {0}", "Cadres {0}", "Caixas {0}", "Cuadros {0}"],
+  "그림 상자 그리기": ["Draw picture box", "画像ボックスを描く", "绘制图片框", "繪製圖片框", "Vẽ khung hình", "Bildrahmen zeichnen", "Dessiner un cadre", "Desenhar caixa de imagem", "Dibujar cuadro de imagen"],
+  "그림 상자 그리기: 대각선으로 끌어 보세요.": ["Draw picture box: drag diagonally.", "画像ボックスを描く：斜めにドラッグしてください。", "绘制图片框：请沿对角线拖动。", "繪製圖片框：請沿對角線拖動。", "Vẽ khung hình: hãy kéo chéo.", "Bildrahmen zeichnen: diagonal ziehen.", "Dessiner un cadre : faites glisser en diagonale.", "Desenhar caixa: arraste na diagonal.", "Dibujar cuadro: arrastra en diagonal."],
+  "그림 상자가 있어 짝꿍 파일도 저장합니다. 같은 폴더에 저장해 주세요.": ["This document has picture boxes, so the companion file is saved too. Please save it in the same folder.", "画像ボックスがあるため、ペアファイルも保存します。同じフォルダーに保存してください。", "文档中有图片框，因此也会保存配套文件。请保存在同一文件夹中。", "文件中有圖片框，因此也會儲存配套檔案。請儲存在同一資料夾中。", "Tài liệu có khung hình nên tệp đi kèm cũng được lưu. Vui lòng lưu cùng thư mục.", "Da Bildrahmen vorhanden sind, wird auch die Begleitdatei gespeichert. Bitte im selben Ordner speichern.", "Le document contient des cadres : le fichier compagnon est aussi enregistré. Enregistrez-le dans le même dossier.", "Há caixas de imagem, então o arquivo complementar também será salvo. Salve-o na mesma pasta.", "Hay cuadros de imagen, así que también se guarda el archivo complementario. Guárdalo en la misma carpeta."],
+  "그림 상자를 지웠습니다. ↶로 되돌릴 수 있습니다.": ["Picture box deleted. Press ↶ to undo.", "画像ボックスを削除しました。↶ で元に戻せます。", "已删除图片框。可按 ↶ 撤销。", "已刪除圖片框。可按 ↶ 撤銷。", "Đã xóa khung hình. Nhấn ↶ để hoàn tác.", "Bildrahmen gelöscht. Mit ↶ rückgängig machen.", "Cadre supprimé. Appuyez sur ↶ pour annuler.", "Caixa excluída. Toque em ↶ para desfazer.", "Cuadro eliminado. Toca ↶ para deshacer."],
+  "그림 자리가 생겼습니다. 상자를 누르면 그림을 넣습니다.": ["Picture box created. Tap it to insert a picture.", "画像の枠ができました。枠を押すと画像を挿入します。", "已创建图片框。点击它即可插入图片。", "已建立圖片框。點選它即可插入圖片。", "Đã tạo khung hình. Nhấn vào khung để chèn hình.", "Bildrahmen erstellt. Antippen, um ein Bild einzufügen.", "Cadre créé. Touchez-le pour insérer une image.", "Caixa criada. Toque nela para inserir uma imagem.", "Cuadro creado. Tócalo para insertar una imagen."],
+  "그림(JPG/PNG)": ["Image (JPG/PNG)", "画像 (JPG/PNG)", "图片 (JPG/PNG)", "圖片 (JPG/PNG)", "Hình (JPG/PNG)", "Bild (JPG/PNG)", "Image (JPG/PNG)", "Imagem (JPG/PNG)", "Imagen (JPG/PNG)"],
+  "그림으로 보내기": ["Export as image", "画像で書き出す", "导出为图片", "匯出為圖片", "Xuất thành hình", "Als Bild exportieren", "Exporter en image", "Exportar como imagem", "Exportar como imagen"],
+  "그림으로 보냈습니다.": ["Exported as an image.", "画像で書き出しました。", "已导出为图片。", "已匯出為圖片。", "Đã xuất thành hình.", "Als Bild exportiert.", "Exporté en image.", "Exportado como imagem.", "Exportado como imagen."],
+  "그림을 넣었습니다.": ["Picture inserted.", "画像を挿入しました。", "已插入图片。", "已插入圖片。", "Đã chèn hình.", "Bild eingefügt.", "Image insérée.", "Imagem inserida.", "Imagen insertada."],
+  "그림을 만드는 중…": ["Creating image…", "画像を作成中…", "正在生成图片…", "正在生成圖片…", "Đang tạo hình…", "Bild wird erstellt…", "Création de l’image…", "Criando imagem…", "Creando imagen…"],
+  "그림을 만들지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not create the image. Please check your internet connection.", "画像を作成できませんでした。インターネット接続を確認してください。", "无法生成图片。请检查网络连接。", "無法生成圖片。請檢查網路連線。", "Không tạo được hình. Vui lòng kiểm tra kết nối Internet.", "Bild konnte nicht erstellt werden. Bitte Internetverbindung prüfen.", "Impossible de créer l’image. Vérifiez votre connexion Internet.", "Não foi possível criar a imagem. Verifique sua conexão com a internet.", "No se pudo crear la imagen. Revisa tu conexión a internet."],
+  "그림을 맞추는 중…": ["Fitting picture…", "画像を合わせています…", "正在调整图片…", "正在調整圖片…", "Đang canh hình…", "Bild wird angepasst…", "Ajustement de l’image…", "Ajustando imagem…", "Ajustando imagen…"],
+  "글": ["Text", "本文", "正文", "正文", "Văn bản", "Text", "Texte", "Texto", "Texto"],
+  "글 {0}자": ["{0} chars", "{0}文字", "{0} 字", "{0} 字", "{0} ký tự", "{0} Zeichen", "{0} caractères", "{0} caracteres", "{0} caracteres"],
+  "글꼴": ["Font", "フォント", "字体", "字型", "Phông chữ", "Schriftart", "Police", "Fonte", "Fuente"],
+  "글꼴 목록": ["Family", "ファミリ", "字体系列", "字型系列", "Họ phông", "Familie", "Famille", "Família", "Familia"],
+  "글은 순수 txt로, 그림 상자는 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.": ["A notepad that saves text as plain txt and picture boxes in a companion file (.txtx.pitex). People without pitex just see the txt.", "本文は純粋な txt で、画像ボックスはペアファイル (.txtx.pitex) で保存するメモ帳です。pitex がない人には txt だけが見えます。", "正文保存为纯 txt，图片框保存在配套文件 (.txtx.pitex) 中的记事本。没有 pitex 的人只会看到 txt。", "正文儲存為純 txt，圖片框儲存在配套檔案 (.txtx.pitex) 中的記事本。沒有 pitex 的人只會看到 txt。", "Trình ghi chú lưu văn bản dạng txt thuần và khung hình trong tệp đi kèm (.txtx.pitex). Người không có pitex chỉ thấy tệp txt.", "Ein Editor, der Text als reines txt und Bildrahmen in einer Begleitdatei (.txtx.pitex) speichert. Wer pitex nicht hat, sieht nur das txt.", "Un bloc-notes qui enregistre le texte en txt pur et les cadres dans un fichier compagnon (.txtx.pitex). Sans pitex, on ne voit que le txt.", "Um bloco de notas que salva o texto em txt puro e as caixas de imagem num arquivo complementar (.txtx.pitex). Quem não tem pitex vê só o txt.", "Un bloc de notas que guarda el texto como txt puro y los cuadros de imagen en un archivo complementario (.txtx.pitex). Quien no tiene pitex solo ve el txt."],
+  "기본 크기": ["Restore default zoom", "既定のズームに戻す", "恢复默认缩放", "恢復預設縮放", "Khôi phục thu phóng mặc định", "Standardzoom", "Zoom par défaut", "Zoom padrão", "Zoom predeterminado"],
+  "기본적으로 창 안에 텍스트 맞춤": ["Fit text within the window by default", "既定でウィンドウ内にテキストを合わせる", "默认使文本适应窗口", "預設使文字適應視窗", "Mặc định vừa văn bản trong cửa sổ", "Text standardmäßig an das Fenster anpassen", "Ajuster le texte à la fenêtre par défaut", "Ajustar o texto à janela por padrão", "Ajustar el texto a la ventana de forma predeterminada"],
+  "꽉 차게": ["Fill", "全体に合わせる", "填满", "填滿", "Lấp đầy", "Füllen", "Remplir", "Preencher", "Rellenar"],
+  "꽉 차게 (가장자리 잘림)": ["Fill (edges cropped)", "全体に合わせる（端が切れる）", "填满（边缘被裁切）", "填滿（邊緣被裁切）", "Lấp đầy (cắt mép)", "Füllen (Ränder beschnitten)", "Remplir (bords rognés)", "Preencher (bordas cortadas)", "Rellenar (bordes recortados)"],
+  "끌어서 크기 정하기": ["drag to size", "ドラッグしてサイズ指定", "拖动确定大小", "拖動確定大小", "kéo để chỉnh cỡ", "ziehen für Größe", "glisser pour la taille", "arraste para o tamanho", "arrastra para el tamaño"],
+  "끔": ["Off", "オフ", "关", "關", "Tắt", "Aus", "Désactivé", "Desligado", "Desactivado"],
+  "날짜·시간 넣기": ["Time/Date", "日付と時刻", "日期/时间", "日期/時間", "Ngày/giờ", "Datum/Uhrzeit", "Date/heure", "Data/hora", "Fecha/hora"],
+  "내려받았습니다: {0}": ["Downloaded: {0}", "ダウンロードしました：{0}", "已下载：{0}", "已下載：{0}", "Đã tải xuống: {0}", "Heruntergeladen: {0}", "Téléchargé : {0}", "Baixado: {0}", "Descargado: {0}"],
+  "다 보이게": ["Fit", "全体を表示", "完整显示", "完整顯示", "Vừa khung", "Einpassen", "Ajuster", "Ajustar", "Ajustar"],
+  "다 보이게 (여백 생김)": ["Fit (with margins)", "全体を表示（余白あり）", "完整显示（留白）", "完整顯示（留白）", "Vừa khung (có lề)", "Einpassen (mit Rand)", "Ajuster (avec marges)", "Ajustar (com margens)", "Ajustar (con márgenes)"],
+  "다른 이름으로 저장": ["Save as", "名前を付けて保存", "另存为", "另存為", "Lưu thành", "Speichern unter", "Enregistrer sous", "Salvar como", "Guardar como"],
+  "다른 이름으로 저장…": ["Save as…", "名前を付けて保存…", "另存为…", "另存為…", "Lưu thành…", "Speichern unter…", "Enregistrer sous…", "Salvar como…", "Guardar como…"],
+  "다시 불러오기": ["Load again", "再読み込み", "重新载入", "重新載入", "Tải lại", "Erneut laden", "Recharger", "Carregar novamente", "Volver a cargar"],
+  "다시 실행": ["Redo", "やり直し", "重做", "重做", "Làm lại", "Wiederholen", "Rétablir", "Refazer", "Rehacer"],
+  "다시 실행 (Ctrl+Y)": ["Redo (Ctrl+Y)", "やり直し (Ctrl+Y)", "重做 (Ctrl+Y)", "重做 (Ctrl+Y)", "Làm lại (Ctrl+Y)", "Wiederholen (Strg+Y)", "Rétablir (Ctrl+Y)", "Refazer (Ctrl+Y)", "Rehacer (Ctrl+Y)"],
+  "다음 단계": ["Next stage", "次の段階", "下一阶段", "下一階段", "Giai đoạn sau", "Nächste Stufe", "Étape suivante", "Próxima etapa", "Próxima etapa"],
+  "다음 찾기": ["Find next", "次を検索", "查找下一个", "查詢下一個", "Tìm tiếp", "Weitersuchen", "Suivant", "Localizar próxima", "Buscar siguiente"],
+  "닫기": ["Close", "閉じる", "关闭", "關閉", "Đóng", "Schließen", "Fermer", "Fechar", "Cerrar"],
+  "닫았습니다.": ["Closed.", "閉じました。", "已关闭。", "已關閉。", "Đã đóng.", "Geschlossen.", "Fermé.", "Fechado.", "Cerrado."],
+  "대소문자 구분": ["Match case", "大文字と小文字を区別", "区分大小写", "區分大小寫", "Phân biệt hoa thường", "Groß-/Kleinschreibung", "Respecter la casse", "Diferenciar maiúsculas", "Coincidir mayúsculas"],
+  "도움말": ["Help", "ヘルプ", "帮助", "幫助", "Trợ giúp", "Hilfe", "Aide", "Ajuda", "Ayuda"],
+  "되돌리기": ["Undo", "元に戻す", "撤销", "撤銷", "Hoàn tác", "Rückgängig", "Défaire", "Desfazer", "Deshacer"],
+  "되살렸습니다.": ["Restored.", "元に戻しました。", "已恢复。", "已恢復。", "Đã khôi phục.", "Wiederhergestellt.", "Restauré.", "Restaurado.", "Restaurado."],
+  "메뉴": ["Menu", "メニュー", "菜单", "選單", "Menu", "Menü", "Menu", "Menu", "Menú"],
+  "모두 바꾸기": ["Replace all", "すべて置換", "全部替换", "全部替換", "Thay tất cả", "Alle ersetzen", "Tout remplacer", "Substituir tudo", "Reemplazar todo"],
+  "모두 선택": ["Select all", "すべて選択", "全选", "全選", "Chọn tất cả", "Alles auswählen", "Tout sélectionner", "Selecionar tudo", "Seleccionar todo"],
+  "바꾸기": ["Replace", "置換", "替换", "替換", "Thay", "Ersetzen", "Remplacer", "Substituir", "Reemplazar"],
+  "바꾸기…": ["Replace…", "置換…", "替换…", "替換…", "Thay…", "Ersetzen…", "Remplacer…", "Substituir…", "Reemplazar…"],
+  "바꿀 말": ["Replace with", "置換後の文字列", "替换为", "替換為", "Thay bằng", "Ersetzen durch", "Remplacer par", "Substituir por", "Reemplazar con"],
+  "바다의 파도 소리가 내 영혼을 차분하게 합니다.": ["The sound of ocean waves calms my soul.", "海の波の音が私の心を落ち着かせてくれます。", "海浪的声音让我的心灵平静。", "海浪的聲音讓我的心靈平靜。", "Tiếng sóng biển làm tâm hồn tôi lắng dịu.", "Das Rauschen der Meereswellen beruhigt meine Seele.", "Le bruit des vagues apaise mon âme.", "O som das ondas do mar acalma minha alma.", "El sonido de las olas del mar calma mi alma."],
+  "밝게 / 다크": ["Light / Dark", "ライト / ダーク", "浅色 / 深色", "淺色 / 深色", "Sáng / Tối", "Hell / Dunkel", "Clair / Sombre", "Claro / Escuro", "Claro / Oscuro"],
+  "보기": ["View", "表示", "查看", "檢視", "Xem", "Ansicht", "Affichage", "Exibir", "Ver"],
+  "보내기": ["Export", "エクスポート", "导出", "匯出", "Xuất", "Exportieren", "Exporter", "Exportar", "Exportar"],
+  "삭제": ["Delete", "削除", "删除", "刪除", "Xóa", "Löschen", "Supprimer", "Excluir", "Eliminar"],
+  "상자 지우기": ["Delete box", "ボックスを削除", "删除图片框", "刪除圖片框", "Xóa khung", "Rahmen löschen", "Supprimer le cadre", "Excluir caixa", "Eliminar cuadro"],
+  "상자 크기는 그대로 두고, 그림을 상자에 맞춥니다.": ["The box keeps its size; the picture is fitted to the box.", "ボックスの大きさはそのままで、画像をボックスに合わせます。", "图片框大小不变，图片会适应图片框。", "圖片框大小不變，圖片會適應圖片框。", "Khung giữ nguyên kích thước; hình được canh vừa khung.", "Der Rahmen behält seine Größe; das Bild wird angepasst.", "Le cadre garde sa taille ; l’image s’y adapte.", "A caixa mantém o tamanho; a imagem se ajusta a ela.", "El cuadro mantiene su tamaño; la imagen se ajusta a él."],
+  "상자를 먼저 고르세요": ["Select a box first", "先にボックスを選択", "请先选择图片框", "請先選擇圖片框", "Hãy chọn khung trước", "Zuerst einen Rahmen wählen", "Sélectionnez d’abord un cadre", "Selecione uma caixa primeiro", "Selecciona un cuadro primero"],
+  "상자에 맞추는 방법 (fit in box)": ["Fit in box", "ボックスへの合わせ方", "适应图片框的方式", "適應圖片框的方式", "Cách canh vào khung", "In den Rahmen einpassen", "Ajustement au cadre", "Ajuste à caixa", "Ajuste al cuadro"],
+  "상태 표시줄": ["Status bar", "ステータス バー", "状态栏", "狀態列", "Thanh trạng thái", "Statusleiste", "Barre d’état", "Barra de status", "Barra de estado"],
+  "새 글입니다.": ["New document.", "新しい文書です。", "新文档。", "新文件。", "Tài liệu mới.", "Neues Dokument.", "Nouveau document.", "Novo documento.", "Documento nuevo."],
+  "새 파일 이름": ["New file name", "新しいファイル名", "新文件名", "新檔名", "Tên tệp mới", "Neuer Dateiname", "Nouveau nom de fichier", "Novo nome do arquivo", "Nuevo nombre de archivo"],
+  "새로 만들기": ["New", "新規", "新建", "新建", "Mới", "Neu", "Nouveau", "Novo", "Nuevo"],
+  "설정": ["Settings", "設定", "设置", "設定", "Cài đặt", "Einstellungen", "Paramètres", "Configurações", "Configuración"],
+  "설정…": ["Settings…", "設定…", "设置…", "設定…", "Cài đặt…", "Einstellungen…", "Paramètres…", "Configurações…", "Configuración…"],
+  "설치된 글꼴 {0}개": ["{0} installed fonts", "インストール済みフォント {0}個", "已安装字体 {0} 个", "已安裝字型 {0} 個", "{0} phông đã cài", "{0} installierte Schriftarten", "{0} polices installées", "{0} fontes instaladas", "{0} fuentes instaladas"],
+  "설치된 글꼴을 보려면 허락이 필요합니다. ": ["Permission is needed to list installed fonts. ", "インストール済みフォントを表示するには許可が必要です。", "需要授权才能显示已安装的字体。", "需要授權才能顯示已安裝的字型。", "Cần cho phép để hiện các phông đã cài. ", "Zum Anzeigen installierter Schriftarten ist eine Erlaubnis nötig. ", "Une autorisation est nécessaire pour lister les polices installées. ", "É preciso permitir para listar as fontes instaladas. ", "Se necesita permiso para listar las fuentes instaladas. "],
+  "설치된 글꼴을 불러오는 중… ": ["Loading installed fonts… ", "インストール済みフォントを読み込み中… ", "正在载入已安装字体… ", "正在載入已安裝字型… ", "Đang tải phông đã cài… ", "Installierte Schriftarten werden geladen… ", "Chargement des polices installées… ", "Carregando fontes instaladas… ", "Cargando fuentes instaladas… "],
+  "스타일": ["Style", "スタイル", "字形", "字形", "Kiểu", "Schriftschnitt", "Style", "Estilo", "Estilo"],
+  "시작점을 누른 채 대각선으로 끌면 그림 자리(X 상자)가 생깁니다. □ 그림 상자를 다시 누르면 그리기를 끕니다.": ["Press and drag diagonally to create a picture box (X box). Press □ Picture box again to stop drawing.", "始点を押したまま斜めにドラッグすると画像の枠（Xボックス）ができます。□ 画像ボックスをもう一度押すと描画を終了します。", "按住起点沿对角线拖动即可创建图片框（X 框）。再次点击 □ 图片框可结束绘制。", "按住起點沿對角線拖動即可建立圖片框（X 框）。再次點選 □ 圖片框可結束繪製。", "Giữ điểm bắt đầu rồi kéo chéo để tạo khung hình (khung X). Nhấn lại □ Khung hình để tắt vẽ.", "Startpunkt halten und diagonal ziehen, um einen Bildrahmen (X-Rahmen) zu erstellen. □ Bildrahmen erneut drücken, um das Zeichnen zu beenden.", "Maintenez le point de départ et glissez en diagonale pour créer un cadre (cadre X). Appuyez à nouveau sur □ Cadre pour arrêter.", "Segure o ponto inicial e arraste na diagonal para criar uma caixa (caixa X). Toque de novo em □ Caixa para parar.", "Mantén el punto inicial y arrastra en diagonal para crear un cuadro (cuadro X). Toca de nuevo □ Cuadro para dejar de dibujar."],
+  "실행 취소": ["Undo", "元に戻す", "撤销", "撤銷", "Hoàn tác", "Rückgängig", "Annuler", "Desfazer", "Deshacer"],
+  "실행 취소 (Ctrl+Z)": ["Undo (Ctrl+Z)", "元に戻す (Ctrl+Z)", "撤销 (Ctrl+Z)", "撤銷 (Ctrl+Z)", "Hoàn tác (Ctrl+Z)", "Rückgängig (Strg+Z)", "Annuler (Ctrl+Z)", "Desfazer (Ctrl+Z)", "Deshacer (Ctrl+Z)"],
+  "언어": ["Language", "言語", "语言", "語言", "Ngôn ngữ", "Sprache", "Langue", "Idioma", "Idioma"],
+  "언어 · Language": ["Language", "言語 · Language", "语言 · Language", "語言 · Language", "Ngôn ngữ · Language", "Sprache · Language", "Langue · Language", "Idioma · Language", "Idioma · Language"],
+  "언어는 smartDir 번역표와 같고, 중국어 번체를 더했습니다. (아랍어는 나중에 결정)": ["Languages follow the smartDir translation table, plus Traditional Chinese. (Arabic to be decided later)", "言語は smartDir の翻訳表と同じです。（アラビア語は後で決定）", "语言与 smartDir 翻译表相同。（阿拉伯语以后再定）", "語言與 smartDir 翻譯表相同。（阿拉伯語以後再定）", "Ngôn ngữ giống bảng dịch của smartDir. (Tiếng Ả Rập sẽ quyết định sau)", "Die Sprachen entsprechen der smartDir-Übersetzungstabelle. (Arabisch wird später entschieden)", "Les langues suivent la table de traduction de smartDir. (L’arabe sera décidé plus tard)", "Os idiomas seguem a tabela de tradução do smartDir. (Árabe será decidido depois)", "Los idiomas siguen la tabla de traducción de smartDir. (El árabe se decidirá después)"],
+  "열기": ["Open", "開く", "打开", "開啟", "Mở", "Öffnen", "Ouvrir", "Abrir", "Abrir"],
+  "열기…": ["Open…", "開く…", "打开…", "開啟…", "Mở…", "Öffnen…", "Ouvrir…", "Abrir…", "Abrir…"],
+  "열었습니다. 그림까지 열려면 짝꿍 파일(.txtx.pitex)도 함께 고르세요.": ["Opened. To open the pictures too, select the companion file (.txtx.pitex) together.", "開きました。画像も開くには、ペアファイル (.txtx.pitex) も一緒に選んでください。", "已打开。若要连图片一起打开，请同时选择配套文件 (.txtx.pitex)。", "已開啟。若要連圖片一起開啟，請同時選擇配套檔案 (.txtx.pitex)。", "Đã mở. Để mở cả hình, hãy chọn thêm tệp đi kèm (.txtx.pitex).", "Geöffnet. Um auch die Bilder zu öffnen, die Begleitdatei (.txtx.pitex) mit auswählen.", "Ouvert. Pour ouvrir aussi les images, sélectionnez en même temps le fichier compagnon (.txtx.pitex).", "Aberto. Para abrir as imagens também, selecione junto o arquivo complementar (.txtx.pitex).", "Abierto. Para abrir también las imágenes, selecciona a la vez el archivo complementario (.txtx.pitex)."],
+  "열었습니다: {0}": ["Opened: {0}", "開きました：{0}", "已打开：{0}", "已開啟：{0}", "Đã mở: {0}", "Geöffnet: {0}", "Ouvert : {0}", "Aberto: {0}", "Abierto: {0}"],
+  "오른쪽": ["Right", "右", "右", "右", "Phải", "Rechts", "Droite", "Direita", "Derecha"],
+  "오른쪽에 붙이기": ["Snap right", "右に寄せる", "靠右", "靠右", "Canh phải", "Rechts ausrichten", "Aligner à droite", "Alinhar à direita", "Alinear a la derecha"],
+  "왼쪽": ["Left", "左", "左", "左", "Trái", "Links", "Gauche", "Esquerda", "Izquierda"],
+  "왼쪽에 붙이기": ["Snap left", "左に寄せる", "靠左", "靠左", "Canh trái", "Links ausrichten", "Aligner à gauche", "Alinhar à esquerda", "Alinear a la izquierda"],
+  "이 그림을 읽지 못했습니다. 다른 그림을 골라 주세요.": ["Could not read this picture. Please choose another.", "この画像を読み込めませんでした。別の画像を選んでください。", "无法读取此图片。请选择其他图片。", "無法讀取此圖片。請選擇其他圖片。", "Không đọc được hình này. Vui lòng chọn hình khác.", "Dieses Bild konnte nicht gelesen werden. Bitte ein anderes wählen.", "Impossible de lire cette image. Choisissez-en une autre.", "Não foi possível ler esta imagem. Escolha outra.", "No se pudo leer esta imagen. Elige otra."],
+  "이 브라우저는 설치된 글꼴 목록을 보여 줄 수 없어 자주 쓰는 글꼴만 보입니다.": ["This browser cannot list installed fonts, so only common fonts are shown.", "このブラウザーはインストール済みフォントを一覧表示できないため、よく使うフォントだけを表示します。", "此浏览器无法列出已安装的字体，因此只显示常用字体。", "此瀏覽器無法列出已安裝的字型，因此只顯示常用字型。", "Trình duyệt này không liệt kê được phông đã cài nên chỉ hiện các phông phổ biến.", "Dieser Browser kann installierte Schriftarten nicht auflisten; es werden nur gängige angezeigt.", "Ce navigateur ne peut pas lister les polices installées ; seules les polices courantes sont affichées.", "Este navegador não lista as fontes instaladas; só as mais comuns aparecem.", "Este navegador no puede listar las fuentes instaladas; solo se muestran las más comunes."],
+  "이 브라우저는 파일 창을 쓸 수 없어 내려받기로 저장합니다.": ["This browser has no file dialog, so the file is saved as a download.", "このブラウザーはファイルダイアログを使えないため、ダウンロードで保存します。", "此浏览器无法使用文件对话框，将以下载方式保存。", "此瀏覽器無法使用檔案對話方塊，將以下載方式儲存。", "Trình duyệt này không có hộp thoại tệp nên sẽ lưu bằng cách tải xuống.", "Dieser Browser hat keinen Dateidialog; die Datei wird heruntergeladen.", "Ce navigateur n’a pas de boîte de dialogue de fichiers ; le fichier sera téléchargé.", "Este navegador não tem janela de arquivos; o arquivo será baixado.", "Este navegador no tiene ventana de archivos; el archivo se descargará."],
+  "이 시험판(PWA)에서는 화면의 글만 지우고, PC의 파일은 그대로 둡니다. 파일을 휴지통으로 보내는 기능은 Tauri(.exe) 판에서 넣습니다.": ["This trial (PWA) only clears the document on screen; files on your PC are kept. Sending files to the Recycle Bin comes in the Tauri (.exe) version.", "この試用版（PWA）では画面の文書だけを消去し、PCのファイルはそのまま残します。ファイルをごみ箱に送る機能は Tauri（.exe）版で追加します。", "此试用版（PWA）只清除屏幕上的文档，电脑中的文件保持不变。将文件移到回收站的功能会在 Tauri（.exe）版中加入。", "此試用版（PWA）只清除螢幕上的文件，電腦中的檔案保持不變。將檔案移到回收站的功能會在 Tauri（.exe）版中加入。", "Bản thử (PWA) này chỉ xóa tài liệu trên màn hình, tệp trên PC vẫn giữ nguyên. Tính năng chuyển tệp vào Thùng rác sẽ có ở bản Tauri (.exe).", "Diese Testversion (PWA) leert nur das Dokument auf dem Bildschirm; Dateien auf dem PC bleiben erhalten. Das Verschieben in den Papierkorb kommt in der Tauri-Version (.exe).", "Cette version d’essai (PWA) n’efface que le document à l’écran ; les fichiers du PC sont conservés. L’envoi à la Corbeille viendra avec la version Tauri (.exe).", "Esta versão de teste (PWA) só limpa o documento na tela; os arquivos do PC são mantidos. Enviar à Lixeira virá na versão Tauri (.exe).", "Esta versión de prueba (PWA) solo borra el documento en pantalla; los archivos de la PC se conservan. Enviar a la Papelera llegará en la versión Tauri (.exe)."],
+  "이름에 / \\ : * ? \" < > | 는 쓸 수 없습니다.": ["Names cannot contain / \\ : * ? \" < > |", "名前に / \\ : * ? \" < > | は使えません。", "名称中不能包含 / \\ : * ? \" < > |", "名稱中不能包含 / \\ : * ? \" < > |", "Tên không được chứa / \\ : * ? \" < > |", "Namen dürfen / \\ : * ? \" < > | nicht enthalten.", "Le nom ne peut pas contenir / \\ : * ? \" < > |", "O nome não pode conter / \\ : * ? \" < > |", "El nombre no puede contener / \\ : * ? \" < > |"],
+  "이름을 넣어 주세요.": ["Please enter a name.", "名前を入力してください。", "请输入名称。", "請輸入名稱。", "Vui lòng nhập tên.", "Bitte einen Namen eingeben.", "Saisissez un nom.", "Digite um nome.", "Escribe un nombre."],
+  "인쇄…": ["Print…", "印刷…", "打印…", "列印…", "In…", "Drucken…", "Imprimer…", "Imprimir…", "Imprimir…"],
+  "인코딩": ["Encoding", "エンコード", "编码", "編碼", "Mã hóa", "Codierung", "Encodage", "Codificação", "Codificación"],
+  "자동 줄 바꿈": ["Word wrap", "右端で折り返す", "自动换行", "自動換行", "Tự xuống dòng", "Zeilenumbruch", "Retour automatique à la ligne", "Quebra automática de linha", "Ajuste de línea"],
+  "저장": ["Save", "保存", "保存", "儲存", "Lưu", "Speichern", "Enregistrer", "Salvar", "Guardar"],
+  "저장 (Ctrl+S)": ["Save (Ctrl+S)", "保存 (Ctrl+S)", "保存 (Ctrl+S)", "儲存 (Ctrl+S)", "Lưu (Ctrl+S)", "Speichern (Strg+S)", "Enregistrer (Ctrl+S)", "Salvar (Ctrl+S)", "Guardar (Ctrl+S)"],
+  "저장 안 됨": ["Not saved", "未保存", "未保存", "未儲存", "Chưa lưu", "Nicht gespeichert", "Non enregistré", "Não salvo", "Sin guardar"],
+  "저장됨": ["Saved", "保存済み", "已保存", "已儲存", "Đã lưu", "Gespeichert", "Enregistré", "Salvo", "Guardado"],
+  "저장하지 못했습니다.": ["Could not save.", "保存できませんでした。", "无法保存。", "無法儲存。", "Không lưu được.", "Speichern fehlgeschlagen.", "Impossible d’enregistrer.", "Não foi possível salvar.", "No se pudo guardar."],
+  "저장하지 않은 글이 있습니다. 그래도 열까요?": ["You have unsaved changes. Open anyway?", "保存していない変更があります。それでも開きますか？", "有未保存的更改。仍要打开吗？", "有未儲存的更改。仍要開啟嗎？", "Có thay đổi chưa lưu. Vẫn mở?", "Es gibt ungespeicherte Änderungen. Trotzdem öffnen?", "Des modifications ne sont pas enregistrées. Ouvrir quand même ?", "Há alterações não salvas. Abrir mesmo assim?", "Hay cambios sin guardar. ¿Abrir de todos modos?"],
+  "저장하지 않은 글이 있습니다. 저장하지 않고 닫을까요?": ["You have unsaved changes. Close without saving?", "保存していない変更があります。保存せずに閉じますか？", "有未保存的更改。不保存就关闭吗？", "有未儲存的更改。不儲存就關閉嗎？", "Có thay đổi chưa lưu. Đóng mà không lưu?", "Es gibt ungespeicherte Änderungen. Ohne Speichern schließen?", "Des modifications ne sont pas enregistrées. Fermer sans enregistrer ?", "Há alterações não salvas. Fechar sem salvar?", "Hay cambios sin guardar. ¿Cerrar sin guardar?"],
+  "저장할 때 {0}(으)로 저장합니다.": ["Will be saved as {0}.", "{0} で保存します。", "将以 {0} 保存。", "將以 {0} 儲存。", "Sẽ lưu dạng {0}.", "Wird als {0} gespeichert.", "Sera enregistré en {0}.", "Será salvo como {0}.", "Se guardará como {0}."],
+  "저장했습니다: {0}": ["Saved: {0}", "保存しました：{0}", "已保存：{0}", "已儲存：{0}", "Đã lưu: {0}", "Gespeichert: {0}", "Enregistré : {0}", "Salvo: {0}", "Guardado: {0}"],
+  "전체 폭": ["Full width", "全幅", "全宽", "全寬", "Toàn chiều rộng", "Volle Breite", "Pleine largeur", "Largura total", "Ancho completo"],
+  "제목 없음": ["Untitled", "無題", "无标题", "無標題", "Không tên", "Unbenannt", "Sans titre", "Sem título", "Sin título"],
+  "조금 더 크게 끌어 주세요.": ["Please drag a bit larger.", "もう少し大きくドラッグしてください。", "请拖得大一些。", "請拖得大一些。", "Hãy kéo lớn hơn một chút.", "Bitte etwas größer ziehen.", "Faites glisser un peu plus grand.", "Arraste um pouco maior.", "Arrastra un poco más grande."],
+  "줄 {0}, 열 {1}": ["Ln {0}, Col {1}", "{0} 行、{1} 列", "第 {0} 行，第 {1} 列", "第 {0} 行，第 {1} 列", "Dòng {0}, Cột {1}", "Zeile {0}, Spalte {1}", "Ligne {0}, Col {1}", "Lin {0}, Col {1}", "Lín {0}, Col {1}"],
+  "줄 끝: Unix (LF) — 폰 방식": ["Line ending: Unix (LF) — phone style", "改行コード：Unix (LF) — スマホ方式", "行尾：Unix (LF) — 手机方式", "行尾：Unix (LF) — 手機方式", "Kết thúc dòng: Unix (LF) — kiểu điện thoại", "Zeilenende: Unix (LF) — Handy-Stil", "Fin de ligne : Unix (LF) — style téléphone", "Fim de linha: Unix (LF) — estilo celular", "Fin de línea: Unix (LF) — estilo celular"],
+  "줄 끝: Unix·폰 (LF)": ["Line ending: Unix·phone (LF)", "改行コード：Unix・スマホ (LF)", "行尾：Unix·手机 (LF)", "行尾：Unix·手機 (LF)", "Kết thúc dòng: Unix·điện thoại (LF)", "Zeilenende: Unix·Handy (LF)", "Fin de ligne : Unix·téléphone (LF)", "Fim de linha: Unix·celular (LF)", "Fin de línea: Unix·celular (LF)"],
+  "줄 끝: Windows (CR LF)": ["Line ending: Windows (CR LF)", "改行コード：Windows (CR LF)", "行尾：Windows (CR LF)", "行尾：Windows (CR LF)", "Kết thúc dòng: Windows (CR LF)", "Zeilenende: Windows (CR LF)", "Fin de ligne : Windows (CR LF)", "Fim de linha: Windows (CR LF)", "Fin de línea: Windows (CR LF)"],
+  "줄 끝: Windows (CR LF) — PC 메모장과 같게": ["Line ending: Windows (CR LF) — same as PC Notepad", "改行コード：Windows (CR LF) — PCのメモ帳と同じ", "行尾：Windows (CR LF) — 与电脑记事本相同", "行尾：Windows (CR LF) — 與電腦記事本相同", "Kết thúc dòng: Windows (CR LF) — giống Notepad trên PC", "Zeilenende: Windows (CR LF) — wie der PC-Editor", "Fin de ligne : Windows (CR LF) — comme le Bloc-notes du PC", "Fim de linha: Windows (CR LF) — igual ao Bloco de Notas do PC", "Fin de línea: Windows (CR LF) — igual que el Bloc de notas de la PC"],
+  "줄 번호": ["Line numbers", "行番号", "行号", "行號", "Số dòng", "Zeilennummern", "Numéros de ligne", "Números de linha", "Números de línea"],
+  "지우기": ["Clear", "消去", "清除", "清除", "Xóa", "Leeren", "Effacer", "Limpar", "Borrar"],
+  "지웠습니다: {0}": ["Cleared: {0}", "消去しました：{0}", "已清除：{0}", "已清除：{0}", "Đã xóa: {0}", "Geleert: {0}", "Effacé : {0}", "Limpo: {0}", "Borrado: {0}"],
+  "짝꿍 파일만으로는 열 수 없습니다. 같은 이름의 txt도 함께 골라 주세요.": ["The companion file alone cannot be opened. Please select the txt with the same name too.", "ペアファイルだけでは開けません。同じ名前の txt も一緒に選んでください。", "仅配套文件无法打开。请同时选择同名的 txt。", "僅配套檔案無法開啟。請同時選擇同名的 txt。", "Không thể mở chỉ với tệp đi kèm. Hãy chọn cùng tệp txt cùng tên.", "Die Begleitdatei allein kann nicht geöffnet werden. Bitte das gleichnamige txt mit auswählen.", "Le fichier compagnon seul ne peut pas être ouvert. Sélectionnez aussi le txt du même nom.", "O arquivo complementar sozinho não abre. Selecione também o txt com o mesmo nome.", "El archivo complementario solo no se puede abrir. Selecciona también el txt del mismo nombre."],
+  "찾기": ["Find", "検索", "查找", "查詢", "Tìm", "Suchen", "Rechercher", "Localizar", "Buscar"],
+  "찾기 (Ctrl+F)": ["Find (Ctrl+F)", "検索 (Ctrl+F)", "查找 (Ctrl+F)", "查詢 (Ctrl+F)", "Tìm (Ctrl+F)", "Suchen (Strg+F)", "Rechercher (Ctrl+F)", "Localizar (Ctrl+F)", "Buscar (Ctrl+F)"],
+  "찾기…": ["Find…", "検索…", "查找…", "查詢…", "Tìm…", "Suchen…", "Rechercher…", "Localizar…", "Buscar…"],
+  "찾는 말이 없습니다.": ["Not found.", "見つかりません。", "找不到。", "找不到。", "Không tìm thấy.", "Nicht gefunden.", "Introuvable.", "Não encontrado.", "No se encontró."],
+  "찾을 말": ["Find", "検索する文字列", "查找内容", "查詢內容", "Tìm gì", "Suchen nach", "Rechercher", "Localizar", "Buscar"],
+  "축소": ["Zoom out", "縮小", "缩小", "縮小", "Thu nhỏ", "Verkleinern", "Zoom arrière", "Diminuir zoom", "Alejar"],
+  "취소": ["Cancel", "キャンセル", "取消", "取消", "Hủy", "Abbrechen", "Annuler", "Cancelar", "Cancelar"],
+  "카메라": ["Camera", "カメラ", "相机", "相機", "Máy ảnh", "Kamera", "Appareil photo", "Câmera", "Cámara"],
+  "켬": ["On", "オン", "开", "開", "Bật", "Ein", "Activé", "Ligado", "Activado"],
+  "크기": ["Size", "サイズ", "大小", "大小", "Cỡ", "Größe", "Taille", "Tamanho", "Tamaño"],
+  "텍스트": ["Text", "テキスト", "文本", "文字", "Văn bản", "Text", "Texte", "Texto", "Texto"],
+  "텍스트 문서": ["Text document", "テキスト文書", "文本文档", "文字文件", "Tài liệu văn bản", "Textdokument", "Document texte", "Documento de texto", "Documento de texto"],
+  "텍스트 서식": ["Text formatting", "テキストの書式", "文本格式", "文字格式", "Định dạng văn bản", "Textformatierung", "Mise en forme du texte", "Formatação de texto", "Formato de texto"],
+  "텍스트로 보냈습니다.": ["Exported as text.", "テキストで書き出しました。", "已导出为文本。", "已匯出為文字。", "Đã xuất dạng văn bản.", "Als Text exportiert.", "Exporté en texte.", "Exportado como texto.", "Exportado como texto."],
+  "파일": ["File", "ファイル", "文件", "檔案", "Tệp", "Datei", "Fichier", "Arquivo", "Archivo"],
+  "파일 이름": ["File name", "ファイル名", "文件名", "檔名", "Tên tệp", "Dateiname", "Nom du fichier", "Nome do arquivo", "Nombre del archivo"],
+  "페이지 {0} / {1}": ["Page {0} / {1}", "{0} / {1} ページ", "第 {0} / {1} 页", "第 {0} / {1} 頁", "Trang {0} / {1}", "Seite {0} / {1}", "Page {0} / {1}", "Página {0} / {1}", "Página {0} / {1}"],
+  "편집": ["Edit", "編集", "编辑", "編輯", "Sửa", "Bearbeiten", "Édition", "Editar", "Editar"],
+  "확대": ["Zoom in", "拡大", "放大", "放大", "Phóng to", "Vergrößern", "Zoom avant", "Aumentar zoom", "Acercar"],
+  "확인": ["OK", "OK", "确定", "確定", "OK", "OK", "OK", "OK", "Aceptar"],
+  "휴지통으로 보내기": ["Send to Recycle Bin", "ごみ箱に送る", "移到回收站", "移到回收站", "Chuyển vào Thùng rác", "In den Papierkorb", "Envoyer à la Corbeille", "Enviar para a Lixeira", "Enviar a la Papelera"],
+};
+const ORDER = ['en', 'ja', 'zh', 'zh-TW', 'vi', 'de', 'fr', 'pt', 'es'];   // 위 줄의 칸 순서
+ORDER.forEach((lg, i) => { I18N[lg] = {}; Object.entries(ROWS).forEach(([k, v]) => { if (v[i]) I18N[lg][k] = v[i]; }); });
+
+start();
+</script>
+</body>
+</html>
