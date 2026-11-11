@@ -145,7 +145,7 @@ body.ruler #rulerH, body.ruler #rulerV, body.ruler #rulerCorner { display: block
 body.crossfull #desk, body.crossfull #editor, body.crossfull .box { cursor: crosshair; }
 
 #sizer { position: relative; margin: 0 auto; }            /* 확대·축소한 종이 크기만큼 자리를 잡아 주는 틀 */
-#paper { position: absolute; left: 16px; top: 16px; width: 794px; transform-origin: 0 0; }  /* 794px = A4 폭 210mm */
+#paper { position: absolute; left: 0; top: 0; width: 794px; transform-origin: 0 0; }  /* 794px = A4 폭 210mm. 자와 종이 사이 틈 없음 */
 /* 낱장 종이 (A4 한 장 = 794×1123점). 페이지마다 따로 그려 사이에 간격이 생김 (수정사항 4·9) */
 .sheet { position: absolute; left: 0; width: 794px; height: 1123px; background: var(--paper); box-shadow: 0 1px 4px rgba(0,0,0,.2); }
 .sheet .guide { position: absolute; inset: 113px; border: 1px solid var(--guide); display: none; pointer-events: none; }   /* 3cm 여백 안내선 */
@@ -184,13 +184,39 @@ body.hide-layer #layer { display: none; }
 /* 선 (가는 선 한 가지): 글자와 같은 색. 넓은 투명 선으로 누르기 쉽게 */
 .ln { position: absolute; pointer-events: none; color: var(--fg); overflow: visible; }
 .ln svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ln path { fill: none; }
 .ln .vis { stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; }
 .ln .hit { stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: grab; }
 .ln.sel .vis { stroke: var(--accent); stroke-width: 2; }
 .ln .end { display: none; position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--accent); border: 2px solid var(--paper); pointer-events: auto; cursor: crosshair; box-sizing: border-box; }
 .ln.sel .end { display: block; }
+@media (pointer: coarse) {
+  .ln .end::after, .box .grip::after { content: ""; position: absolute; inset: -15px; border-radius: 50%; }   /* 손가락 닿는 범위 약 44점 */
+  .ln.sel .end.ctl { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
+}
+.ln .end.ctl { background: var(--paper); border-color: var(--accent); width: 16px; height: 16px; margin: -8px 0 0 -8px; }   /* 곡선의 휘는 정도를 바꾸는 가운데 동그라미 */
+.ln .guide2 { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 3; display: none; }
+.ln.sel .guide2 { display: inline; }
 body.exporting .ln.sel .vis { stroke: currentColor; stroke-width: 1.3; }
 #draw .lnpv { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+/* 표 상자 */
+.box.tbl { cursor: default; background: var(--paper); border-radius: 0; }
+.box.tbl table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; font-family: var(--font-text); font-size: calc(var(--text-size) * .92); color: var(--fg); }
+.box.tbl.autocol table { table-layout: auto; }
+.box.tbl.autorow table { height: auto; }
+.box.tbl td, .box.tbl th { border: 1px solid var(--muted); padding: 3px 6px; vertical-align: middle; text-align: left; font-weight: 400; outline: none; overflow-wrap: anywhere; white-space: pre-wrap; cursor: text; }
+.box.tbl .hd td { font-weight: 700; background: rgba(106,79,224,.12); text-align: center; }   /* 머리글 행 */
+.box.tbl .ft td { font-weight: 700; background: rgba(0,0,0,.05); border-top: 2px solid var(--muted); }   /* 바닥글 행 */
+.box.tbl td:focus { box-shadow: inset 0 0 0 2px var(--accent); }
+.box.tbl .tmove { display: none; position: absolute; left: -2px; top: -26px; height: 22px; padding: 0 8px; border-radius: 5px 5px 0 0; background: var(--accent); color: #fff; font: 12px var(--font-ui); align-items: center; gap: 4px; cursor: grab; user-select: none; white-space: nowrap; }   /* 표 옮기는 손잡이 */
+.box.tbl.sel .tmove { display: flex; }
+.box.tbl.sel { outline-offset: 1px; }
+body.exporting .box.tbl .tmove { display: none !important; }
+body.exporting .box.tbl td:focus { box-shadow: none; }
+.tblprops { display: grid; grid-template-columns: auto 90px auto 90px; gap: 10px 12px; align-items: center; }
+.tblprops input[type=number] { font: 15px var(--font-ui); padding: 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--fg); width: 100%; box-sizing: border-box; }
+.tblchk { display: flex; gap: 18px; flex-wrap: wrap; color: var(--fg); }
+.tblchk label { display: flex; gap: 6px; align-items: center; }
 /* 펜으로 칠한 자국 */
 .stk { position: absolute; pointer-events: none; overflow: visible; }
 .stk svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -298,7 +324,8 @@ body.exporting .box.sel { outline: 0; }
   #editor { padding: 30mm; color: #000; }
   .pgap { display: block !important; }      /* 빈칸이 페이지 경계에서 둘로 나뉘게 → 다음 장 글이 정확히 30mm 아래에서 시작 */
   .box.sel { outline: 0; }
-  .box .grip, .box .pos, .box .play, #tools, .ln .end { display: none !important; }
+  .box .grip, .box .pos, .box .play, #tools, .ln .end, .box.tbl .tmove { display: none !important; }
+  .box.tbl td { color: #000; border-color: #555; }
   .stk.sel { outline: 0 !important; }
   .ln .vis { stroke: #000 !important; stroke-width: 1.3 !important; }
   .box .vurl { display: block; }
@@ -360,7 +387,7 @@ body.exporting .box.sel { outline: 0; }
     <button type="button" id="toolPic" data-tool="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
     <button type="button" id="toolLine" data-tool="line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor"/><circle cx="19" cy="5" r="1.6" fill="currentColor"/></svg></button>
     <button type="button" id="toolPen" data-tool="pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M15 4l5 5L9 20H4v-5z"/><path d="M13 6l5 5"/></svg></button>
-    <button type="button" id="toolTable" data-tool="table" class="soon nosub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M3 15h18M9 4v16M15 4v16"/></svg></button>
+    <button type="button" id="toolTable" data-tool="table" class="nosub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M3 15h18M9 4v16M15 4v16"/></svg></button>
   </nav>
   <div id="rulerCorner"></div>
   <canvas id="rulerH"></canvas>
@@ -396,6 +423,7 @@ body.exporting .box.sel { outline: 0; }
 <input type="file" id="pickImage" accept="image/*" hidden>
 <input type="file" id="pickCamera" accept="image/*" capture="environment" hidden>
 <!-- 진짜 파일 창이 없는 브라우저(폰 등)에서 쓰는 열기: txt와 짝꿍 파일을 함께 고를 수 있음 -->
+<input type="file" id="pickSheet" accept=".xlsx,.xls,.csv" hidden>   <!-- 엑셀·CSV 고르기 (파일 창이 없는 브라우저) -->
 <input type="file" id="pickOpen" accept=".txt,.pitex,text/plain" multiple hidden>
 
 <script>
@@ -584,13 +612,13 @@ function sizeDesk() {                                 // 확대·축소에 맞�
   if (zoomFit) Z = fitZ();
   paper.style.transform = Z === 1 ? '' : `scale(${Z})`;
   const w = Math.max(A4W, ed.scrollWidth);
-  sizer.style.width = (w * Z + 32) + 'px';
-  sizer.style.height = ((pages * STRIDE - GAP) * Z + 32) + 'px';
+  sizer.style.width = (w * Z) + 'px';
+  sizer.style.height = ((pages * STRIDE - GAP) * Z) + 'px';
   desk.classList.toggle('quiet', pages === 1 && sizer.offsetWidth <= desk.clientWidth);
   $('sbZoom').textContent = Math.round(Z * 100) + '%';
   drawRulers();
 }
-const fitZ = () => Math.max(0.2, Math.min(1, (desk.clientWidth - 32) / A4W));   // 폰: A4 폭을 화면에 딱 맞추는 배율
+const fitZ = () => Math.max(0.2, Math.min(1, desk.clientWidth / A4W));   // 폰: A4 폭을 화면에 딱 맞추는 배율
 window.addEventListener('resize', () => { sizeDesk(); });
 function local(e) { const r = paper.getBoundingClientRect(); return { x: (e.clientX - r.left) / Z, y: (e.clientY - r.top) / Z }; }   // 화면 점 → 종이 안 좌표
 
@@ -727,19 +755,27 @@ const isLn = el => !!(el && el.classList && el.classList.contains('ln'));
 function makeLine(l) {
   const f = h('div', '', 'ln'); f.dataset.id = l.id; f.dataset.type = 'line';
   Object.assign(f.dataset, { page: l.page, x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2, kind: l.kind || 'free' });
-  f.innerHTML = '<svg aria-hidden="true"><line class="vis"/><line class="hit"/></svg><span class="end" data-end="1"></span><span class="end" data-end="2"></span>';
+  if (l.kind === 'curve') { f.dataset.cx = l.cx !== undefined ? l.cx : (l.x1 + l.x2) / 2; f.dataset.cy = l.cy !== undefined ? l.cy : (l.y1 + l.y2) / 2; }   // 곡선: 휘는 조절점
+  f.innerHTML = '<svg aria-hidden="true"><path class="guide2"/><path class="vis"/><path class="hit"/></svg><span class="end" data-end="1"></span><span class="end" data-end="2"></span>'
+    + (l.kind === 'curve' ? '<span class="end ctl" data-end="c"></span>' : '');
   placeLine(f); return f;
 }
 function placeLine(f) {                               // mm → 종이 위 자리 (선이 지나는 네모 칸에 그림)
   const d = f.dataset, top = +d.page * STRIDE;
   const X1 = +d.x1 * MM, Y1 = top + +d.y1 * MM, X2 = +d.x2 * MM, Y2 = top + +d.y2 * MM;
-  const L = Math.min(X1, X2), T = Math.min(Y1, Y2);
-  Object.assign(f.style, { left: L + 'px', top: T + 'px', width: Math.max(1, Math.abs(X2 - X1)) + 'px', height: Math.max(1, Math.abs(Y2 - Y1)) + 'px' });
-  f.querySelectorAll('line').forEach(ln => { ln.setAttribute('x1', X1 - L); ln.setAttribute('y1', Y1 - T); ln.setAttribute('x2', X2 - L); ln.setAttribute('y2', Y2 - T); });
-  const [e1, e2] = f.querySelectorAll('.end');
+  const cv = d.kind === 'curve', CX = cv ? +d.cx * MM : 0, CY = cv ? top + +d.cy * MM : 0;
+  const L = Math.min(X1, X2, cv ? CX : X1) - 2, T = Math.min(Y1, Y2, cv ? CY : Y1) - 2;
+  const R = Math.max(X1, X2, cv ? CX : X1) + 2, B = Math.max(Y1, Y2, cv ? CY : Y1) + 2;
+  Object.assign(f.style, { left: L + 'px', top: T + 'px', width: (R - L) + 'px', height: (B - T) + 'px' });
+  const a = `${X1 - L} ${Y1 - T}`, b = `${X2 - L} ${Y2 - T}`, c = `${CX - L} ${CY - T}`;
+  const dd = cv ? `M${a} Q${c} ${b}` : `M${a} L${b}`;   // 곡선은 2차 베지에 (조절점 하나)
+  f.querySelector('.vis').setAttribute('d', dd); f.querySelector('.hit').setAttribute('d', dd);
+  f.querySelector('.guide2').setAttribute('d', cv ? `M${a} L${c} L${b}` : '');   // 고르면 조절점까지 점선 안내
+  const [e1, e2, ec] = f.querySelectorAll('.end');
   e1.style.left = (X1 - L) + 'px'; e1.style.top = (Y1 - T) + 'px'; e2.style.left = (X2 - L) + 'px'; e2.style.top = (Y2 - T) + 'px';
+  if (ec) { ec.style.left = (CX - L) + 'px'; ec.style.top = (CY - T) + 'px'; }
 }
-function lineModel(f) { const d = f.dataset; return { id: d.id, type: 'line', page: +d.page, x1: +d.x1, y1: +d.y1, x2: +d.x2, y2: +d.y2, kind: d.kind }; }
+function lineModel(f) { const d = f.dataset, o = { id: d.id, type: 'line', page: +d.page, x1: +d.x1, y1: +d.y1, x2: +d.x2, y2: +d.y2, kind: d.kind }; if (d.kind === 'curve') { o.cx = +d.cx; o.cy = +d.cy; } return o; }
 /* ════ 펜으로 칠한 자국 ════  s = { id, type:'stroke', page, pts:[[x,y]…] (그 장 기준 mm), color, w(mm), mode:'crayon'|'marker' } */
 const allStrokes = () => [...layer.querySelectorAll('.stk')];
 const isStk = el => !!(el && el.classList && el.classList.contains('stk'));
@@ -775,6 +811,7 @@ function makeBox(b) {
   const f = h('div', '', 'box');
   f.dataset.id = b.id; f.dataset.fit = b.fit || 'cover'; f.dataset.shape = b.shape || 'rect';
   if (b.type === 'video') { f.dataset.type = 'video'; f.dataset.url = b.url || ''; }   // 동영상 상자
+  if (b.type === 'table') { f.dataset.type = 'table'; f.classList.add('tbl'); f._t = JSON.parse(JSON.stringify(b.table)); }   // 표 상자
   Object.assign(f.dataset, { page: b.page, x: b.x, y: b.y, w: b.w, h: b.h });
   fillBox(f); placeBox(f);
   return f;
@@ -797,8 +834,129 @@ function placeAllBoxes() {
     layer.style.height = (pages * STRIDE - GAP) + 'px';
   }
 }
+/* ════ 표 ════  t = { type:'table', rows, cols, head, foot, cells:[[글]], autoRow, autoCol }  (rows = 머리글+본문+바닥글 모두) */
+function tableProps(f, at) {                          // 표 속성 창 (새 표 만들기 / 있는 표 바꾸기)
+  const cur = f ? f._t : { rows: 3, cols: 5, head: 0, foot: 0, autoRow: false, autoCol: false };
+  const body0 = cur.rows - cur.head - cur.foot;
+  openSheet(sh => {
+    const num = (v, min) => { const i = document.createElement('input'); i.type = 'number'; i.min = min; i.max = 60; i.value = v; return i; };
+    const iBody = num(body0, 0), iCols = num(cur.cols, 1), iHead = num(cur.head, 0), iFoot = num(cur.foot, 0);
+    const g = h('div', '', 'tblprops');
+    g.append(h('label', t('본문 행')), iBody, h('label', t('열')), iCols, h('label', t('머리글 행')), iHead, h('label', t('바닥글 행')), iFoot);
+    const chk = (label, v) => { const l = document.createElement('label'); const c = document.createElement('input'); c.type = 'checkbox'; c.checked = v; l.append(c, document.createTextNode(t(label))); return [l, c]; };
+    const [lr, cR] = chk('행', cur.autoRow), [lc, cC] = chk('열', cur.autoCol);
+    const ck = h('div', '', 'tblchk'); ck.append(h('span', t('자동 맞춤') + ':'), lr, lc);
+    const err = h('p', ''); err.style.color = 'var(--danger)';
+    const ok = () => {
+      const body = Math.max(0, +iBody.value | 0), cols = Math.max(1, Math.min(60, +iCols.value | 0)), head = Math.max(0, +iHead.value | 0), foot = Math.max(0, +iFoot.value | 0);
+      const rows = body + head + foot;
+      if (rows < 1) return err.textContent = t('행이 하나 이상 있어야 합니다.');
+      if (rows > 200) return err.textContent = t('행은 200개까지 만들 수 있습니다.');
+      closeSheet();
+      const old = f ? f._t.cells : [];
+      const cells = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => (old[r] && old[r][c]) || ''));   // 있던 글은 그대로
+      const tt = { rows, cols, head, foot, cells, autoRow: cR.checked, autoCol: cC.checked, colW: f && f._t.cols === cols ? f._t.colW : null };
+      if (f) { f._t = tt; fillBox(f); fitTable(f); snap(); changed(); selectBox(f); }
+      else { const nf = makeBox({ id: newId(), type: 'table', ...at, table: tt }); layer.append(nf); fitTable(nf); snap(); changed(); selectBox(nf); toast(t('칸을 눌러 글을 쓰세요. Tab으로 다음 칸으로 갑니다.'), 3500); }
+    };
+    const row = h('div', '', 'row');
+    row.append(btn(t('취소'), closeSheet), btn(t('확인'), ok, 'primary'));
+    const imp = btn('📊 ' + t('엑셀·CSV에서 가져오기…'), () => { closeSheet(); importIntoTable(f, at); });   // ⑥ 엑셀·CSV 가져오기
+    sh.append(h('h2', t('표 속성')), g, ck, imp, h('p', t('엑셀은 값만 가져옵니다. 계산식은 결과 숫자로 들어오고, 첫 줄은 머리글이 됩니다.')), err, row);
+    setTimeout(() => { iBody.focus(); iBody.select(); }, 60);
+  });
+}
+/* ⑥ 엑셀·CSV 가져오기: 값만 가져옴 (계산식은 결과 값으로). 첫 줄은 머리글로 */
+function pickSheetFile() {                            // 파일 고르기 → File
+  return new Promise(async ok => {
+    if (hasFS) {
+      try { const [hd] = await showOpenFilePicker({ id: 'pitex', types: [{ description: t('엑셀·CSV'), accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'], 'application/vnd.ms-excel': ['.xls'], 'text/csv': ['.csv'] } }] }); ok(await hd.getFile()); }
+      catch (_) { ok(null); }
+      return;
+    }
+    const inp = $('pickSheet'); inp.value = '';
+    inp.onchange = () => ok(inp.files[0] || null); inp.click();
+  });
+}
+function chooseSheet(names) {                         // 시트가 여러 개면 고르기
+  return new Promise(ok => {
+    openSheet(sh => {
+      sh.append(h('h2', t('가져올 시트를 고르세요')));
+      const row = h('div', '', 'row');
+      names.forEach(n => row.append(btn(n, () => { closeSheet(); ok(n); })));
+      sh.append(row, btn(t('취소'), () => { closeSheet(); ok(null); }));
+    });
+  });
+}
+async function importSheetCells() {                   // → [[글]] 또는 null
+  const file = await pickSheetFile(); if (!file) return null;
+  toast(t('엑셀을 읽는 중…'), 8000);
+  try { await loadScript(LIB.xlsx); } catch (_) { toast(t('엑셀 도구를 받지 못했습니다. 인터넷 연결을 확인해 주세요.'), 4000); return null; }
+  let wb;
+  try {
+    const buf = await file.arrayBuffer();
+    if (/\.csv$/i.test(file.name)) wb = XLSX.read(decodeTxt(buf).text, { type: 'string' });   // CSV는 한글 인코딩을 먼저 알아내서 읽음
+    else wb = XLSX.read(buf, { type: 'array' });
+  } catch (_) { toast(t('이 파일을 읽지 못했습니다.'), 4000); return null; }
+  let name = wb.SheetNames[0];
+  if (wb.SheetNames.length > 1) { name = await chooseSheet(wb.SheetNames); if (!name) return null; }
+  let rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: false, defval: '', blankrows: false }).map(r => r.map(v => String(v)));
+  if (!rows.length) { toast(t('시트가 비어 있습니다.')); return null; }
+  let cols = Math.max(...rows.map(r => { let n = r.length; while (n && !r[n - 1].trim()) n--; return n; }));   // 오른쪽 빈 칸 없애기
+  cols = Math.max(1, cols);
+  let cut = false;
+  if (rows.length > 200) { rows = rows.slice(0, 200); cut = true; }
+  if (cols > 60) { cols = 60; cut = true; }
+  rows = rows.map(r => Array.from({ length: cols }, (_, c) => r[c] || ''));
+  toast(cut ? t('표가 커서 200행·60열까지만 가져왔습니다.') : tf('{0}행 {1}열을 가져왔습니다.', rows.length, cols), 3500);
+  return rows;
+}
+async function importIntoTable(f, at) {               // 새 표(at 자리) 또는 있는 표(f)에 가져오기
+  const cells = await importSheetCells(); if (!cells) return;
+  const tt = { rows: cells.length, cols: cells[0].length, head: Math.min(1, cells.length), foot: 0, cells, autoRow: true, autoCol: false, colW: null };
+  if (f) { f._t = tt; fillBox(f); fitTable(f); snap(); changed(); selectBox(f); }
+  else { const nf = makeBox({ id: newId(), type: 'table', ...at, table: tt }); layer.append(nf); fitTable(nf); snap(); changed(); selectBox(nf); }
+}
+function fillTable(f) {                               // 표 그리기
+  const tt = f._t, tb = document.createElement('table');
+  if (tt.colW && !tt.autoCol) { const cg = document.createElement('colgroup'); tt.colW.forEach(w => { const c = document.createElement('col'); c.style.width = (w * 100) + '%'; cg.append(c); }); tb.append(cg); }
+  tt.cells.forEach((rw, r) => {
+    const tr = document.createElement('tr');
+    if (r < tt.head) tr.className = 'hd'; else if (r >= tt.rows - tt.foot) tr.className = 'ft';
+    rw.forEach((txt, c) => { const td = document.createElement('td'); td.contentEditable = 'true'; td.spellcheck = false; td.textContent = txt; td.dataset.r = r; td.dataset.c = c; tr.append(td); });
+    tb.append(tr);
+  });
+  f.classList.toggle('autorow', !!tt.autoRow); f.classList.toggle('autocol', !!tt.autoCol);
+  const mvh = h('span', '⠿ ' + t('표'), 'tmove');
+  f.append(tb, mvh);
+}
+function fitTable(f) {                                // 자동 맞춤(행): 글 양에 맞춰 표 높이를 늘이고 줄임
+  if (!f._t.autoRow) return;
+  const tb = f.querySelector('table'); if (!tb) return;
+  const hmm = r1(tb.offsetHeight / MM); if (Math.abs(hmm - +f.dataset.h) > .2) { f.dataset.h = hmm; placeBox(f); }
+}
+const isTbl = el => !!(el && el.dataset && el.dataset.type === 'table');
+function tableItems() {                               // 표 메뉴 (오른쪽 클릭 / 칸에서)
+  const f = isTbl(selBox) ? selBox : null; const td = f && document.activeElement && document.activeElement.closest && document.activeElement.closest('td');
+  const r = td ? +td.dataset.r : (f ? f._t.rows - 1 : 0), c = td ? +td.dataset.c : (f ? f._t.cols - 1 : 0);
+  const edit = fn => () => { const tt = f._t; fn(tt); tt.rows = tt.cells.length; tt.cols = tt.cells[0].length; tt.colW = null; fillBox(f); fitTable(f); snap(); changed(); };
+  return [
+    ['줄 위에 넣기', edit(tt => { tt.cells.splice(r, 0, Array(tt.cols).fill('')); if (r < tt.head) tt.head++; }), { off: !f }],
+    ['줄 아래에 넣기', edit(tt => { tt.cells.splice(r + 1, 0, Array(tt.cols).fill('')); if (r < tt.head - 1) tt.head++; else if (r >= tt.rows - tt.foot) tt.foot++; }), { off: !f }],
+    ['칸 왼쪽에 넣기', edit(tt => tt.cells.forEach(rw => rw.splice(c, 0, ''))), { off: !f }],
+    ['칸 오른쪽에 넣기', edit(tt => tt.cells.forEach(rw => rw.splice(c + 1, 0, ''))), { off: !f }],
+    '-',
+    ['이 줄 지우기', edit(tt => { tt.cells.splice(r, 1); if (r < tt.head) tt.head--; else if (r >= tt.rows - tt.foot) tt.foot--; }), { off: !f || f._t.rows <= 1 }],
+    ['이 칸(세로줄) 지우기', edit(tt => tt.cells.forEach(rw => rw.splice(c, 1))), { off: !f || f._t.cols <= 1 }],
+    '-',
+    ['표 속성…', () => tableProps(f), { off: !f }],
+    ['엑셀·CSV에서 가져오기…', () => importIntoTable(f), { off: !f }],
+    ['표 지우기', removeBox, { off: !f, key: 'Delete' }],
+  ];
+}
 function fillBox(f) {                                 // 그림이 있으면 그림, 없으면 X 표시, 동영상이면 썸네일 + ▶
   f.innerHTML = ''; f.classList.remove('playing');
+  if (f.dataset.type === 'table') { fillTable(f); f.append(h('span', '', 'grip'), h('span', '', 'pos')); return; }
   const inner = h('span', '', 'in');                  // 모양 틀
   if (f.dataset.type === 'video') {
     const v = videoInfo(f.dataset.url);
@@ -874,11 +1032,20 @@ layer.addEventListener('pointerdown', e => {
   if (ln && e.button !== 2) {                         // 선: 누르면 고르기, 끌면 옮기기, 끝의 동그라미를 끌면 길이·방향 바꾸기
     e.preventDefault(); selectBox(ln);
     const d = ln.dataset, end = e.target.dataset.end;
-    mv = { f: ln, kind: end ? 'end' + end : 'lmove', sx: e.clientX, sy: e.clientY, p0: [+d.x1, +d.y1, +d.x2, +d.y2], moved: false };
+    mv = { f: ln, kind: end ? 'end' + end : 'lmove', sx: e.clientX, sy: e.clientY, p0: [+d.x1, +d.y1, +d.x2, +d.y2, +d.cx || 0, +d.cy || 0], moved: false };
     try { ln.setPointerCapture(e.pointerId); } catch (_) {}
     return;
   }
   const f = e.target.closest('.box'); if (!f || e.button === 2) return;
+  if (isTbl(f)) {                                     // 표: 칸을 누르면 글쓰기, 손잡이(⠿ 표)를 끌면 옮기기, 오른쪽 아래 동그라미로 크기
+    if (selBox !== f) { if (selBox) selBox.classList.remove('sel'); selBox = f; f.classList.add('sel'); }
+    if (e.target.closest('td')) return;               // 칸 안: 보통 글쓰기 (커서가 들어감)
+    e.preventDefault();
+    mv = { f, kind: e.target.classList.contains('grip') ? 'size' : 'move', sx: e.clientX, sy: e.clientY,
+      x0: +f.dataset.x, top0: +f.dataset.page * STRIDE + +f.dataset.y * MM, w0: +f.dataset.w, h0: +f.dataset.h, moved: false };
+    try { f.setPointerCapture(e.pointerId); } catch (_) {}
+    return;
+  }
   if (e.target.closest('.play')) { e.preventDefault(); selectBox(f); playVideo(f); return; }      // ▶ = 재생
   if (e.target.closest('.stop')) { e.preventDefault(); fillBox(f); return; }                       // ✕ = 재생 멈추기
   if (f.classList.contains('playing')) return;        // 재생 중에는 동영상 조작을 그대로 둠
@@ -898,8 +1065,9 @@ layer.addEventListener('pointermove', e => {
   const f = mv.f, d = f.dataset;
   if (isStk(f)) { const mx = dx / MM, my = dy / MM; f._st.pts = mv.p0.map(([x, y]) => [r1(x + mx), r1(y + my)]); placeStroke(f); return; }
   if (isLn(f)) {
-    const [a, b, c, dd] = mv.p0, mx = dx / MM, my = dy / MM;
-    if (mv.kind === 'lmove') { d.x1 = r1(a + mx); d.y1 = r1(b + my); d.x2 = r1(c + mx); d.y2 = r1(dd + my); }
+    const [a, b, c, dd, cx0, cy0] = mv.p0, mx = dx / MM, my = dy / MM;
+    if (mv.kind === 'lmove') { d.x1 = r1(a + mx); d.y1 = r1(b + my); d.x2 = r1(c + mx); d.y2 = r1(dd + my); if (d.kind === 'curve') { d.cx = r1(cx0 + mx); d.cy = r1(cy0 + my); } }
+    else if (mv.kind === 'endc') { d.cx = r1(cx0 + mx); d.cy = r1(cy0 + my); }   // 곡선 휘기
     else {
       const fixed = mv.kind === 'end1' ? [c, dd] : [a, b], mov = mv.kind === 'end1' ? [a + mx, b + my] : [c + mx, dd + my];
       const [nx, ny] = d.kind === 'ortho' ? orthoSnap(fixed[0], fixed[1], mov[0], mov[1]) : mov;   // 수직·수평 선은 계속 곧게
@@ -911,6 +1079,7 @@ layer.addEventListener('pointermove', e => {
     f.classList.add('sizing');
     d.w = r1(Math.max(10, Math.min(210, mv.w0 + dx / MM))); d.h = r1(Math.max(10, Math.min(297, mv.h0 + dy / MM)));
     if (e.shiftKey) d.h = d.w;                        // Shift: 폭 = 높이 (정사각형·정원)
+    if (isTbl(f) && f._t.autoRow) { placeBox(f); fitTable(f); }
     placeBox(f); f.querySelector('.pos').textContent = `${d.w} × ${d.h} mm`;
   } else {                                            // 옮기기: 그림이 손가락을 따라옴
     f.classList.add('moving');
@@ -927,7 +1096,7 @@ function endMove() {
   m.f.classList.remove('moving', 'sizing');
   if (isLn(m.f) && m.moved) {                         // 선을 다른 장으로 옮겼으면 그 장 기준으로 다시 계산
     const d = m.f.dataset, absY = +d.page * STRIDE / MM + +d.y1, np = Math.max(0, Math.floor(absY * MM / STRIDE));
-    if (np !== +d.page) { const shift = (np - +d.page) * STRIDE / MM; d.page = np; d.y1 = r1(+d.y1 - shift); d.y2 = r1(+d.y2 - shift); placeLine(m.f); }
+    if (np !== +d.page) { const shift = (np - +d.page) * STRIDE / MM; d.page = np; d.y1 = r1(+d.y1 - shift); d.y2 = r1(+d.y2 - shift); if (d.kind === 'curve') d.cy = r1(+d.cy - shift); placeLine(m.f); }
   }
   if (m.moved) { snap(); changed(); }
 }
@@ -935,7 +1104,7 @@ layer.addEventListener('pointerup', endMove);
 layer.addEventListener('pointercancel', endMove);
 /* 그림 메뉴 목록 (왼쪽 도구 막대 '그림'과 오른쪽 클릭이 같이 씀) */
 function picItems() {
-  const f = isLn(selBox) || isStk(selBox) ? null : selBox, isVid = f && f.dataset.type === 'video', has = f && !isVid && images.has(f.dataset.id);
+  const f = isLn(selBox) || isStk(selBox) || isTbl(selBox) ? null : selBox, isVid = f && f.dataset.type === 'video', has = f && !isVid && images.has(f.dataset.id);
   return [
     ...SHAPES.map(([v, l]) => [l, () => f ? setShape(v) : startDraw(v, 'image'), { check: f ? f.dataset.shape === v : (boxMode && drawKind === 'image' && drawShape === v) }]),   // 상자를 골랐으면 모양 바꾸기, 아니면 그 모양으로 그리기
     '-',
@@ -952,6 +1121,8 @@ function picItems() {
 layer.addEventListener('contextmenu', e => {          // 오른쪽 클릭(폰은 길게 누르기) → 그림 메뉴 (선이면 선 메뉴)
   const ln = e.target.closest('.ln');
   if (ln) { e.preventDefault(); selectBox(ln); mv = null; popMenu(e.clientX, e.clientY, lineItems()); return; }
+  const tf2 = e.target.closest('.box.tbl');
+  if (tf2) { e.preventDefault(); if (selBox !== tf2) { if (selBox) selBox.classList.remove('sel'); selBox = tf2; tf2.classList.add('sel'); } mv = null; popMenu(e.clientX, e.clientY, tableItems()); return; }
   const sk = e.target.closest('.stk');
   if (sk) { e.preventDefault(); selectBox(sk); mv = null; popMenu(e.clientX, e.clientY, [['칠한 자국 지우기', removeBox, { key: 'Delete' }]]); return; }
   const f = e.target.closest('.box'); if (!f || f.classList.contains('playing')) return;
@@ -963,10 +1134,30 @@ function lineItems() {                                // 선 메뉴
   return [
     ['자유 선', () => startLine('free'), { check: boxMode && drawKind === 'line' && lineKind === 'free' }],
     ['수직·수평 선', () => startLine('ortho'), { check: boxMode && drawKind === 'line' && lineKind === 'ortho' }],
+    ['곡선', () => startLine('curve'), { check: boxMode && drawKind === 'line' && lineKind === 'curve' }],
     '-',
     ['선 지우기', removeBox, { off: !l, key: 'Delete' }],
   ];
 }
+layer.addEventListener('input', e => {                // 표 칸에 글을 쓰면 저장
+  const td = e.target.closest && e.target.closest('td'); if (!td) return;
+  const f = td.closest('.box'); f._t.cells[+td.dataset.r][+td.dataset.c] = td.innerText.replace(/\n$/, '');
+  fitTable(f); clearTimeout(histT); histT = setTimeout(snap, 500); changed();
+});
+layer.addEventListener('keydown', e => {              // 표 칸: Tab = 다음 칸, Shift+Tab = 앞 칸, 마지막 칸에서 Tab = 줄 하나 더
+  const td = e.target.closest && e.target.closest('td'); if (!td) return;
+  e.stopPropagation();                                // 칸 안의 Delete·화살표는 글자에만 (표를 지우지 않게)
+  if (e.key !== 'Tab') return;
+  e.preventDefault();
+  const f = td.closest('.box'), cells = [...f.querySelectorAll('td')], i = cells.indexOf(td);
+  let n = cells[i + (e.shiftKey ? -1 : 1)];
+  if (!n && !e.shiftKey) { const tt = f._t; tt.cells.splice(tt.rows - tt.foot, 0, Array(tt.cols).fill('')); tt.rows++; fillBox(f); fitTable(f); snap(); changed(); n = f.querySelectorAll('td')[i + 1]; }
+  if (n) { n.focus(); const r = document.createRange(); r.selectNodeContents(n); r.collapse(false); getSelection().removeAllRanges(); getSelection().addRange(r); }
+});
+layer.addEventListener('paste', e => {                // 칸에 붙여넣기: 글자만
+  const td = e.target.closest && e.target.closest('td'); if (!td) return;
+  e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
+});
 /* 왼쪽 도구 막대 */
 $('tools').addEventListener('click', e => {
   const b = e.target.closest('button[data-tool]'); if (!b) return;
@@ -983,7 +1174,7 @@ $('tools').addEventListener('click', e => {
     if (penOn) { setPen(false); closeMenu(); return; }  // 칠하는 중이면 한 번 더 눌러 끄기
     if (openMenu === b) return closeMenu();
     penPanel(r.right + 6, r.top, b);
-  } else toast(t('다음 단계에서 만듭니다.'));        // 표는 다음 단계
+  } else if (b.dataset.tool === 'table') { if (boxMode) setBoxMode(false); else startTable(); }
 });
 document.addEventListener('pointerdown', e => {       // 종이(책상) 위에서 상자 밖을 누를 때만 고름 풀기 — 메뉴판·도구 줄을 눌러도 고른 상자는 그대로
   if (selBox && e.target.closest('#desk') && !e.target.closest('.box') && !e.target.closest('.ln') && !e.target.closest('.stk')) selectBox(null);
@@ -991,7 +1182,7 @@ document.addEventListener('pointerdown', e => {       // 종이(책상) 위에�
 
 /* ── 그림 상자 그리기 (□ 그림 상자 → 대각선으로 끌기) ── */
 let drawShape = 'rect', drawKind = 'image';        // 다음에 그릴 상자의 모양과 종류(그림·동영상·선)
-let lineKind = 'free';                                // 선: 'free' 자유 선, 'ortho' 수직·수평 선
+let lineKind = 'free';                                // 선: 'free' 자유 선, 'ortho' 수직·수평 선, 'curve' 곡선
 let penOn = false;                                    // 펜으로 칠하는 중인가
 function setPen(on) {
   penOn = on; if (on && boxMode) setBoxMode(false);
@@ -1035,13 +1226,14 @@ function penPanel(x, y, anchor) {                     // 펜을 누르면: 크�
   dd.style.top = Math.max(8, Math.min(y, innerHeight - dd.offsetHeight - 8)) + 'px';
 }
 function savePrefsQuiet() { store.set('prefs2', JSON.stringify(prefs)); }
-function startLine(kind) { if (penOn) setPen(false); lineKind = kind; drawKind = 'line'; setBoxMode(true); toast(kind === 'ortho' ? t('수직·수평 선: 시작점을 누른 채 끌어 보세요.') : t('자유 선: 시작점을 누른 채 끌어 보세요.')); }
+function startTable() { if (penOn) setPen(false); drawKind = 'table'; setBoxMode(true); $('toolPic').classList.remove('on'); $('toolTable').classList.add('on'); toast(t('표: 대각선으로 끌어 자리를 잡으세요.')); }
+function startLine(kind) { if (penOn) setPen(false); lineKind = kind; drawKind = 'line'; setBoxMode(true); toast(kind === 'ortho' ? t('수직·수평 선: 시작점을 누른 채 끌어 보세요.') : kind === 'curve' ? t('곡선: 먼저 시작점에서 끝점까지 끈 다음, 가운데 동그라미로 휘게 하세요.') : t('자유 선: 시작점을 누른 채 끌어 보세요.')); }
 function startDraw(shape, kind) { if (penOn) setPen(false); drawShape = shape || 'rect'; drawKind = kind || 'image'; setBoxMode(true); }
 function setBoxMode(on) {
   boxMode = on; drawLayer.hidden = !on; $('drawHint').hidden = !on;
-  $('toolPic').classList.toggle('on', on && drawKind !== 'line'); $('toolLine').classList.toggle('on', on && drawKind === 'line');
-  if (!on) drawKind = drawKind === 'line' ? 'image' : drawKind;
-  if (on) { if (drawKind !== 'line') toast(t('그림 상자 그리기: 대각선으로 끌어 보세요.')); selectBox(null); }
+  $('toolPic').classList.toggle('on', on && (drawKind === 'image' || drawKind === 'video')); $('toolLine').classList.toggle('on', on && drawKind === 'line'); $('toolTable').classList.toggle('on', on && drawKind === 'table');
+  if (!on && (drawKind === 'line' || drawKind === 'table')) drawKind = 'image';
+  if (on) { if (drawKind === 'image' || drawKind === 'video') toast(t('그림 상자 그리기: 대각선으로 끌어 보세요.')); selectBox(null); }
 }
 let dr = null;
 drawLayer.addEventListener('pointerdown', e => {
@@ -1099,10 +1291,16 @@ drawLayer.addEventListener('pointerup', () => {
     if (Math.hypot(d.x - d.x0, d.y - d.y0) < 8) return toast(t('조금 더 길게 끌어 주세요.'));
     const page = Math.max(0, Math.min(pages - 1, Math.floor(d.y0 / STRIDE))), top = page * STRIDE;
     const f = makeLine({ id: newId(), page, x1: r1(d.x0 / MM), y1: r1((d.y0 - top) / MM), x2: r1(d.x / MM), y2: r1((d.y - top) / MM), kind: lineKind });
-    layer.append(f); snap(); changed(); setBoxMode(false); selectBox(f); return;
+    layer.append(f); snap(); changed(); setBoxMode(false); selectBox(f);
+    if (lineKind === 'curve') toast(t('가운데 동그라미를 끌면 선이 휘어집니다.'), 3500);
+    return;
   }
   if (!d.w || d.w < 30 || d.h < 30) return toast(t('조금 더 크게 끌어 주세요.'));
   const page = Math.max(0, Math.min(pages - 1, Math.floor(d.y / STRIDE)));
+  if (drawKind === 'table') {                         // 표: 자리를 잡으면 표 속성 창
+    const at = { page, x: r1(d.x / MM), y: r1((d.y - page * STRIDE) / MM), w: r1(d.w / MM), h: r1(d.h / MM) };
+    setBoxMode(false); tableProps(null, at); return;
+  }
   const b = { id: newId(), page, x: r1(d.x / MM), y: r1((d.y - page * STRIDE) / MM), w: r1(d.w / MM), h: r1(d.h / MM), fit: 'cover', shape: drawShape, type: drawKind };
   const f = makeBox(b); layer.append(f);
   snap(); changed(); selectBox(f); setBoxMode(false);
@@ -1121,6 +1319,7 @@ function toModel() {
     const d = f.dataset, im = images.get(d.id);
     const o = { id: d.id, page: +d.page, x: +d.x, y: +d.y, w: +d.w, h: +d.h, fit: d.fit, shape: d.shape || 'rect', image: im ? 'images/' + im.name : null };
     if (d.type === 'video') { o.type = 'video'; o.url = d.url || ''; delete o.image; }   // 동영상은 주소만 저장
+    if (d.type === 'table') { o.type = 'table'; o.table = JSON.parse(JSON.stringify(f._t)); delete o.image; delete o.shape; delete o.fit; }   // 표: 칸 글까지
     return o;
   });
   allLines().forEach(f => boxes.push(lineModel(f)));
@@ -1273,7 +1472,7 @@ function status() {
   const empty = m.boxes.filter(b => !b.image && !b.type).length;
   $('sbPage').textContent = tf('페이지 {0} / {1}', Math.min(curPage, pages), pages);
   $('sbChars').textContent = tf('글 {0}자', chars.toLocaleString());
-  $('sbBoxes').textContent = tf('그림 상자 {0}', m.boxes.filter(b => b.type !== 'line' && b.type !== 'stroke').length) + (empty ? ' ' + tf('(빈 상자 {0})', empty) : '');
+  $('sbBoxes').textContent = tf('그림 상자 {0}', m.boxes.filter(b => !b.type || b.type === 'video').length) + (m.boxes.some(b => b.type === 'table') ? ' · ' + tf('표 {0}', m.boxes.filter(b => b.type === 'table').length) : '') + (empty ? ' ' + tf('(빈 상자 {0})', empty) : '');
   $('sbSaved').textContent = fileSaved ? t('저장됨') : t('저장 안 됨');
   $('sbEol').textContent = fileInfo.eol === 'CRLF' ? 'Windows (CR LF)' : 'Unix (LF)';
   $('sbEnc').textContent = fileInfo.enc;
@@ -1621,6 +1820,7 @@ function trashDoc() {
 const LIB = {
   h2c: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   pdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  xlsx: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',   // 엑셀 읽는 도구 (SheetJS)
 };
 function loadScript(src) {
   return new Promise((ok, no) => {
@@ -1637,18 +1837,19 @@ async function exportHtml() {
   let sheets = ''; for (let k = 0; k < pages; k++) sheets += `<div class="sh" style="top:${k * STRIDE}px"></div>`;
   const figs = allBoxes().map(f => {
     const pos = `left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};${SHAPE_CSS[f.dataset.shape] || ''}`;
+    if (isTbl(f)) { const tb = f.querySelector('table').cloneNode(true); tb.querySelectorAll('[contenteditable]').forEach(x => x.removeAttribute('contenteditable')); return `<div class="tb" style="position:absolute;left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height}">${tb.outerHTML}</div>`; }
     if (f.dataset.type === 'video') { const v = videoInfo(f.dataset.url); if (!v) return ''; return v.embed ? `<iframe src="${v.embed.replace('autoplay=1&', '')}" style="position:absolute;border:0;${pos}" allowfullscreen></iframe>` : v.file ? `<video src="${esc(v.file)}" controls style="position:absolute;${pos}"></video>` : `<a href="${esc(v.open)}" style="position:absolute;${pos}">${esc(v.open)}</a>`; }
     const im = images.get(f.dataset.id); return im ? `<img src="${im.data}" alt="${esc(im.name)}" style="left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};object-fit:${f.dataset.fit};${SHAPE_CSS[f.dataset.shape] || ''}">` : '';
   }).join('') + allStrokes().map(f => `<div style="position:absolute;left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height}">${f.innerHTML.replace(/<path class="hit"[^>]*><\/path>/, '')}</div>`).join('') + allLines().map(f => f.outerHTML.replace(/<span class="end"[^>]*><\/span>/g, '').replace('class="ln', 'style="position:absolute;' + `left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};color:#111" class="ln`)).join('');
   const font = `${/Italic/.test(prefs.style) ? 'italic ' : ''}${/Bold/.test(prefs.style) ? '700' : '400'} ${prefs.size}pt/${lineH}px "${prefs.font}", "Malgun Gothic", sans-serif`;
-  const doc = `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${esc(docName())}</title>\n<style>body{margin:0;background:#d9d8e0}main{position:relative;width:794px;height:${pages * STRIDE - GAP}px;margin:20px auto}.sh{position:absolute;left:0;width:794px;height:1123px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}.ed{position:relative;padding:113px;font:${font};color:#111;white-space:${prefs.wrap ? 'pre-wrap' : 'pre'};word-break:keep-all;overflow-wrap:anywhere}p{margin:0}.pgap{display:inline-block;width:100%;vertical-align:top}div.pgap{display:block}img{position:absolute}.ln svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.ln .vis{stroke:currentColor;stroke-width:1.3;stroke-linecap:round}.ln .hit{display:none}</style>\n</head>\n<body><main>${sheets}<div class="ed">${body}</div>${figs}</main></body>\n</html>\n`;
+  const doc = `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${esc(docName())}</title>\n<style>body{margin:0;background:#d9d8e0}main{position:relative;width:794px;height:${pages * STRIDE - GAP}px;margin:20px auto}.sh{position:absolute;left:0;width:794px;height:1123px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}.ed{position:relative;padding:113px;font:${font};color:#111;white-space:${prefs.wrap ? 'pre-wrap' : 'pre'};word-break:keep-all;overflow-wrap:anywhere}p{margin:0}.pgap{display:inline-block;width:100%;vertical-align:top}div.pgap{display:block}img{position:absolute}.tb table{width:100%;height:100%;border-collapse:collapse;table-layout:fixed;font-size:.92em}.tb td{border:1px solid #666;padding:3px 6px;white-space:pre-wrap;overflow-wrap:anywhere}.tb .hd td{font-weight:700;background:#ece9fb;text-align:center}.tb .ft td{font-weight:700;background:#f2f2f5;border-top:2px solid #666}.ln svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.ln .vis{stroke:currentColor;stroke-width:1.3;stroke-linecap:round}.ln .hit,.ln .guide2{display:none}.ln path{fill:none}</style>\n</head>\n<body><main>${sheets}<div class="ed">${body}</div>${figs}</main></body>\n</html>\n`;
   if (await saveBlob(new Blob([doc], { type: 'text/html' }), docName() + '.html', { description: 'HTML', accept: { 'text/html': ['.html'] } })) toast(t('HTML로 보냈습니다.'));
 }
 /* 낱장을 한 장씩 그림으로 찍기 (그림·PDF 보내기에서 함께 씀) */
 async function renderPages() {
   await loadScript(LIB.h2c);
   selectBox(null); if (boxMode) setBoxMode(false);
-  const masks = {}; for (const f of allBoxes()) masks[f.dataset.id] = await maskedImage(f);   // 모양대로 오린 그림 미리 만들기
+  const masks = {}; for (const f of allBoxes()) if (!isTbl(f)) masks[f.dataset.id] = await maskedImage(f);   // 모양대로 오린 그림 미리 만들기
   const S = 2, keepZ = Z, keepFit = zoomFit, keepScroll = [desk.scrollLeft, desk.scrollTop];
   Z = 1; zoomFit = false; sizeDesk(); desk.scrollTo(0, 0);
   try {
@@ -1657,7 +1858,7 @@ async function renderPages() {
         doc.documentElement.setAttribute('data-theme', 'light'); doc.body.classList.add('exporting');
         doc.documentElement.style.overflow = doc.body.style.overflow = 'visible'; doc.body.style.height = 'auto';
         ['deskWrap', 'desk'].forEach(id => { const d = doc.getElementById(id); d.style.position = 'static'; d.style.overflow = 'visible'; });
-        doc.querySelectorAll('.box').forEach(box => {   // 그림 찍는 도구가 모양 오리기를 몰라서, 미리 오려 둔 그림으로 바꿈 (동영상은 썸네일+▶)
+        doc.querySelectorAll('.box:not(.tbl)').forEach(box => {   // 그림 찍는 도구가 모양 오리기를 몰라서, 미리 오려 둔 그림으로 바꿈 (동영상은 썸네일+▶)
           const src = masks[box.dataset.id]; if (!src) return;
           const inn = box.querySelector('.in'); inn.style.clipPath = 'none'; inn.style.borderRadius = '0'; inn.innerHTML = '';
           const n = doc.createElement('img'); n.src = src; n.style.cssText = 'width:100%;height:100%;display:block'; inn.append(n);
@@ -1798,9 +1999,9 @@ desk.addEventListener('touchmove', e => {
   if (!pinch || e.touches.length !== 2) return;
   e.preventDefault();                                   // 두 손가락일 때는 화면이 밀리지 않게
   const m = mid(e.touches), r = desk.getBoundingClientRect();
-  const ux = (desk.scrollLeft + pinch.x - r.left - 16) / pinch.z, uy = (desk.scrollTop + pinch.y - r.top - 16) / pinch.z;   // 손가락 가운데의 종이 위 자리
+  const ux = (desk.scrollLeft + pinch.x - r.left - sizer.offsetLeft) / pinch.z, uy = (desk.scrollTop + pinch.y - r.top) / pinch.z;   // 손가락 가운데의 종이 위 자리
   zoomFit = false; Z = Math.max(fitZ() * .9, Math.min(3, pinch.z * m.d / pinch.d)); sizeDesk();
-  desk.scrollLeft = ux * Z + 16 - (m.x - r.left); desk.scrollTop = uy * Z + 16 - (m.y - r.top);
+  desk.scrollLeft = ux * Z + sizer.offsetLeft - (m.x - r.left); desk.scrollTop = uy * Z - (m.y - r.top);
   pinch = { ...m, z: Z };
 }, { passive: false });
 desk.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; });
@@ -1954,7 +2155,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeBox(); return; }
     const mvk = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (mvk && isStk(selBox)) { e.preventDefault(); const k = e.shiftKey ? 10 : 1; selBox._st.pts = selBox._st.pts.map(([x, y]) => [r1(x + mvk[0] * k), r1(y + mvk[1] * k)]); placeStroke(selBox); clearTimeout(histT); histT = setTimeout(snap, 400); changed(); return; }
-    if (mvk && isLn(selBox)) { e.preventDefault(); const k = e.shiftKey ? 10 : 1, d = selBox.dataset; d.x1 = r1(+d.x1 + mvk[0] * k); d.x2 = r1(+d.x2 + mvk[0] * k); d.y1 = r1(+d.y1 + mvk[1] * k); d.y2 = r1(+d.y2 + mvk[1] * k); placeLine(selBox); clearTimeout(histT); histT = setTimeout(snap, 400); changed(); return; }
+    if (mvk && isLn(selBox)) { e.preventDefault(); const k = e.shiftKey ? 10 : 1, d = selBox.dataset; d.x1 = r1(+d.x1 + mvk[0] * k); d.x2 = r1(+d.x2 + mvk[0] * k); d.y1 = r1(+d.y1 + mvk[1] * k); d.y2 = r1(+d.y2 + mvk[1] * k); if (d.kind === 'curve') { d.cx = r1(+d.cx + mvk[0] * k); d.cy = r1(+d.cy + mvk[1] * k); } placeLine(selBox); clearTimeout(histT); histT = setTimeout(snap, 400); changed(); return; }
     if (mvk) { e.preventDefault(); const k = e.shiftKey ? 10 : 1; selBox.dataset.x = r1(+selBox.dataset.x + mvk[0] * k); selBox.dataset.y = r1(+selBox.dataset.y + mvk[1] * k); placeBox(selBox); clearTimeout(histT); histT = setTimeout(snap, 400); changed(); return; }
   }
   if (e.key === 'F3') { e.preventDefault(); findNext(); return; }
@@ -2099,6 +2300,39 @@ if ('launchQueue' in window) window.launchQueue.setConsumer(async p => {
 /* 번역표: 한 줄 = 한 문장. 한국어(열쇠): [English, 日本語, 中文(简体), 中文(繁體), Tiếng Việt, Deutsch, Français, Português(브라질), Español(중남미)]
    smartDir 번역표와 같은 9개 언어 + 중국어 번체 = 한국어 포함 10개 언어. {0} {1}은 숫자·이름이 들어갈 자리 */
 const ROWS = {
+  "엑셀·CSV": ["Excel·CSV", "Excel・CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV"],
+  "엑셀·CSV에서 가져오기…": ["Import from Excel·CSV…", "Excel・CSV から取り込む…", "从 Excel·CSV 导入…", "從 Excel·CSV 匯入…", "Nhập từ Excel·CSV…", "Aus Excel·CSV importieren…", "Importer depuis Excel·CSV…", "Importar do Excel·CSV…", "Importar desde Excel·CSV…"],
+  "가져올 시트를 고르세요": ["Choose a sheet to import", "取り込むシートを選んでください", "请选择要导入的工作表", "請選擇要匯入的工作表", "Chọn trang tính để nhập", "Zu importierendes Blatt wählen", "Choisissez la feuille à importer", "Escolha a planilha a importar", "Elige la hoja a importar"],
+  "엑셀을 읽는 중…": ["Reading spreadsheet…", "Excel を読み込み中…", "正在读取表格…", "正在讀取表格…", "Đang đọc bảng tính…", "Tabelle wird gelesen…", "Lecture du classeur…", "Lendo planilha…", "Leyendo hoja de cálculo…"],
+  "엑셀 도구를 받지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not load the spreadsheet tool. Please check your internet connection.", "Excel 読み込みツールを取得できませんでした。インターネット接続を確認してください。", "无法载入表格工具。请检查网络连接。", "無法載入表格工具。請檢查網路連線。", "Không tải được công cụ bảng tính. Vui lòng kiểm tra kết nối Internet.", "Tabellenwerkzeug konnte nicht geladen werden. Bitte Internetverbindung prüfen.", "Impossible de charger l’outil tableur. Vérifiez votre connexion Internet.", "Não foi possível carregar a ferramenta de planilha. Verifique a internet.", "No se pudo cargar la herramienta de hojas. Revisa tu conexión a internet."],
+  "이 파일을 읽지 못했습니다.": ["Could not read this file.", "このファイルを読み込めませんでした。", "无法读取此文件。", "無法讀取此檔案。", "Không đọc được tệp này.", "Diese Datei konnte nicht gelesen werden.", "Impossible de lire ce fichier.", "Não foi possível ler este arquivo.", "No se pudo leer este archivo."],
+  "시트가 비어 있습니다.": ["The sheet is empty.", "シートが空です。", "工作表为空。", "工作表為空。", "Trang tính trống.", "Das Blatt ist leer.", "La feuille est vide.", "A planilha está vazia.", "La hoja está vacía."],
+  "표가 커서 200행·60열까지만 가져왔습니다.": ["The table was large, so only up to 200 rows and 60 columns were imported.", "表が大きいため、200行・60列まで取り込みました。", "表格过大，仅导入了前 200 行、60 列。", "表格過大，僅匯入了前 200 行、60 列。", "Bảng quá lớn nên chỉ nhập tối đa 200 hàng, 60 cột.", "Die Tabelle war groß; nur bis 200 Zeilen und 60 Spalten importiert.", "Le tableau était grand : seules 200 lignes et 60 colonnes ont été importées.", "A tabela era grande; só até 200 linhas e 60 colunas foram importadas.", "La tabla era grande; solo se importaron hasta 200 filas y 60 columnas."],
+  "{0}행 {1}열을 가져왔습니다.": ["Imported {0} rows × {1} columns.", "{0}行 {1}列を取り込みました。", "已导入 {0} 行 {1} 列。", "已匯入 {0} 行 {1} 列。", "Đã nhập {0} hàng {1} cột.", "{0} Zeilen × {1} Spalten importiert.", "{0} lignes × {1} colonnes importées.", "{0} linhas × {1} colunas importadas.", "{0} filas × {1} columnas importadas."],
+  "엑셀은 값만 가져옵니다. 계산식은 결과 숫자로 들어오고, 첫 줄은 머리글이 됩니다.": ["Excel imports values only: formulas come in as their results, and the first row becomes the header.", "Excel は値だけを取り込みます。計算式は結果の数値で入り、1行目は見出しになります。", "Excel 只导入数值：公式以计算结果导入，第一行成为标题行。", "Excel 只匯入數值：公式以計算結果匯入，第一行成為標題行。", "Excel chỉ nhập giá trị: công thức được nhập thành kết quả, hàng đầu thành tiêu đề.", "Excel importiert nur Werte: Formeln kommen als Ergebnis, die erste Zeile wird Kopfzeile.", "Excel n’importe que les valeurs : les formules arrivent en résultats, la première ligne devient l’en-tête.", "O Excel importa só valores: fórmulas entram como resultado e a primeira linha vira cabeçalho.", "Excel solo importa valores: las fórmulas llegan como resultado y la primera fila es el encabezado."],
+  "곡선": ["Curve", "曲線", "曲线", "曲線", "Đường cong", "Kurve", "Courbe", "Curva", "Curva"],
+  "가운데 동그라미를 끌면 선이 휘어집니다.": ["Drag the middle circle to bend the line.", "中央の丸をドラッグすると線が曲がります。", "拖动中间的圆点可弯曲线条。", "拖動中間的圓點可彎曲線條。", "Kéo vòng tròn ở giữa để uốn đường.", "Mittleren Kreis ziehen, um die Linie zu biegen.", "Faites glisser le cercle central pour courber la ligne.", "Arraste o círculo do meio para curvar a linha.", "Arrastra el círculo central para curvar la línea."],
+  "곡선: 먼저 시작점에서 끝점까지 끈 다음, 가운데 동그라미로 휘게 하세요.": ["Curve: drag from start to end, then bend it with the middle circle.", "曲線：始点から終点までドラッグし、中央の丸で曲げてください。", "曲线：先从起点拖到终点，再用中间的圆点弯曲。", "曲線：先從起點拖到終點，再用中間的圓點彎曲。", "Đường cong: kéo từ đầu đến cuối, rồi uốn bằng vòng tròn giữa.", "Kurve: vom Start zum Ende ziehen, dann mit dem mittleren Kreis biegen.", "Courbe : faites glisser du début à la fin, puis courbez avec le cercle central.", "Curva: arraste do início ao fim e depois curve com o círculo do meio.", "Curva: arrastra del inicio al final y luego cúrvala con el círculo central."],
+  "표: 대각선으로 끌어 자리를 잡으세요.": ["Table: drag diagonally to place it.", "表：斜めにドラッグして位置を決めてください。", "表格：沿对角线拖动确定位置。", "表格：沿對角線拖動確定位置。", "Bảng: kéo chéo để đặt vị trí.", "Tabelle: diagonal ziehen, um sie zu platzieren.", "Tableau : faites glisser en diagonale pour le placer.", "Tabela: arraste na diagonal para posicioná-la.", "Tabla: arrastra en diagonal para colocarla."],
+  "본문 행": ["Body rows", "本文行", "正文行", "正文行", "Hàng nội dung", "Textzeilen", "Lignes du corps", "Linhas do corpo", "Filas del cuerpo"],
+  "열": ["Columns", "列", "列", "列", "Cột", "Spalten", "Colonnes", "Colunas", "Columnas"],
+  "머리글 행": ["Header rows", "ヘッダー行", "标题行", "標題行", "Hàng tiêu đề", "Kopfzeilen", "Lignes d’en-tête", "Linhas de cabeçalho", "Filas de encabezado"],
+  "바닥글 행": ["Footer rows", "フッター行", "页脚行", "頁尾行", "Hàng chân", "Fußzeilen", "Lignes de pied", "Linhas de rodapé", "Filas de pie"],
+  "행": ["Rows", "行", "行", "行", "Hàng", "Zeilen", "Lignes", "Linhas", "Filas"],
+  "자동 맞춤": ["Auto fit", "自動調整", "自动调整", "自動調整", "Tự khớp", "Automatisch anpassen", "Ajustement auto", "Ajuste automático", "Ajuste automático"],
+  "행이 하나 이상 있어야 합니다.": ["There must be at least one row.", "行が1つ以上必要です。", "至少需要一行。", "至少需要一行。", "Phải có ít nhất một hàng.", "Mindestens eine Zeile ist nötig.", "Il faut au moins une ligne.", "É preciso pelo menos uma linha.", "Debe haber al menos una fila."],
+  "행은 200개까지 만들 수 있습니다.": ["Up to 200 rows are allowed.", "行は200個まで作れます。", "最多可建 200 行。", "最多可建 200 行。", "Tối đa 200 hàng.", "Höchstens 200 Zeilen.", "200 lignes au maximum.", "No máximo 200 linhas.", "Máximo 200 filas."],
+  "칸을 눌러 글을 쓰세요. Tab으로 다음 칸으로 갑니다.": ["Tap a cell to type. Press Tab for the next cell.", "セルを押して入力してください。Tab で次のセルへ。", "点击单元格输入文字。按 Tab 到下一格。", "點選單元格輸入文字。按 Tab 到下一格。", "Nhấn vào ô để gõ. Nhấn Tab sang ô tiếp theo.", "Zelle antippen zum Schreiben. Tab für die nächste Zelle.", "Touchez une cellule pour écrire. Tab pour la cellule suivante.", "Toque numa célula para digitar. Tab vai para a próxima.", "Toca una celda para escribir. Tab pasa a la siguiente."],
+  "표 속성": ["Table properties", "表のプロパティ", "表格属性", "表格屬性", "Thuộc tính bảng", "Tabelleneigenschaften", "Propriétés du tableau", "Propriedades da tabela", "Propiedades de la tabla"],
+  "표 속성…": ["Table properties…", "表のプロパティ…", "表格属性…", "表格屬性…", "Thuộc tính bảng…", "Tabelleneigenschaften…", "Propriétés du tableau…", "Propriedades da tabela…", "Propiedades de la tabla…"],
+  "줄 위에 넣기": ["Insert row above", "上に行を挿入", "在上方插入行", "在上方插入行", "Chèn hàng phía trên", "Zeile oberhalb einfügen", "Insérer une ligne au-dessus", "Inserir linha acima", "Insertar fila arriba"],
+  "줄 아래에 넣기": ["Insert row below", "下に行を挿入", "在下方插入行", "在下方插入行", "Chèn hàng phía dưới", "Zeile unterhalb einfügen", "Insérer une ligne en dessous", "Inserir linha abaixo", "Insertar fila abajo"],
+  "칸 왼쪽에 넣기": ["Insert column left", "左に列を挿入", "在左侧插入列", "在左側插入列", "Chèn cột bên trái", "Spalte links einfügen", "Insérer une colonne à gauche", "Inserir coluna à esquerda", "Insertar columna a la izquierda"],
+  "칸 오른쪽에 넣기": ["Insert column right", "右に列を挿入", "在右侧插入列", "在右側插入列", "Chèn cột bên phải", "Spalte rechts einfügen", "Insérer une colonne à droite", "Inserir coluna à direita", "Insertar columna a la derecha"],
+  "이 줄 지우기": ["Delete this row", "この行を削除", "删除此行", "刪除此行", "Xóa hàng này", "Diese Zeile löschen", "Supprimer cette ligne", "Excluir esta linha", "Eliminar esta fila"],
+  "이 칸(세로줄) 지우기": ["Delete this column", "この列を削除", "删除此列", "刪除此列", "Xóa cột này", "Diese Spalte löschen", "Supprimer cette colonne", "Excluir esta coluna", "Eliminar esta columna"],
+  "표 지우기": ["Delete table", "表を削除", "删除表格", "刪除表格", "Xóa bảng", "Tabelle löschen", "Supprimer le tableau", "Excluir tabela", "Eliminar tabla"],
+  "표 {0}": ["Tables {0}", "表 {0}", "表格 {0}", "表格 {0}", "Bảng {0}", "Tabellen {0}", "Tableaux {0}", "Tabelas {0}", "Tablas {0}"],
   "크레용": ["Crayon", "クレヨン", "蜡笔", "蠟筆", "Bút sáp", "Wachsmalstift", "Crayon", "Giz de cera", "Crayón"],
   "형광펜": ["Highlighter", "蛍光ペン", "荧光笔", "熒光筆", "Bút dạ quang", "Textmarker", "Surligneur", "Marca-texto", "Resaltador"],
   "색깔": ["Color", "色", "颜色", "顏色", "Màu", "Farbe", "Couleur", "Cor", "Color"],
