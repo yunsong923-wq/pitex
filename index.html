@@ -151,11 +151,16 @@ div.pgap { display: block; }
 #layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 body.hide-layer #layer { display: none; }
 .box { position: absolute; pointer-events: auto; border-radius: 6px; box-sizing: border-box; user-select: none; -webkit-user-select: none; cursor: grab; touch-action: none; }
-.box img { width: 100%; height: 100%; display: block; border-radius: 6px; pointer-events: none; }
+.box .in { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }    /* 그림이 들어가는 틀 — 모양은 여기에 */
+.box[data-shape="round"] .in { border-radius: 18px; }                                 /* 둥근 네모 */
+.box[data-shape="circle"] .in { border-radius: 50%; }                                 /* 원 (폭≠높이면 타원) */
+.box[data-shape="star"] .in { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }   /* 별 */
+.box[data-shape="star"] .in.empty, .box[data-shape="heart"] .in.empty { clip-path: none; }                                /* 빈 별 상자는 점선 별 그림으로 보여 줌 */
+.box img { width: 100%; height: 100%; display: block; pointer-events: none; }
 .box[data-fit="cover"] img { object-fit: cover; }
 .box[data-fit="contain"] img { object-fit: contain; background: var(--box-bg); }
-.box .ph { display: grid; width: 100%; height: 100%; border: 2px dashed var(--accent); border-radius: 6px; background: var(--box-bg); box-sizing: border-box; place-items: center; color: var(--accent); position: relative; }
-.box .ph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.box .ph { display: grid; width: 100%; height: 100%; place-items: center; color: var(--accent); position: relative; }
+.box .ph svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .box .ph b { position: relative; font-size: 26px; font-weight: 700; font-family: var(--font-ui); }
 .box.sel { outline: 3px solid var(--accent); outline-offset: 2px; }
 .box.moving { opacity: .85; cursor: grabbing; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
@@ -591,12 +596,53 @@ function setCursor(v) { prefs.cursor = v; savePrefs(); if (v !== 'full') { $('cr
    4. 그림 상자 (글 위 레이어에 고정) — 위치·크기는 mm
    b = { id, page(0부터), x, y(그 장의 왼쪽 위에서 mm), w, h(mm), fit('cover'|'contain') }
    ════════════════════════════════════════════════ */
-const X_SVG = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" stroke-opacity=".35" stroke-width="1" vector-effect="non-scaling-stroke"/><line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" stroke-opacity=".35" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>';
 const allBoxes = () => [...layer.querySelectorAll('.box')];
+/* 그림 상자 모양: 네모 · 둥근 네모 · 원 · 별 (모양을 더하려면 여기와 CSS·shapePath에 한 줄씩) */
+const SHAPES = [['rect', '네모'], ['round', '둥근 네모'], ['circle', '원'], ['star', '별'], ['heart', '하트']];
+const STAR = [[50, 0], [61, 35], [98, 35], [68, 57], [79, 91], [50, 70], [21, 91], [32, 57], [2, 35], [39, 35]];   // 별 꼭짓점 (가로·세로 %)
+const HEART = [[50.0,  23.9], [50.1,  22.7], [50.9,  19.4], [52.8,  14.6], [56.2,  9.2], [61.3,  4.4], [67.7,  1.1], [75.0,  0.0], [82.5,  1.5], [89.4,  5.4], [95.1,  11.5], [98.7,  19.0], [100.0,  27.4], [98.7,  36.0], [95.1,  44.5], [89.4,  52.6], [82.5,  60.2], [75.0,  67.5], [67.7,  74.4], [61.3,  81.0], [56.2,  87.1], [52.8,  92.3], [50.9,  96.4], [50.1,  99.1], [50.0,  100.0], [49.9,  99.1], [49.1,  96.4], [47.2,  92.3], [43.8,  87.1], [38.7,  81.0], [32.3,  74.4], [25.0,  67.5], [17.5,  60.2], [10.6,  52.6], [4.9,  44.5], [1.3,  36.0], [0.0,  27.4], [1.3,  19.0], [4.9,  11.5], [10.6,  5.4], [17.5,  1.5], [25.0,  0.0], [32.3,  1.1], [38.7,  4.4], [43.7,  9.2], [47.2,  14.6], [49.1,  19.4], [49.9,  22.7]];   // 하트 둘레 48점 (하트 곡선 공식으로 계산)
+const POLY = { star: STAR, heart: HEART };          // 꼭짓점으로 그리는 모양들
+function phSvg(shape) {                              // 빈 상자: 모양대로 점선 + X
+  const st = 'fill="var(--box-bg)" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"';
+  const outline = shape === 'circle' ? `<ellipse cx="50" cy="50" rx="49.5" ry="49.5" ${st}/>`
+    : POLY[shape] ? `<polygon points="${POLY[shape].map(p => p.join(',')).join(' ')}" ${st}/>`
+    : `<rect x=".5" y=".5" width="99" height="99" rx="${shape === 'round' ? 6 : 0}" ${st}/>`;
+  const x = '<line x1="15" y1="15" x2="85" y2="85" stroke="currentColor" stroke-opacity=".35" vector-effect="non-scaling-stroke"/><line x1="85" y1="15" x2="15" y2="85" stroke="currentColor" stroke-opacity=".35" vector-effect="non-scaling-stroke"/>';
+  return `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${outline}${x}</svg>`;
+}
+function shapePath(g, shape, W, H) {                  // 그림·PDF로 보낼 때 캔버스에 모양 오리기
+  g.beginPath();
+  if (shape === 'circle') g.ellipse(W / 2, H / 2, W / 2, H / 2, 0, 0, Math.PI * 2);
+  else if (POLY[shape]) POLY[shape].forEach(([px, py], i) => g[i ? 'lineTo' : 'moveTo'](px / 100 * W, py / 100 * H));
+  else if (shape === 'round' && g.roundRect) g.roundRect(0, 0, W, H, 36);
+  else g.rect(0, 0, W, H);
+  g.closePath();
+}
+const SHAPE_CSS = { round: 'border-radius:18px', circle: 'border-radius:50%', star: `clip-path:polygon(${STAR.map(([x, y]) => x + '% ' + y + '%').join(',')})`, heart: `clip-path:polygon(${HEART.map(([x, y]) => x + '% ' + y + '%').join(',')})` };   // HTML 보내기용
+/* 모양대로 오린 그림 한 장 만들기 (보내기용) */
+function maskedImage(f) {
+  return new Promise(ok => {
+    const im = images.get(f.dataset.id); if (!im) return ok(null);
+    const W = Math.max(2, Math.round(+f.dataset.w * MM * 2)), H = Math.max(2, Math.round(+f.dataset.h * MM * 2));
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+      shapePath(g, f.dataset.shape || 'rect', W, H); g.clip();
+      const contain = f.dataset.fit === 'contain';
+      if (contain) { g.fillStyle = '#f6f4fd'; g.fillRect(0, 0, W, H); }
+      const k = contain ? Math.min(W / img.width, H / img.height) : Math.max(W / img.width, H / img.height);
+      g.drawImage(img, (W - img.width * k) / 2, (H - img.height * k) / 2, img.width * k, img.height * k);
+      ok(c.toDataURL('image/png'));
+    };
+    img.onerror = () => ok(null); img.src = im.url;
+  });
+}
+document.head.append(Object.assign(document.createElement('style'), { textContent: `.box[data-shape="heart"] .in { clip-path: polygon(${HEART.map(([x, y]) => x + '% ' + y + '%').join(', ')}); }` }));   // 하트 모양 틀
+function setShape(v) { if (!selBox) return; selBox.dataset.shape = v; fillBox(selBox); snap(); changed(); }
 const r1 = v => Math.round(v * 10) / 10;              // 0.1mm까지
 function makeBox(b) {
   const f = h('div', '', 'box');
-  f.dataset.id = b.id; f.dataset.fit = b.fit || 'cover';
+  f.dataset.id = b.id; f.dataset.fit = b.fit || 'cover'; f.dataset.shape = b.shape || 'rect';
   Object.assign(f.dataset, { page: b.page, x: b.x, y: b.y, w: b.w, h: b.h });
   fillBox(f); placeBox(f);
   return f;
@@ -621,8 +667,11 @@ function placeAllBoxes() {
 }
 function fillBox(f) {                                 // 그림이 있으면 그림, 없으면 X 표시
   const im = images.get(f.dataset.id);
-  f.innerHTML = im ? '' : '<span class="ph">' + X_SVG + '<b>✕</b></span>';
-  if (im) { const img = document.createElement('img'); img.src = im.url; img.alt = im.name; img.draggable = false; f.append(img); }
+  f.innerHTML = '';
+  const inner = h('span', '', 'in');                  // 모양 틀
+  if (im) { const img = document.createElement('img'); img.src = im.url; img.alt = im.name; img.draggable = false; inner.append(img); }
+  else { inner.classList.add('empty'); inner.innerHTML = '<span class="ph">' + phSvg(f.dataset.shape) + '</span>'; }
+  f.append(inner);
   f.append(h('span', '', 'grip'), h('span', '', 'pos'));   // 크기 바꾸기 동그라미, 위치 표시
 }
 function selectBox(f) {
@@ -654,6 +703,7 @@ layer.addEventListener('pointermove', e => {
   if (mv.kind === 'size') {                           // 크기 바꾸기 (mm)
     f.classList.add('sizing');
     d.w = r1(Math.max(10, Math.min(210, mv.w0 + dx / MM))); d.h = r1(Math.max(10, Math.min(297, mv.h0 + dy / MM)));
+    if (e.shiftKey) d.h = d.w;                        // Shift: 폭 = 높이 (정사각형·정원)
     placeBox(f); f.querySelector('.pos').textContent = `${d.w} × ${d.h} mm`;
   } else {                                            // 옮기기: 그림이 손가락을 따라옴
     f.classList.add('moving');
@@ -680,6 +730,7 @@ layer.addEventListener('contextmenu', e => {          // 오른쪽 클릭(폰은
     [has ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(f)],
     ['꽉 차게', () => setFit('cover'), { check: has && f.dataset.fit === 'cover', off: !has }],
     ['다 보이게', () => setFit('contain'), { check: has && f.dataset.fit === 'contain', off: !has }],
+    ['모양', null, { sub: SHAPES.map(([v, l]) => [l, () => setShape(v), { check: f.dataset.shape === v }]) }],
     '-',
     ['상자 지우기', removeBox, { key: 'Delete' }],
   ]);
@@ -706,7 +757,9 @@ drawLayer.addEventListener('pointerdown', e => {
 drawLayer.addEventListener('pointermove', e => {
   if (!dr) return;
   const { x, y } = local(e);
-  dr.x = Math.min(dr.x0, x); dr.y = Math.min(dr.y0, y); dr.w = Math.abs(x - dr.x0); dr.h = Math.abs(y - dr.y0);
+  let w = Math.abs(x - dr.x0), hh = Math.abs(y - dr.y0);
+  if (e.shiftKey) w = hh = Math.max(w, hh);           // Shift: 정사각형·정원
+  dr.x = x < dr.x0 ? dr.x0 - w : dr.x0; dr.y = y < dr.y0 ? dr.y0 - hh : dr.y0; dr.w = w; dr.h = hh;
   Object.assign(dr.el.style, { left: dr.x + 'px', top: dr.y + 'px', width: dr.w + 'px', height: dr.h + 'px' });
   Object.assign(dr.lab.style, { left: dr.x + 'px', top: (dr.y + dr.h) + 'px' });
   dr.lab.textContent = '↘ ' + t('끌어서 크기 정하기') + ' · ' + Math.round(dr.w / MM) + '×' + Math.round(dr.h / MM) + ' mm';
@@ -730,7 +783,7 @@ function toModel() {
   const lines = paras().map(p => textMap(p).text.replace(/​/g, ''));
   const boxes = allBoxes().map(f => {
     const d = f.dataset, im = images.get(d.id);
-    return { id: d.id, page: +d.page, x: +d.x, y: +d.y, w: +d.w, h: +d.h, fit: d.fit, image: im ? 'images/' + im.name : null };
+    return { id: d.id, page: +d.page, x: +d.x, y: +d.y, w: +d.w, h: +d.h, fit: d.fit, shape: d.shape || 'rect', image: im ? 'images/' + im.name : null };
   });
   return { text: lines.join('\n'), boxes };
 }
@@ -751,7 +804,7 @@ function oldBox(b) {
   p = p || ps[ps.length - 1];
   const top = p ? p.offsetTop : MARGIN, page = Math.floor(top / STRIDE);
   const W = (A4W - 2 * MARGIN) / MM, w = b.side === 'full' ? W : r1((b.w || .45) * W), hh = r1((b.h || 120) / MM);
-  return { id: b.id, page, x: b.side === 'right' ? r1(30 + W - w) : 30, y: r1((top - page * STRIDE) / MM), w: r1(w), h: hh, fit: b.fit || 'cover' };
+  return { id: b.id, page, x: b.side === 'right' ? r1(30 + W - w) : 30, y: r1((top - page * STRIDE) / MM), w: r1(w), h: hh, fit: b.fit || 'cover', shape: b.shape || 'rect' };
 }
 function ensureShape() {                              // 모든 줄이 <p> 하나씩이 되게 바로잡기
   [...ed.childNodes].forEach(n => {
@@ -1240,15 +1293,16 @@ async function exportHtml() {
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const body = ed.innerHTML.replace(/ contenteditable="false"/g, '');
   let sheets = ''; for (let k = 0; k < pages; k++) sheets += `<div class="sh" style="top:${k * STRIDE}px"></div>`;
-  const figs = allBoxes().map(f => { const im = images.get(f.dataset.id); return im ? `<img src="${im.data}" alt="${esc(im.name)}" style="left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};object-fit:${f.dataset.fit}">` : ''; }).join('');
+  const figs = allBoxes().map(f => { const im = images.get(f.dataset.id); return im ? `<img src="${im.data}" alt="${esc(im.name)}" style="left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};object-fit:${f.dataset.fit};${SHAPE_CSS[f.dataset.shape] || ''}">` : ''; }).join('');
   const font = `${/Italic/.test(prefs.style) ? 'italic ' : ''}${/Bold/.test(prefs.style) ? '700' : '400'} ${prefs.size}pt/${lineH}px "${prefs.font}", "Malgun Gothic", sans-serif`;
-  const doc = `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${esc(docName())}</title>\n<style>body{margin:0;background:#d9d8e0}main{position:relative;width:794px;height:${pages * STRIDE - GAP}px;margin:20px auto}.sh{position:absolute;left:0;width:794px;height:1123px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}.ed{position:relative;padding:113px;font:${font};color:#111;white-space:${prefs.wrap ? 'pre-wrap' : 'pre'};word-break:keep-all;overflow-wrap:anywhere}p{margin:0}.pgap{display:inline-block;width:100%;vertical-align:top}div.pgap{display:block}img{position:absolute;border-radius:6px}</style>\n</head>\n<body><main>${sheets}<div class="ed">${body}</div>${figs}</main></body>\n</html>\n`;
+  const doc = `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${esc(docName())}</title>\n<style>body{margin:0;background:#d9d8e0}main{position:relative;width:794px;height:${pages * STRIDE - GAP}px;margin:20px auto}.sh{position:absolute;left:0;width:794px;height:1123px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}.ed{position:relative;padding:113px;font:${font};color:#111;white-space:${prefs.wrap ? 'pre-wrap' : 'pre'};word-break:keep-all;overflow-wrap:anywhere}p{margin:0}.pgap{display:inline-block;width:100%;vertical-align:top}div.pgap{display:block}img{position:absolute}</style>\n</head>\n<body><main>${sheets}<div class="ed">${body}</div>${figs}</main></body>\n</html>\n`;
   if (await saveBlob(new Blob([doc], { type: 'text/html' }), docName() + '.html', { description: 'HTML', accept: { 'text/html': ['.html'] } })) toast(t('HTML로 보냈습니다.'));
 }
 /* 낱장을 한 장씩 그림으로 찍기 (그림·PDF 보내기에서 함께 씀) */
 async function renderPages() {
   await loadScript(LIB.h2c);
   selectBox(null); if (boxMode) setBoxMode(false);
+  const masks = {}; for (const f of allBoxes()) masks[f.dataset.id] = await maskedImage(f);   // 모양대로 오린 그림 미리 만들기
   const S = 2, keepZ = Z, keepFit = zoomFit, keepScroll = [desk.scrollLeft, desk.scrollTop];
   Z = 1; zoomFit = false; sizeDesk(); desk.scrollTo(0, 0);
   try {
@@ -1257,11 +1311,11 @@ async function renderPages() {
         doc.documentElement.setAttribute('data-theme', 'light'); doc.body.classList.add('exporting');
         doc.documentElement.style.overflow = doc.body.style.overflow = 'visible'; doc.body.style.height = 'auto';
         ['deskWrap', 'desk'].forEach(id => { const d = doc.getElementById(id); d.style.position = 'static'; d.style.overflow = 'visible'; });
-        doc.querySelectorAll('.box img').forEach(im => {   // 그림 찍는 도구가 object-fit을 몰라 배경 그림 방식으로
-          const fit = im.closest('.box').dataset.fit === 'contain' ? 'contain' : 'cover';
-          const dv = doc.createElement('div');
-          dv.style.cssText = `width:100%;height:100%;border-radius:6px;background:url("${im.src}") center/${fit} no-repeat` + (fit === 'contain' ? ',#f6f4fd' : '');
-          im.replaceWith(dv);
+        doc.querySelectorAll('.box img').forEach(im => {   // 그림 찍는 도구가 모양 오리기를 몰라서, 미리 오려 둔 그림으로 바꿈
+          const box = im.closest('.box'), src = masks[box.dataset.id];
+          if (!src) return;
+          const inn = box.querySelector('.in'); inn.style.clipPath = 'none'; inn.style.borderRadius = '0';
+          const n = doc.createElement('img'); n.src = src; n.style.cssText = 'width:100%;height:100%;display:block'; im.replaceWith(n);
         });
       } });
     const out = [];
@@ -1487,6 +1541,7 @@ function menuItems(name) {
       [hasImg ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(selBox), { off: !hasSel, note: !hasSel && '상자를 먼저 고르세요' }],
       ['꽉 차게', () => setFit('cover'), { check: hasImg && selBox.dataset.fit === 'cover', off: !hasImg }],
       ['다 보이게', () => setFit('contain'), { check: hasImg && selBox.dataset.fit === 'contain', off: !hasImg }],
+      ...(hasSel ? [['모양', null, { sub: SHAPES.map(([v, l]) => [l, () => setShape(v), { check: selBox.dataset.shape === v }]) }]] : [['모양', null, { off: true }]]),
       '-',
       ['상자 지우기', removeBox, { off: !hasSel, key: 'Delete' }],
     ];
@@ -1649,7 +1704,7 @@ function applyLang() {
   $('findText').placeholder = t('찾을 말'); $('replText').placeholder = t('바꿀 말');
   $('findNext').textContent = t('다음 찾기'); $('replOne').textContent = t('바꾸기'); $('replAll').textContent = t('모두 바꾸기');
   $('findCaseLb').textContent = t('대소문자 구분');
-  $('drawHint').textContent = t('시작점을 누른 채 대각선으로 끌면 그림 자리(X 상자)가 생깁니다. □ 그림 상자를 다시 누르면 그리기를 끕니다.');
+  $('drawHint').textContent = t('시작점을 누른 채 대각선으로 끌면 그림 자리(X 상자)가 생깁니다. □ 그림 상자를 다시 누르면 그리기를 끕니다.') + ' ' + t('Shift를 누른 채 끌면 정사각형·정원이 됩니다.');
   ed.setAttribute('aria-label', t('글')); $('menubar').setAttribute('aria-label', t('메뉴'));
   $('sbPos').textContent = tf('줄 {0}, 열 {1}', 1, 1);
   status();
@@ -1668,7 +1723,7 @@ function sampleDoc() {
     '', '', '', '', '', '', '',
   ].join('\n'), [
     { id: 's1', para: 2, side: 'full', w: 1, h: 180, fit: 'cover' },     // 예전 방식으로 적으면 시작할 때 장·mm로 바뀜
-    { id: 's2', para: 14, side: 'right', w: .5, h: 130, fit: 'cover' },
+    { id: 's2', para: 14, side: 'right', w: .32, h: 180, fit: 'cover', shape: 'circle' },
   ]);
   d.images.set('s1', { url: samplePic('sky'), name: '성산일출봉.jpg' });
   d.images.set('s2', { url: samplePic('dusk'), name: '섭지코지.jpg' });
@@ -1697,6 +1752,13 @@ if ('launchQueue' in window) window.launchQueue.setConsumer(async p => {
 /* 번역표: 한 줄 = 한 문장. 한국어(열쇠): [English, 日本語, 中文(简体), 中文(繁體), Tiếng Việt, Deutsch, Français, Português(브라질), Español(중남미)]
    smartDir 번역표와 같은 9개 언어 + 중국어 번체 = 한국어 포함 10개 언어. {0} {1}은 숫자·이름이 들어갈 자리 */
 const ROWS = {
+  "하트": ["Heart", "ハート", "心形", "心形", "Trái tim", "Herz", "Cœur", "Coração", "Corazón"],
+  "모양": ["Shape", "形", "形状", "形狀", "Hình dạng", "Form", "Forme", "Forma", "Forma"],
+  "네모": ["Rectangle", "四角形", "矩形", "矩形", "Hình chữ nhật", "Rechteck", "Rectangle", "Retângulo", "Rectángulo"],
+  "둥근 네모": ["Rounded rectangle", "角丸四角形", "圆角矩形", "圓角矩形", "Chữ nhật bo góc", "Abgerundetes Rechteck", "Rectangle arrondi", "Retângulo arredondado", "Rectángulo redondeado"],
+  "원": ["Circle", "円", "圆形", "圓形", "Hình tròn", "Kreis", "Cercle", "Círculo", "Círculo"],
+  "별": ["Star", "星", "星形", "星形", "Ngôi sao", "Stern", "Étoile", "Estrela", "Estrella"],
+  "Shift를 누른 채 끌면 정사각형·정원이 됩니다.": ["Hold Shift while dragging for a perfect square or circle.", "Shift を押しながらドラッグすると正方形・正円になります。", "按住 Shift 拖动可得到正方形或正圆。", "按住 Shift 拖動可得到正方形或正圓。", "Giữ Shift khi kéo để có hình vuông hoặc hình tròn đều.", "Mit gedrückter Umschalttaste ziehen ergibt ein Quadrat oder einen Kreis.", "Maintenez Maj en faisant glisser pour obtenir un carré ou un cercle parfait.", "Segure Shift ao arrastar para um quadrado ou círculo perfeito.", "Mantén Shift al arrastrar para un cuadrado o círculo perfecto."],
   "(빈 상자 {0})": ["({0} empty)", "(空 {0})", "(空 {0})", "(空 {0})", "({0} trống)", "({0} leer)", "({0} vide(s))", "({0} vazia(s))", "({0} vacía(s))"],
   "HTML로 보냈습니다.": ["Exported as HTML.", "HTMLで書き出しました。", "已导出为 HTML。", "已匯出為 HTML。", "Đã xuất dạng HTML.", "Als HTML exportiert.", "Exporté en HTML.", "Exportado como HTML.", "Exportado como HTML."],
   "JPG는 파일이 작고, PNG는 글자가 더 또렷합니다. 여러 페이지는 위아래로 이어 붙여 한 장으로 만듭니다.": ["JPG files are smaller; PNG keeps text sharper. Multiple pages are stacked into one image.", "JPGはファイルが小さく、PNGは文字がよりくっきりします。複数ページは上下につなげて1枚にします。", "JPG 文件更小，PNG 文字更清晰。多页会上下拼接成一张图。", "JPG 檔案更小，PNG 文字更清晰。多頁會上下拼接成一張圖。", "JPG nhẹ hơn, PNG chữ sắc nét hơn. Nhiều trang sẽ được ghép dọc thành một ảnh.", "JPG ist kleiner, PNG hat schärferen Text. Mehrere Seiten werden untereinander zu einem Bild zusammengefügt.", "JPG est plus léger, PNG garde un texte plus net. Plusieurs pages sont empilées en une seule image.", "JPG é menor; PNG deixa o texto mais nítido. Várias páginas são empilhadas em uma só imagem.", "JPG es más liviano; PNG deja el texto más nítido. Varias páginas se apilan en una sola imagen."],
