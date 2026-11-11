@@ -735,8 +735,8 @@ layer.addEventListener('contextmenu', e => {          // 오른쪽 클릭(폰은
     ['상자 지우기', removeBox, { key: 'Delete' }],
   ]);
 });
-document.addEventListener('pointerdown', e => {       // 상자 밖을 누르면 고름 풀기
-  if (selBox && !e.target.closest('.box') && !e.target.closest('.dropdown') && !e.target.closest('#overlay')) selectBox(null);
+document.addEventListener('pointerdown', e => {       // 종이(책상) 위에서 상자 밖을 누를 때만 고름 풀기 — 메뉴판·도구 줄을 눌러도 고른 상자는 그대로
+  if (selBox && e.target.closest('#desk') && !e.target.closest('.box')) selectBox(null);
 });
 
 /* ── 그림 상자 그리기 (□ 그림 상자 → 대각선으로 끌기) ── */
