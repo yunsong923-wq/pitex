@@ -115,16 +115,29 @@ body { display: flex; flex-direction: column; height: 100dvh; background: var(--
 .hint { margin: 0 0 8px; font-size: 13px; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 8px 10px; }
 
 /* ── 책상: 자(가로·세로)는 고정, 그 안의 종이만 밀림 ── */
-#deskWrap { flex: 1; min-height: 0; position: relative; }
+#deskWrap { flex: 1; min-height: 0; position: relative; --tw: 46px; }   /* --tw = 왼쪽 도구 막대 폭 */
+@media (max-width: 600px) { #deskWrap { --tw: 40px; } }                  /* 폰은 조금 얇게 */
+/* ── 왼쪽 도구 막대: 항상 보임 (그림 · 선 · 펜 · 표) ── */
+#tools { position: absolute; top: 0; left: 0; bottom: 0; width: var(--tw); z-index: 5; background: var(--chrome); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 8px; box-sizing: border-box; }
+#tools button { width: calc(var(--tw) - 8px); height: calc(var(--tw) - 8px); display: grid; place-items: center; border: 1px solid transparent; border-radius: 7px;
+  background: transparent; color: var(--fg); cursor: pointer; position: relative; padding: 0; }
+#tools button:hover { background: var(--hover); }
+#tools button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+#tools button.soon { opacity: .4; }                                       /* 아직 만들지 않은 도구 */
+#tools button svg { width: 24px; height: 24px; }
+#tools button::after { content: ""; position: absolute; right: 3px; bottom: 3px; border: 3px solid transparent; border-right-color: currentColor; border-bottom-color: currentColor; opacity: .55; }   /* ◢ 하위 메뉴 표시 */
+#tools button.nosub::after { display: none; }
 #desk { position: absolute; inset: 0; overflow: auto; background: var(--desk); overscroll-behavior: contain; touch-action: pan-x pan-y; }
-body.ruler #desk { top: 20px; left: 20px; }               /* 자가 보이면 자 자리만큼 비켜 줌 (수정사항 3) */
+#desk { left: var(--tw); }                                /* 도구 막대 자리만큼 비켜 줌 */
+body.ruler #desk { top: 20px; left: calc(var(--tw) + 20px); }   /* 자가 보이면 자 자리만큼 더 비켜 줌 */
 #desk.quiet { scrollbar-width: none; }                    /* 1페이지일 때는 옆 수직 막대를 숨김 */
 #desk.quiet::-webkit-scrollbar { display: none; }
 #rulerH, #rulerV, #rulerCorner { position: absolute; display: none; z-index: 3; }
 body.ruler #rulerH, body.ruler #rulerV, body.ruler #rulerCorner { display: block; }
-#rulerH { top: 0; left: 20px; width: calc(100% - 20px); height: 20px; }   /* 캔버스는 폭·높이를 꼭 적어야 늘어남 */
-#rulerV { top: 20px; left: 0; width: 20px; height: calc(100% - 20px); }
-#rulerCorner { top: 0; left: 0; width: 20px; height: 20px; background: var(--ruler); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); box-sizing: border-box; }
+#rulerH { top: 0; left: calc(var(--tw) + 20px); width: calc(100% - var(--tw) - 20px); height: 20px; }   /* 캔버스는 폭·높이를 꼭 적어야 늘어남 */
+#rulerV { top: 20px; left: var(--tw); width: 20px; height: calc(100% - 20px); }
+#rulerCorner { top: 0; left: var(--tw); width: 20px; height: 20px; background: var(--ruler); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); box-sizing: border-box; }
 /* 큰 십자 커서 (보기 › 커서 › Full screen) — 마우스를 따라 화면 끝까지 닿는 선 (수정사항 5) */
 .cross { position: absolute; z-index: 4; pointer-events: none; background: var(--cross); display: none; }
 #crossH { left: 0; right: 0; height: 1px; }
@@ -168,6 +181,19 @@ body.hide-layer #layer { display: none; }
 .box.sel .grip { display: block; }
 .box .pos { display: none; position: absolute; left: 0; top: -30px; background: var(--accent); color: #fff; font: 700 12px var(--font-ui); padding: 4px 8px; border-radius: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .box.moving .pos, .box.sizing .pos { display: block; }
+/* 동영상 상자: 썸네일 + 가운데 ▶ (누르면 상자 안에서 재생) */
+.box .vthumb { width: 100%; height: 100%; object-fit: cover; display: block; background: #1d1c24; }
+.box .vnone { width: 100%; height: 100%; background: linear-gradient(135deg, #2b2a35, #4a3f7a); }
+.box .play { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff;
+  font-size: 22px; cursor: pointer; pointer-events: auto; display: grid; place-items: center; padding-left: 4px; box-sizing: border-box; z-index: 1; }
+.box .play:hover { background: var(--accent); }
+.box.playing .in { pointer-events: auto; }
+.box.playing .play { display: none; }
+.box .in iframe, .box .in video { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+.box .stop { display: none; position: absolute; right: 4px; top: 4px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: #fff; cursor: pointer; pointer-events: auto; }
+.box.playing .stop { display: block; }
+.box .vurl { display: none; position: absolute; left: 0; right: 0; top: 100%; margin-top: 3px; font: 10px var(--font-ui); color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.exporting .box .vurl { display: block; }          /* PDF·그림·인쇄에는 주소 글자가 함께 찍힘 */
 #draw { position: absolute; inset: 0; z-index: 3; cursor: crosshair; touch-action: none; background: rgba(106,79,224,.04); }
 #draw .rect { position: absolute; border: 2px dashed var(--accent); background: var(--accent-soft); border-radius: 4px; }
 #draw .size { position: absolute; transform: translateY(8px); background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -233,14 +259,15 @@ body.exporting .box.sel { outline: 0; }
 @media print {
   @page { size: A4; margin: 0; }
   html, body { height: auto; overflow: visible; background: #fff; display: block; }
-  .chrome, .statusbar, #overlay, #menuLayer, #toastBox, #draw, #rulerH, #rulerV, #rulerCorner, .cross, #sheets { display: none !important; }
+  #tools, .chrome, .statusbar, #overlay, #menuLayer, #toastBox, #draw, #rulerH, #rulerV, #rulerCorner, .cross, #sheets { display: none !important; }
   #deskWrap, #desk { position: static; overflow: visible; background: #fff; }
   #sizer { width: auto !important; height: auto !important; }
   #paper { position: relative; left: 0; top: 0; transform: none !important; width: 210mm; }
   #editor { padding: 30mm; color: #000; }
   .pgap { display: block !important; }      /* 빈칸이 페이지 경계에서 둘로 나뉘게 → 다음 장 글이 정확히 30mm 아래에서 시작 */
   .box.sel { outline: 0; }
-  .box .grip, .box .pos { display: none !important; }
+  .box .grip, .box .pos, .box .play, #tools { display: none !important; }
+  .box .vurl { display: block; }
 }
 @media (prefers-reduced-motion: no-preference) { .sheetdlg { animation: up .18s ease-out; } @keyframes up { from { transform: translateY(20px); opacity: .6; } } }
 </style>
@@ -263,7 +290,6 @@ body.exporting .box.sel { outline: 0; }
     <button type="button" data-menu="find"></button>
     <button type="button" data-menu="view"></button>
     <button type="button" data-menu="enc"></button>
-    <button type="button" data-menu="pic"></button>
     <button type="button" data-menu="help"></button>
   </nav>
   <div class="toolbar">
@@ -275,7 +301,6 @@ body.exporting .box.sel { outline: 0; }
     <button class="tb" id="redoBtn" type="button">↷</button>
     <span class="sep"></span>
     <button class="tb" id="tbFind" type="button">🔍</button>
-    <button class="tb wide" id="boxBtn" type="button"></button>
     <button class="tb" id="tbRuler" type="button">📏</button>
     <span class="sep"></span>
     <button class="tb" id="tbZoomOut" type="button">A−</button>
@@ -296,6 +321,13 @@ body.exporting .box.sel { outline: 0; }
 
 <!-- 책상: 자는 고정, 종이만 밀림 -->
 <main id="deskWrap">
+  <!-- 왼쪽 도구 막대 (항상 보임). 누르면 하위 메뉴가 나옴 -->
+  <nav id="tools">
+    <button type="button" id="toolPic" data-tool="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
+    <button type="button" id="toolLine" data-tool="line" class="soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor"/><circle cx="19" cy="5" r="1.6" fill="currentColor"/></svg></button>
+    <button type="button" id="toolPen" data-tool="pen" class="soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M15 4l5 5L9 20H4v-5z"/><path d="M13 6l5 5"/></svg></button>
+    <button type="button" id="toolTable" data-tool="table" class="soon nosub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M3 15h18M9 4v16M15 4v16"/></svg></button>
+  </nav>
   <div id="rulerCorner"></div>
   <canvas id="rulerH"></canvas>
   <canvas id="rulerV"></canvas>
@@ -622,7 +654,9 @@ const SHAPE_CSS = { round: 'border-radius:18px', circle: 'border-radius:50%', st
 /* 모양대로 오린 그림 한 장 만들기 (보내기용) */
 function maskedImage(f) {
   return new Promise(ok => {
-    const im = images.get(f.dataset.id); if (!im) return ok(null);
+    const vi = f.dataset.type === 'video' ? videoInfo(f.dataset.url) : null;
+    const im = vi ? (vi.thumb ? { url: vi.thumb } : null) : images.get(f.dataset.id);
+    if (!im) return ok(f.dataset.type === 'video' ? videoPlaceholder(f) : null);
     const W = Math.max(2, Math.round(+f.dataset.w * MM * 2)), H = Math.max(2, Math.round(+f.dataset.h * MM * 2));
     const img = new Image();
     img.onload = () => {
@@ -632,17 +666,30 @@ function maskedImage(f) {
       if (contain) { g.fillStyle = '#f6f4fd'; g.fillRect(0, 0, W, H); }
       const k = contain ? Math.min(W / img.width, H / img.height) : Math.max(W / img.width, H / img.height);
       g.drawImage(img, (W - img.width * k) / 2, (H - img.height * k) / 2, img.width * k, img.height * k);
-      ok(c.toDataURL('image/png'));
+      if (vi) playMark(g, W, H);                      // 동영상 썸네일에는 ▶ 표시
+      try { ok(c.toDataURL('image/png')); } catch (_) { ok(videoPlaceholder(f)); }   // 썸네일을 못 쓰면 대신 그림
     };
-    img.onerror = () => ok(null); img.src = im.url;
+    img.onerror = () => ok(vi ? videoPlaceholder(f) : null); if (vi) img.crossOrigin = 'anonymous'; img.src = im.url;
   });
 }
 document.head.append(Object.assign(document.createElement('style'), { textContent: `.box[data-shape="heart"] .in { clip-path: polygon(${HEART.map(([x, y]) => x + '% ' + y + '%').join(', ')}); }` }));   // 하트 모양 틀
+function playMark(g, W, H) {                          // 가운데 ▶ 그리기
+  const r = Math.min(W, H) * .16; g.fillStyle = 'rgba(0,0,0,.6)'; g.beginPath(); g.arc(W / 2, H / 2, r, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#fff'; g.beginPath(); g.moveTo(W / 2 - r * .35, H / 2 - r * .5); g.lineTo(W / 2 + r * .55, H / 2); g.lineTo(W / 2 - r * .35, H / 2 + r * .5); g.closePath(); g.fill();
+}
+function videoPlaceholder(f) {                        // 썸네일이 없는 동영상: 보라 바탕 + ▶
+  const W = Math.max(2, Math.round(+f.dataset.w * MM * 2)), H = Math.max(2, Math.round(+f.dataset.h * MM * 2));
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  shapePath(g, f.dataset.shape || 'rect', W, H); g.clip();
+  const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#2b2a35'); gr.addColorStop(1, '#4a3f7a'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  playMark(g, W, H); return c.toDataURL('image/png');
+}
 function setShape(v) { if (!selBox) return; selBox.dataset.shape = v; fillBox(selBox); snap(); changed(); }
 const r1 = v => Math.round(v * 10) / 10;              // 0.1mm까지
 function makeBox(b) {
   const f = h('div', '', 'box');
   f.dataset.id = b.id; f.dataset.fit = b.fit || 'cover'; f.dataset.shape = b.shape || 'rect';
+  if (b.type === 'video') { f.dataset.type = 'video'; f.dataset.url = b.url || ''; }   // 동영상 상자
   Object.assign(f.dataset, { page: b.page, x: b.x, y: b.y, w: b.w, h: b.h });
   fillBox(f); placeBox(f);
   return f;
@@ -665,14 +712,60 @@ function placeAllBoxes() {
     layer.style.height = (pages * STRIDE - GAP) + 'px';
   }
 }
-function fillBox(f) {                                 // 그림이 있으면 그림, 없으면 X 표시
-  const im = images.get(f.dataset.id);
-  f.innerHTML = '';
+function fillBox(f) {                                 // 그림이 있으면 그림, 없으면 X 표시, 동영상이면 썸네일 + ▶
+  f.innerHTML = ''; f.classList.remove('playing');
   const inner = h('span', '', 'in');                  // 모양 틀
-  if (im) { const img = document.createElement('img'); img.src = im.url; img.alt = im.name; img.draggable = false; inner.append(img); }
-  else { inner.classList.add('empty'); inner.innerHTML = '<span class="ph">' + phSvg(f.dataset.shape) + '</span>'; }
-  f.append(inner);
+  if (f.dataset.type === 'video') {
+    const v = videoInfo(f.dataset.url);
+    if (v && v.thumb) { const img = document.createElement('img'); img.className = 'vthumb'; img.src = v.thumb; img.alt = ''; img.draggable = false; img.crossOrigin = 'anonymous'; img.onerror = () => img.replaceWith(h('span', '', 'vnone')); inner.append(img); }   // 썸네일을 못 받으면 보라 바탕
+    else if (v && v.file) { const vd = document.createElement('video'); vd.src = v.file + '#t=0.5'; vd.preload = 'metadata'; vd.muted = true; vd.className = 'vthumb'; inner.append(vd); }
+    else inner.append(h('span', '', 'vnone'));
+    const play = h('button', '▶', 'play'); play.type = 'button'; play.title = t('재생');
+    const stop = h('button', '✕', 'stop'); stop.type = 'button'; stop.title = t('재생 멈추기');
+    f.append(inner, play, stop, h('span', f.dataset.url || '', 'vurl'));
+  } else {
+    const im = images.get(f.dataset.id);
+    if (im) { const img = document.createElement('img'); img.src = im.url; img.alt = im.name; img.draggable = false; inner.append(img); }
+    else { inner.classList.add('empty'); inner.innerHTML = '<span class="ph">' + phSvg(f.dataset.shape) + '</span>'; }
+    f.append(inner);
+  }
   f.append(h('span', '', 'grip'), h('span', '', 'pos'));   // 크기 바꾸기 동그라미, 위치 표시
+}
+/* ── 동영상 링크 (유튜브 · mp4 주소) ── */
+function videoInfo(url) {                             // 주소 → { 유튜브 번호, 썸네일, 재생 주소 }
+  if (!url) return null;
+  let u; try { u = new URL(url); } catch (_) { return null; }
+  if (!/^https?:$/.test(u.protocol)) return null;
+  let id = null;
+  if (/(^|\.)youtu\.be$/.test(u.hostname)) id = u.pathname.slice(1).split('/')[0];
+  else if (/(^|\.)youtube(-nocookie)?\.com$/.test(u.hostname)) id = u.searchParams.get('v') || (u.pathname.match(/\/(shorts|embed|live)\/([\w-]{6,})/) || [])[2];
+  if (id && /^[\w-]{6,}$/.test(id)) return { yt: id, thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, embed: `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`, open: `https://www.youtube.com/watch?v=${id}` };
+  if (/\.(mp4|webm|ogg|m4v|mov)(\?|#|$)/i.test(u.pathname + u.search)) return { file: url, open: url };
+  return { open: url };                               // 그 밖의 주소는 썸네일 없이 '열기'만
+}
+function playVideo(f) {                               // ▶ 누르면 상자 안에서 재생
+  const v = videoInfo(f.dataset.url);
+  if (!v) return videoSheet(f);
+  if (!v.embed && !v.file) { window.open(v.open, '_blank', 'noopener'); return; }
+  const inner = f.querySelector('.in'); inner.innerHTML = '';
+  if (v.embed) { const fr = document.createElement('iframe'); fr.src = v.embed; fr.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; fr.allowFullscreen = true; inner.append(fr); }
+  else { const vd = document.createElement('video'); vd.src = v.file; vd.controls = true; vd.autoplay = true; vd.playsInline = true; inner.append(vd); }
+  f.classList.add('playing');
+}
+function videoSheet(f) {                              // 동영상 주소 넣기·바꾸기
+  openSheet(sh => {
+    const inp = document.createElement('input'); inp.className = 'textin'; inp.type = 'url'; inp.value = f.dataset.url || ''; inp.placeholder = 'https://www.youtube.com/watch?v=…';
+    const err = h('p', ''); err.style.color = 'var(--danger)';
+    const ok = () => {
+      const v = inp.value.trim();
+      if (!videoInfo(v)) return err.textContent = t('주소가 올바르지 않습니다.');
+      f.dataset.url = v; fillBox(f); closeSheet(); snap(); changed();
+    };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); });
+    const row = h('div', '', 'row'); row.append(btn(t('취소'), closeSheet), btn(t('확인'), ok, 'primary'));
+    sh.append(h('h2', t('동영상 링크')), h('p', t('유튜브 또는 mp4 주소를 넣어 주세요.')), inp, err, row);
+    setTimeout(() => { inp.focus(); inp.select(); }, 60);
+  });
 }
 function selectBox(f) {
   if (selBox) selBox.classList.remove('sel');
@@ -686,9 +779,12 @@ function removeBox() { const f = selBox; if (!f) return; selectBox(null); f.remo
 let mv = null, lastTap = { f: null, t: 0 };
 layer.addEventListener('pointerdown', e => {
   const f = e.target.closest('.box'); if (!f || e.button === 2) return;
+  if (e.target.closest('.play')) { e.preventDefault(); selectBox(f); playVideo(f); return; }      // ▶ = 재생
+  if (e.target.closest('.stop')) { e.preventDefault(); fillBox(f); return; }                       // ✕ = 재생 멈추기
+  if (f.classList.contains('playing')) return;        // 재생 중에는 동영상 조작을 그대로 둠
   e.preventDefault(); selectBox(f);
   const now = Date.now();
-  if (lastTap.f === f && now - lastTap.t < 400) { lastTap = { f: null, t: 0 }; pictureSheet(f); return; }   // 두 번 누르기
+  if (lastTap.f === f && now - lastTap.t < 400) { lastTap = { f: null, t: 0 }; f.dataset.type === 'video' ? videoSheet(f) : pictureSheet(f); return; }   // 두 번 누르기
   lastTap = { f, t: now };
   mv = { f, kind: e.target.classList.contains('grip') ? 'size' : 'move', sx: e.clientX, sy: e.clientY,
     x0: +f.dataset.x, top0: +f.dataset.page * STRIDE + +f.dataset.y * MM, w0: +f.dataset.w, h0: +f.dataset.h, moved: false };
@@ -722,30 +818,49 @@ function endMove() {
 }
 layer.addEventListener('pointerup', endMove);
 layer.addEventListener('pointercancel', endMove);
-layer.addEventListener('contextmenu', e => {          // 오른쪽 클릭(폰은 길게 누르기) → 작은 메뉴
-  const f = e.target.closest('.box'); if (!f) return;
-  e.preventDefault(); selectBox(f); mv = null;
-  const has = images.has(f.dataset.id);
-  popMenu(e.clientX, e.clientY, [
-    [has ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(f)],
+/* 그림 메뉴 목록 (왼쪽 도구 막대 '그림'과 오른쪽 클릭이 같이 씀) */
+function picItems() {
+  const f = selBox, isVid = f && f.dataset.type === 'video', has = f && !isVid && images.has(f.dataset.id);
+  return [
+    ...SHAPES.map(([v, l]) => [l, () => f ? setShape(v) : startDraw(v, 'image'), { check: f ? f.dataset.shape === v : (boxMode && drawKind === 'image' && drawShape === v) }]),   // 상자를 골랐으면 모양 바꾸기, 아니면 그 모양으로 그리기
+    '-',
+    ['동영상 링크…', () => f && isVid ? videoSheet(f) : startDraw(f ? f.dataset.shape : 'rect', 'video'), { check: boxMode && drawKind === 'video' }],
+    ...(isVid ? [['유튜브·주소 열기', () => { const v = videoInfo(f.dataset.url); if (v) window.open(v.open, '_blank', 'noopener'); }, { off: !videoInfo(f.dataset.url) }]] : []),
+    '-',
+    [has ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(f), { off: !f || isVid, note: !f && '상자를 먼저 고르세요' }],
     ['꽉 차게', () => setFit('cover'), { check: has && f.dataset.fit === 'cover', off: !has }],
     ['다 보이게', () => setFit('contain'), { check: has && f.dataset.fit === 'contain', off: !has }],
-    ['모양', null, { sub: SHAPES.map(([v, l]) => [l, () => setShape(v), { check: f.dataset.shape === v }]) }],
     '-',
-    ['상자 지우기', removeBox, { key: 'Delete' }],
-  ]);
+    ['상자 지우기', removeBox, { off: !f, key: 'Delete' }],
+  ];
+}
+layer.addEventListener('contextmenu', e => {          // 오른쪽 클릭(폰은 길게 누르기) → 그림 메뉴
+  const f = e.target.closest('.box'); if (!f || f.classList.contains('playing')) return;
+  e.preventDefault(); selectBox(f); mv = null;
+  popMenu(e.clientX, e.clientY, picItems());
+});
+/* 왼쪽 도구 막대 */
+$('tools').addEventListener('click', e => {
+  const b = e.target.closest('button[data-tool]'); if (!b) return;
+  const r = b.getBoundingClientRect();
+  if (b.dataset.tool === 'pic') {
+    if (boxMode) { setBoxMode(false); return; }        // 그리는 중이면 한 번 더 눌러 끄기
+    if (openMenu === b) return closeMenu();
+    popMenu(r.right + 6, r.top, picItems(), b);
+  } else toast(t('다음 단계에서 만듭니다.'));        // 선·펜·표는 다음 단계
 });
 document.addEventListener('pointerdown', e => {       // 종이(책상) 위에서 상자 밖을 누를 때만 고름 풀기 — 메뉴판·도구 줄을 눌러도 고른 상자는 그대로
   if (selBox && e.target.closest('#desk') && !e.target.closest('.box')) selectBox(null);
 });
 
 /* ── 그림 상자 그리기 (□ 그림 상자 → 대각선으로 끌기) ── */
+let drawShape = 'rect', drawKind = 'image';        // 다음에 그릴 상자의 모양과 종류(그림·동영상)
+function startDraw(shape, kind) { drawShape = shape || 'rect'; drawKind = kind || 'image'; setBoxMode(true); }
 function setBoxMode(on) {
   boxMode = on; drawLayer.hidden = !on; $('drawHint').hidden = !on;
-  $('boxBtn').classList.toggle('on', on);
+  $('toolPic').classList.toggle('on', on);
   if (on) { toast(t('그림 상자 그리기: 대각선으로 끌어 보세요.')); selectBox(null); }
 }
-$('boxBtn').onclick = () => setBoxMode(!boxMode);
 let dr = null;
 drawLayer.addEventListener('pointerdown', e => {
   const p = local(e);
@@ -769,10 +884,11 @@ drawLayer.addEventListener('pointerup', () => {
   const d = dr; dr = null; drawLayer.innerHTML = '';
   if (!d.w || d.w < 30 || d.h < 30) return toast(t('조금 더 크게 끌어 주세요.'));
   const page = Math.max(0, Math.min(pages - 1, Math.floor(d.y / STRIDE)));
-  const b = { id: newId(), page, x: r1(d.x / MM), y: r1((d.y - page * STRIDE) / MM), w: r1(d.w / MM), h: r1(d.h / MM), fit: 'cover' };
+  const b = { id: newId(), page, x: r1(d.x / MM), y: r1((d.y - page * STRIDE) / MM), w: r1(d.w / MM), h: r1(d.h / MM), fit: 'cover', shape: drawShape, type: drawKind };
   const f = makeBox(b); layer.append(f);
   snap(); changed(); selectBox(f); setBoxMode(false);
-  toast(t('그림 자리가 생겼습니다. 두 번 누르면 그림을 넣습니다.'));
+  if (drawKind === 'video') videoSheet(f);            // 동영상 상자: 바로 주소 넣기
+  else toast(t('그림 자리가 생겼습니다. 두 번 누르면 그림을 넣습니다.'));
 });
 drawLayer.addEventListener('pointercancel', () => { dr = null; drawLayer.innerHTML = ''; });
 
@@ -783,7 +899,9 @@ function toModel() {
   const lines = paras().map(p => textMap(p).text.replace(/​/g, ''));
   const boxes = allBoxes().map(f => {
     const d = f.dataset, im = images.get(d.id);
-    return { id: d.id, page: +d.page, x: +d.x, y: +d.y, w: +d.w, h: +d.h, fit: d.fit, shape: d.shape || 'rect', image: im ? 'images/' + im.name : null };
+    const o = { id: d.id, page: +d.page, x: +d.x, y: +d.y, w: +d.w, h: +d.h, fit: d.fit, shape: d.shape || 'rect', image: im ? 'images/' + im.name : null };
+    if (d.type === 'video') { o.type = 'video'; o.url = d.url || ''; delete o.image; }   // 동영상은 주소만 저장
+    return o;
   });
   return { text: lines.join('\n'), boxes };
 }
@@ -928,7 +1046,7 @@ let curPage = 1;
 function status() {
   const m = toModel();
   const chars = m.text.replace(/\n/g, '').length;
-  const empty = m.boxes.filter(b => !b.image).length;
+  const empty = m.boxes.filter(b => !b.image && b.type !== 'video').length;
   $('sbPage').textContent = tf('페이지 {0} / {1}', Math.min(curPage, pages), pages);
   $('sbChars').textContent = tf('글 {0}자', chars.toLocaleString());
   $('sbBoxes').textContent = tf('그림 상자 {0}', m.boxes.length) + (empty ? ' ' + tf('(빈 상자 {0})', empty) : '');
@@ -1293,7 +1411,11 @@ async function exportHtml() {
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const body = ed.innerHTML.replace(/ contenteditable="false"/g, '');
   let sheets = ''; for (let k = 0; k < pages; k++) sheets += `<div class="sh" style="top:${k * STRIDE}px"></div>`;
-  const figs = allBoxes().map(f => { const im = images.get(f.dataset.id); return im ? `<img src="${im.data}" alt="${esc(im.name)}" style="left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};object-fit:${f.dataset.fit};${SHAPE_CSS[f.dataset.shape] || ''}">` : ''; }).join('');
+  const figs = allBoxes().map(f => {
+    const pos = `left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};${SHAPE_CSS[f.dataset.shape] || ''}`;
+    if (f.dataset.type === 'video') { const v = videoInfo(f.dataset.url); if (!v) return ''; return v.embed ? `<iframe src="${v.embed.replace('autoplay=1&', '')}" style="position:absolute;border:0;${pos}" allowfullscreen></iframe>` : v.file ? `<video src="${esc(v.file)}" controls style="position:absolute;${pos}"></video>` : `<a href="${esc(v.open)}" style="position:absolute;${pos}">${esc(v.open)}</a>`; }
+    const im = images.get(f.dataset.id); return im ? `<img src="${im.data}" alt="${esc(im.name)}" style="left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};object-fit:${f.dataset.fit};${SHAPE_CSS[f.dataset.shape] || ''}">` : '';
+  }).join('');
   const font = `${/Italic/.test(prefs.style) ? 'italic ' : ''}${/Bold/.test(prefs.style) ? '700' : '400'} ${prefs.size}pt/${lineH}px "${prefs.font}", "Malgun Gothic", sans-serif`;
   const doc = `<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${esc(docName())}</title>\n<style>body{margin:0;background:#d9d8e0}main{position:relative;width:794px;height:${pages * STRIDE - GAP}px;margin:20px auto}.sh{position:absolute;left:0;width:794px;height:1123px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}.ed{position:relative;padding:113px;font:${font};color:#111;white-space:${prefs.wrap ? 'pre-wrap' : 'pre'};word-break:keep-all;overflow-wrap:anywhere}p{margin:0}.pgap{display:inline-block;width:100%;vertical-align:top}div.pgap{display:block}img{position:absolute}</style>\n</head>\n<body><main>${sheets}<div class="ed">${body}</div>${figs}</main></body>\n</html>\n`;
   if (await saveBlob(new Blob([doc], { type: 'text/html' }), docName() + '.html', { description: 'HTML', accept: { 'text/html': ['.html'] } })) toast(t('HTML로 보냈습니다.'));
@@ -1311,11 +1433,11 @@ async function renderPages() {
         doc.documentElement.setAttribute('data-theme', 'light'); doc.body.classList.add('exporting');
         doc.documentElement.style.overflow = doc.body.style.overflow = 'visible'; doc.body.style.height = 'auto';
         ['deskWrap', 'desk'].forEach(id => { const d = doc.getElementById(id); d.style.position = 'static'; d.style.overflow = 'visible'; });
-        doc.querySelectorAll('.box img').forEach(im => {   // 그림 찍는 도구가 모양 오리기를 몰라서, 미리 오려 둔 그림으로 바꿈
-          const box = im.closest('.box'), src = masks[box.dataset.id];
-          if (!src) return;
-          const inn = box.querySelector('.in'); inn.style.clipPath = 'none'; inn.style.borderRadius = '0';
-          const n = doc.createElement('img'); n.src = src; n.style.cssText = 'width:100%;height:100%;display:block'; im.replaceWith(n);
+        doc.querySelectorAll('.box').forEach(box => {   // 그림 찍는 도구가 모양 오리기를 몰라서, 미리 오려 둔 그림으로 바꿈 (동영상은 썸네일+▶)
+          const src = masks[box.dataset.id]; if (!src) return;
+          const inn = box.querySelector('.in'); inn.style.clipPath = 'none'; inn.style.borderRadius = '0'; inn.innerHTML = '';
+          const n = doc.createElement('img'); n.src = src; n.style.cssText = 'width:100%;height:100%;display:block'; inn.append(n);
+          box.querySelectorAll('.play, .stop').forEach(x => x.remove());
         });
       } });
     const out = [];
@@ -1475,7 +1597,7 @@ if (TOUCH) {
 /* ════════════════════════════════════════════════
    15. 메뉴판
    ════════════════════════════════════════════════ */
-const MENUS = { file: '파일', edit: '편집', find: '찾기', view: '보기', enc: '인코딩', pic: '그림', help: '도움말' };
+const MENUS = { file: '파일', edit: '편집', find: '찾기', view: '보기', enc: '인코딩', help: '도움말' };   // '그림'은 왼쪽 도구 막대로 옮김
 const flag = cls => document.body.classList.contains(cls);
 function menuItems(name) {
   const hasSel = !!selBox, hasImg = hasSel && images.has(selBox.dataset.id);
@@ -1535,16 +1657,6 @@ function menuItems(name) {
       '-',
       ['다른 인코딩으로 다시 열기', null, { sub: Object.keys(ENCS).filter(e => e !== 'UTF-8 BOM').map(e => [e, () => reopenAs(e), { raw: true, off: !rawBytes }]) }],
     ];
-    case 'pic': return [
-      ['그림 상자 그리기', () => setBoxMode(!boxMode), { check: boxMode }],
-      '-',
-      [hasImg ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(selBox), { off: !hasSel, note: !hasSel && '상자를 먼저 고르세요' }],
-      ['꽉 차게', () => setFit('cover'), { check: hasImg && selBox.dataset.fit === 'cover', off: !hasImg }],
-      ['다 보이게', () => setFit('contain'), { check: hasImg && selBox.dataset.fit === 'contain', off: !hasImg }],
-      ...(hasSel ? [['모양', null, { sub: SHAPES.map(([v, l]) => [l, () => setShape(v), { check: selBox.dataset.shape === v }]) }]] : [['모양', null, { off: true }]]),
-      '-',
-      ['상자 지우기', removeBox, { off: !hasSel, key: 'Delete' }],
-    ];
     case 'help': return [['pitex 시험판에 대하여', aboutSheet]];
   }
   return [];
@@ -1572,7 +1684,7 @@ function popMenu(x, y, items, anchor) {               // 메뉴 펼치기 (메�
   items.forEach(it => dd.append(it === '-' ? document.createElement('hr') : menuButton(it)));
   $('menuLayer').append(dd);
   dd.style.left = Math.max(8, Math.min(x, innerWidth - dd.offsetWidth - 8)) + 'px';
-  if (!anchor && y > innerHeight / 2) {               // 오른쪽 클릭이 화면 아래쪽이면 → 메뉴를 위로 펼침 (하위 항목도 위로 늘어남)
+  if ((!anchor || anchor.closest && anchor.closest('#tools')) && y > innerHeight / 2) {               // 오른쪽 클릭이 화면 아래쪽이면 → 메뉴를 위로 펼침 (하위 항목도 위로 늘어남)
     dd.style.bottom = Math.max(8, innerHeight - y) + 'px';
     dd.style.maxHeight = (y - 16) + 'px';
   } else {
@@ -1590,7 +1702,7 @@ $('menubar').addEventListener('click', e => {
   const r = b.getBoundingClientRect();
   popMenu(r.left, r.bottom + 2, menuItems(b.dataset.menu), b); b.classList.add('open');
 });
-document.addEventListener('pointerdown', e => { if (openMenu && !e.target.closest('.dropdown') && !e.target.closest('#menubar')) closeMenu(); });
+document.addEventListener('pointerdown', e => { if (openMenu && !e.target.closest('.dropdown') && !e.target.closest('#menubar') && !e.target.closest('#tools')) closeMenu(); });
 function setEol(v) { fileInfo.eol = v; changed(); toast(v === 'CRLF' ? t('줄 끝: Windows (CR LF) — PC 메모장과 같게') : t('줄 끝: Unix (LF) — 폰 방식')); }
 function selectAllText() { ed.focus(); const r = document.createRange(); r.selectNodeContents(ed); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
 function insertDate() {
@@ -1613,7 +1725,7 @@ $('tbOpen').onclick = openDialog;
 $('tbSave').onclick = saveDoc;
 $('tbFind').onclick = () => $('findbar').hidden ? openFind() : closeFind();
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { if (openMenu) closeMenu(); else if (!$('findbar').hidden) closeFind(); else if ($('overlay').innerHTML) closeSheet(); else if (boxMode) setBoxMode(false); else selectBox(null); return; }
+  if (e.key === 'Escape') { const pl = layer.querySelector('.box.playing'); if (pl) { fillBox(pl); return; } if (openMenu) closeMenu(); else if (!$('findbar').hidden) closeFind(); else if ($('overlay').innerHTML) closeSheet(); else if (boxMode) setBoxMode(false); else selectBox(null); return; }
   if (selBox && !$('overlay').innerHTML) {            // 그림 상자를 골랐을 때: Delete로 지우기, 화살표로 1mm씩 옮기기
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeBox(); return; }
     const mvk = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
@@ -1707,10 +1819,9 @@ document.addEventListener('selectionchange', () => {
 function applyLang() {
   root.lang = LANG;
   document.querySelectorAll('#menubar [data-menu]').forEach(b => b.textContent = t(MENUS[b.dataset.menu]));
-  const tips = { tbNew: '새로 만들기', tbOpen: '열기', tbSave: '저장 (Ctrl+S)', undoBtn: '실행 취소 (Ctrl+Z)', redoBtn: '다시 실행 (Ctrl+Y)', tbFind: '찾기 (Ctrl+F)', boxBtn: '그림 상자 그리기', tbRuler: '자 (Ctrl+R)', tbZoomOut: '축소', tbZoomIn: '확대', tabNew: '새 탭' };
+  const tips = { tbNew: '새로 만들기', tbOpen: '열기', tbSave: '저장 (Ctrl+S)', undoBtn: '실행 취소 (Ctrl+Z)', redoBtn: '다시 실행 (Ctrl+Y)', tbFind: '찾기 (Ctrl+F)', tbRuler: '자 (Ctrl+R)', tbZoomOut: '축소', tbZoomIn: '확대', tabNew: '새 탭', toolPic: '그림', toolLine: '선', toolPen: '펜', toolTable: '표' };
   Object.entries(tips).forEach(([id, s]) => { $(id).title = t(s); $(id).setAttribute('aria-label', t(s)); });
   $('themeBtn').title = t('밝게 / 다크'); $('themeBtn').setAttribute('aria-label', t('밝게 / 다크'));
-  $('boxBtn').textContent = '□ ' + t('그림 상자');
   $('findText').placeholder = t('찾을 말'); $('replText').placeholder = t('바꿀 말');
   $('findNext').textContent = t('다음 찾기'); $('replOne').textContent = t('바꾸기'); $('replAll').textContent = t('모두 바꾸기');
   $('findCaseLb').textContent = t('대소문자 구분');
@@ -1762,6 +1873,17 @@ if ('launchQueue' in window) window.launchQueue.setConsumer(async p => {
 /* 번역표: 한 줄 = 한 문장. 한국어(열쇠): [English, 日本語, 中文(简体), 中文(繁體), Tiếng Việt, Deutsch, Français, Português(브라질), Español(중남미)]
    smartDir 번역표와 같은 9개 언어 + 중국어 번체 = 한국어 포함 10개 언어. {0} {1}은 숫자·이름이 들어갈 자리 */
 const ROWS = {
+  "재생": ["Play", "再生", "播放", "播放", "Phát", "Abspielen", "Lire", "Reproduzir", "Reproducir"],
+  "재생 멈추기": ["Stop playback", "再生を停止", "停止播放", "停止播放", "Dừng phát", "Wiedergabe stoppen", "Arrêter la lecture", "Parar reprodução", "Detener reproducción"],
+  "주소가 올바르지 않습니다.": ["The address is not valid.", "アドレスが正しくありません。", "地址无效。", "地址無效。", "Địa chỉ không hợp lệ.", "Die Adresse ist ungültig.", "L’adresse n’est pas valide.", "O endereço não é válido.", "La dirección no es válida."],
+  "동영상 링크": ["Video link", "動画リンク", "视频链接", "影片連結", "Liên kết video", "Videolink", "Lien vidéo", "Link de vídeo", "Enlace de video"],
+  "동영상 링크…": ["Video link…", "動画リンク…", "视频链接…", "影片連結…", "Liên kết video…", "Videolink…", "Lien vidéo…", "Link de vídeo…", "Enlace de video…"],
+  "유튜브 또는 mp4 주소를 넣어 주세요.": ["Enter a YouTube or mp4 address.", "YouTube または mp4 のアドレスを入力してください。", "请输入 YouTube 或 mp4 地址。", "請輸入 YouTube 或 mp4 地址。", "Nhập địa chỉ YouTube hoặc mp4.", "YouTube- oder mp4-Adresse eingeben.", "Saisissez une adresse YouTube ou mp4.", "Digite um endereço do YouTube ou mp4.", "Escribe una dirección de YouTube o mp4."],
+  "유튜브·주소 열기": ["Open on YouTube / in browser", "YouTube・ブラウザで開く", "在 YouTube/浏览器中打开", "在 YouTube/瀏覽器中開啟", "Mở trên YouTube / trình duyệt", "Auf YouTube / im Browser öffnen", "Ouvrir sur YouTube / dans le navigateur", "Abrir no YouTube / navegador", "Abrir en YouTube / navegador"],
+  "다음 단계에서 만듭니다.": ["Coming in the next stage.", "次の段階で作ります。", "将在下一阶段制作。", "將在下一階段製作。", "Sẽ làm ở giai đoạn sau.", "Kommt in der nächsten Stufe.", "Arrive à l’étape suivante.", "Vem na próxima etapa.", "Llega en la próxima etapa."],
+  "선": ["Line", "線", "线条", "線條", "Đường kẻ", "Linie", "Ligne", "Linha", "Línea"],
+  "펜": ["Pen", "ペン", "画笔", "畫筆", "Bút", "Stift", "Stylo", "Caneta", "Bolígrafo"],
+  "표": ["Table", "表", "表格", "表格", "Bảng", "Tabelle", "Tableau", "Tabela", "Tabla"],
   "하트": ["Heart", "ハート", "心形", "心形", "Trái tim", "Herz", "Cœur", "Coração", "Corazón"],
   "모양": ["Shape", "形", "形状", "形狀", "Hình dạng", "Form", "Forme", "Forma", "Forma"],
   "네모": ["Rectangle", "四角形", "矩形", "矩形", "Hình chữ nhật", "Rechteck", "Rectangle", "Retângulo", "Rectángulo"],
