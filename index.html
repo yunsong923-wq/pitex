@@ -1559,7 +1559,7 @@ function menuButton(it) {
   if (o.sub) {
     const sub = h('div', '', 'sub'); sub.hidden = true;
     o.sub.forEach(s => sub.append(menuButton(s)));
-    x.onclick = () => { sub.hidden = !sub.hidden; x.querySelector('.key').textContent = sub.hidden ? '▸' : '▾'; };
+    x.onclick = () => { sub.hidden = !sub.hidden; x.querySelector('.key').textContent = sub.hidden ? '▸' : '▾'; fitMenu(x.closest('.dropdown')); };
     const wrap = document.createElement('div'); wrap.append(x, sub); return wrap;
   }
   if (!fn || o.off) x.disabled = true;
@@ -1571,8 +1571,18 @@ function popMenu(x, y, items, anchor) {               // 메뉴 펼치기 (메�
   const dd = h('div', '', 'dropdown'); dd.setAttribute('role', 'menu');
   items.forEach(it => dd.append(it === '-' ? document.createElement('hr') : menuButton(it)));
   $('menuLayer').append(dd);
-  dd.style.top = Math.max(8, Math.min(y, innerHeight - dd.offsetHeight - 8)) + 'px';
   dd.style.left = Math.max(8, Math.min(x, innerWidth - dd.offsetWidth - 8)) + 'px';
+  if (!anchor && y > innerHeight / 2) {               // 오른쪽 클릭이 화면 아래쪽이면 → 메뉴를 위로 펼침 (하위 항목도 위로 늘어남)
+    dd.style.bottom = Math.max(8, innerHeight - y) + 'px';
+    dd.style.maxHeight = (y - 16) + 'px';
+  } else {
+    dd.style.top = Math.max(8, Math.min(y, innerHeight - dd.offsetHeight - 8)) + 'px';
+  }
+}
+function fitMenu(dd) {                                // 하위 항목을 펼쳐 화면 아래로 넘치면 메뉴를 위로 올림
+  if (!dd || dd.style.bottom) return;
+  const r = dd.getBoundingClientRect();
+  if (r.bottom > innerHeight - 8) dd.style.top = Math.max(8, innerHeight - 8 - r.height) + 'px';
 }
 $('menubar').addEventListener('click', e => {
   const b = e.target.closest('button[data-menu]'); if (!b) return;
