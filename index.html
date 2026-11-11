@@ -340,7 +340,7 @@ const $ = id => document.getElementById(id);
 const root = document.documentElement;
 const ed = $('editor'), paper = $('paper'), desk = $('desk'), sizer = $('sizer'), layer = $('layer'), drawLayer = $('draw'), sheetsEl = $('sheets');
 const IS_WIN = /Windows/i.test(navigator.userAgent);
-const TOUCH = matchMedia('(pointer: coarse)').matches;       // 폰·태블릿처럼 손가락으로 쓰는 기기
+const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;   // 폰·태블릿처럼 손가락으로만 쓰는 기기 (터치 화면 노트북은 마우스도 있으니 제외)
 const DEFAULT_EOL = IS_WIN ? 'CRLF' : 'LF';                   // Windows판은 CR LF가 기본
 let seq = 0;
 const newId = () => 'b' + Date.now().toString(36) + (++seq);
