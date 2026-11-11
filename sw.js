@@ -1,7 +1,7 @@
 /* pitex 오프라인 도우미 (service worker)
    - 앱 파일을 기기에 보관해 인터넷이 없어도 열리게 함
    - 열 때마다 새 버전이 있는지 뒤에서 확인하고, 있으면 다음에 열 때 새 버전이 보임 */
-const CACHE = 'pitex-v2-2';                        // 버전을 바꾸면 보관함을 새로 만듦
+const CACHE = 'pitex-v3-1';                        // 버전을 바꾸면 보관함을 새로 만듦
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {             // 설치될 때: 앱 파일 보관
