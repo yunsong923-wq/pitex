@@ -136,7 +136,8 @@ body.crossfull #desk, body.crossfull #editor, body.crossfull .box { cursor: cros
 /* 낱장 종이 (A4 한 장 = 794×1123점). 페이지마다 따로 그려 사이에 간격이 생김 (수정사항 4·9) */
 .sheet { position: absolute; left: 0; width: 794px; height: 1123px; background: var(--paper); box-shadow: 0 1px 4px rgba(0,0,0,.2); }
 .sheet .guide { position: absolute; inset: 113px; border: 1px solid var(--guide); display: none; pointer-events: none; }   /* 3cm 여백 안내선 */
-body.ruler .sheet .guide { display: block; }
+/* 여백 안내선은 편집할 때 거슬려서 보이지 않게 함 (필요하면 이 줄 앞의 주석 표시를 지우면 다시 보임) */
+/* body.ruler .sheet .guide { display: block; } */
 #editor { position: relative; z-index: 1; box-sizing: border-box; padding: 113px; outline: none;    /* 113점 = 여백 30mm */
   font-family: var(--font-text); font-size: var(--text-size); font-weight: var(--text-weight); font-style: var(--text-style);
   line-height: var(--line-h); white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; caret-color: var(--accent); color: var(--fg); }
