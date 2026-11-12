@@ -87,7 +87,8 @@ body { display: flex; flex-direction: column; height: 100dvh; background: var(--
 .dropdown { position: fixed; z-index: 30; min-width: 240px; max-width: calc(100vw - 16px); background: var(--menu-bg); border: 1px solid var(--line);
   border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; max-height: calc(100vh - 16px); overflow-y: auto; }
 .dropdown button { display: flex; width: 100%; gap: 10px; align-items: center; font: 14px var(--font-ui); color: var(--fg); background: transparent;
-  border: 0; border-radius: 4px; padding: 9px 10px; cursor: pointer; text-align: left; }
+  border: 0; border-radius: 4px; padding: 7px 10px; cursor: pointer; text-align: left; }   /* 메뉴 줄 간격 조금 좁게 → 작은 화면에서도 끝까지 보임 */
+body.touch .dropdown button { padding: 10px 10px; }   /* 폰은 손가락으로 누르기 쉽게 */
 .dropdown button:hover:not(:disabled) { background: var(--hover); }
 .dropdown button:disabled { color: var(--muted); opacity: .6; cursor: default; }
 .dropdown .ck { width: 16px; flex: none; color: var(--accent); }        /* ✓ 표시 자리 */
@@ -284,8 +285,7 @@ body.exporting .stk.sel { outline: 0; }
 .box .in iframe, .box .in video { width: 100%; height: 100%; border: 0; display: block; background: #000; }
 .box .stop { display: none; position: absolute; right: 4px; top: 4px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: #fff; cursor: pointer; pointer-events: auto; }
 .box.playing .stop { display: block; }
-.box .vopen { display: none; position: absolute; right: 36px; top: 4px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: #fff; cursor: pointer; pointer-events: auto; font-size: 15px; }
-.box.playing .vopen { display: block; }               /* 재생 중: ↗ 유튜브 창에서 보기 (상자 안에서 오류가 나면) */
+.box .ytmark { position: absolute; left: 6px; bottom: 6px; z-index: 2; padding: 2px 7px; border-radius: 4px; background: #ff0033; color: #fff; font: 700 11px var(--font-ui); pointer-events: none; }   /* 유튜브 상자 표시 */
 .box .vurl { display: none; position: absolute; left: 0; right: 0; top: 100%; margin-top: 3px; font: 10px var(--font-ui); color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.exporting .box .vurl { display: block; }          /* PDF·그림·인쇄에는 주소 글자가 함께 찍힘 */
 #draw { position: absolute; inset: 0; z-index: 3; cursor: crosshair; touch-action: none; background: rgba(106,79,224,.04); }
@@ -361,7 +361,7 @@ body.exporting .box.sel { outline: 0; }
   .pgap { display: block !important; }
   .wrapf { display: block !important; }      /* 빈칸이 페이지 경계에서 둘로 나뉘게 → 다음 장 글이 정확히 위 여백 아래에서 시작 */
   .box.sel { outline: 0; }
-  .box .grip, .box .pos, .box .play, .box .vopen, #tools, .ln .end, .box.tbl .tmove { display: none !important; }
+  .box .grip, .box .pos, .box .play, #tools, .ln .end, .box.tbl .tmove { display: none !important; }
   .box.tbl td { color: #000; border-color: #555; }
   .stk.sel { outline: 0 !important; }
   .ln .vis { stroke: #000 !important; stroke-width: 1.3 !important; }
@@ -484,6 +484,7 @@ const root = document.documentElement;
 const ed = $('editor'), paper = $('paper'), desk = $('desk'), sizer = $('sizer'), layer = $('layer'), drawLayer = $('draw'), sheetsEl = $('sheets');
 const IS_WIN = /Windows/i.test(navigator.userAgent);
 const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;   // 폰·태블릿처럼 손가락으로만 쓰는 기기 (터치 화면 노트북은 마우스도 있으니 제외)
+if (TOUCH) document.body.classList.add('touch');      // 폰 표시 (메뉴 줄을 넉넉하게)
 const DEFAULT_EOL = IS_WIN ? 'CRLF' : 'LF';                   // Windows판은 CR LF가 기본
 let seq = 0;
 const newId = () => 'b' + Date.now().toString(36) + (++seq);
@@ -1079,9 +1080,8 @@ function fillBox(f) {                                 // 그림이 있으면 그
     else inner.append(h('span', '', 'vnone'));
     const play = h('button', '▶', 'play'); play.type = 'button'; play.title = t('재생');
     const stop = h('button', '✕', 'stop'); stop.type = 'button'; stop.title = t('재생 멈추기');
-    const out = h('button', '↗', 'vopen'); out.type = 'button'; out.title = t('유튜브·주소 열기');   // 상자 안에서 안 나오면 유튜브 창으로
+    if (v && v.yt) { play.title = t('유튜브에서 보기'); f.append(h('span', 'YouTube', 'ytmark')); }   // 유튜브 상자 표시
     f.append(inner, play, stop, h('span', v && v.local ? '📁 ' + v.local : (f.dataset.url || ''), 'vurl'));
-    if (v && v.open) f.append(out);
   } else {
     const im = images.get(f.dataset.id);
     if (im) { const img = document.createElement('img'); img.src = im.url; img.alt = im.name; img.draggable = false; inner.append(img); }
@@ -1107,7 +1107,7 @@ function playVideo(f) {                               // ▶ 누르면 상자 �
   const v = videoInfo(f.dataset.url);
   if (!v) return videoSheet(f);
   if (v.local) return playLocal(f, v.local);          // 내 PC·폰의 동영상 파일
-  if (!v.embed && !v.file) { window.open(v.open, '_blank', 'noopener'); return; }
+  if (!v.file) { window.open(v.open, '_blank', 'noopener'); return; }   // 유튜브 상자: 상자 안이 아니라 유튜브 창(폰은 유튜브 앱)에서 재생 — 유튜브가 앱 안 재생을 막아서 (오류 153)
   const inner = f.querySelector('.in'); inner.innerHTML = '';
   if (v.embed) {
     const fr = document.createElement('iframe'); fr.src = v.embed;
@@ -1211,7 +1211,6 @@ layer.addEventListener('pointerdown', e => {
   }
   if (e.target.closest('.play')) { e.preventDefault(); selectBox(f); playVideo(f); return; }      // ▶ = 재생
   if (e.target.closest('.stop')) { e.preventDefault(); fillBox(f); return; }                       // ✕ = 재생 멈추기
-  if (e.target.closest('.vopen')) { e.preventDefault(); const v = videoInfo(f.dataset.url); fillBox(f); if (v && v.open) window.open(v.open, '_blank', 'noopener'); return; }   // ↗ = 유튜브 창에서 보기
   if (f.classList.contains('playing')) return;        // 재생 중에는 동영상 조작을 그대로 둠
   e.preventDefault(); selectBox(f);
   const now = Date.now();
@@ -1275,12 +1274,14 @@ function picItems() {
     ['동영상 링크…', () => f && isVid ? videoSheet(f) : startDraw(f ? f.dataset.shape : 'rect', 'video'), { check: boxMode && drawKind === 'video' }],
     ['글 비켜가기', () => { f.dataset.wrap = f.dataset.wrap === 'off' ? '' : 'off'; snap(); changed(); }, { check: f && f.dataset.wrap !== 'off', off: !f }],
     ...(isVid ? [['유튜브·주소 열기', () => { const v = videoInfo(f.dataset.url); if (v) window.open(v.open, '_blank', 'noopener'); }, { off: !(videoInfo(f.dataset.url) || {}).open }]] : []),
+    ...(isVid ? [] : [                                 // 동영상 상자에는 그림 항목을 빼서 메뉴를 짧게 → '상자 지우기'까지 다 보이게
+      '-',
+      [has ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(f), { off: !f, note: !f && '상자를 먼저 고르세요' }],
+      ['꽉 차게', () => setFit('cover'), { check: has && f.dataset.fit === 'cover', off: !has }],
+      ['다 보이게', () => setFit('contain'), { check: has && f.dataset.fit === 'contain', off: !has }],
+    ]),
     '-',
-    [has ? '그림 바꾸기…' : '그림 넣기…', () => pictureSheet(f), { off: !f || isVid, note: !f && '상자를 먼저 고르세요' }],
-    ['꽉 차게', () => setFit('cover'), { check: has && f.dataset.fit === 'cover', off: !has }],
-    ['다 보이게', () => setFit('contain'), { check: has && f.dataset.fit === 'contain', off: !has }],
-    '-',
-    ['상자 지우기', removeBox, { off: !f, key: 'Delete' }],
+    [isVid ? '동영상 상자 지우기' : '상자 지우기', removeBox, { off: !f, key: 'Delete' }],
   ];
 }
 layer.addEventListener('contextmenu', e => {          // 오른쪽 클릭(폰은 길게 누르기) → 그림 메뉴 (선이면 선 메뉴)
@@ -2117,7 +2118,7 @@ async function exportHtml() {
     const pos = `left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};${SHAPE_CSS[f.dataset.shape] || ''}`;
     if (isTbl(f)) { const tb = f.querySelector('table').cloneNode(true); tb.querySelectorAll('[contenteditable]').forEach(x => x.removeAttribute('contenteditable')); return `<div class="tb" style="position:absolute;left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height}">${tb.outerHTML}</div>`; }
     if (f.dataset.type === 'video') { const v = videoInfo(f.dataset.url); if (!v) return ''; if (v.local) return `<video src="${esc(v.local)}" controls style="position:absolute;${pos}"></video>`;   // 내 파일: HTML 파일과 같은 폴더에 동영상을 두면 재생됨
-    return v.embed ? `<iframe src="https://www.youtube.com/embed/${v.yt}?rel=0" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;border:0;${pos}" allowfullscreen></iframe>` : v.file ? `<video src="${esc(v.file)}" controls style="position:absolute;${pos}"></video>` : `<a href="${esc(v.open)}" style="position:absolute;${pos}">${esc(v.open)}</a>`; }
+    return v.yt ? `<a href="${esc(v.open)}" target="_blank" rel="noopener" style="position:absolute;display:block;background:#000 url(${v.thumb}) center/cover;${pos}"><span style="position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font:24px/54px sans-serif;text-align:center">▶</span></a>` : v.file ? `<video src="${esc(v.file)}" controls style="position:absolute;${pos}"></video>` : `<a href="${esc(v.open)}" style="position:absolute;${pos}">${esc(v.open)}</a>`; }
     const im = images.get(f.dataset.id); return im ? `<img src="${im.data}" alt="${esc(im.name)}" style="left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};object-fit:${f.dataset.fit};${SHAPE_CSS[f.dataset.shape] || ''}">` : '';
   }).join('') + allStrokes().map(f => `<div style="position:absolute;left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height}">${f.innerHTML.replace(/<path class="hit"[^>]*><\/path>/, '')}</div>`).join('') + allLines().map(f => f.outerHTML.replace(/<span class="end"[^>]*><\/span>/g, '').replace('class="ln', 'style="position:absolute;' + `left:${f.style.left};top:${f.style.top};width:${f.style.width};height:${f.style.height};color:#111" class="ln`)).join('');
   const font = `${/Italic/.test(prefs.style) ? 'italic ' : ''}${/Bold/.test(prefs.style) ? '700' : '400'} ${prefs.size}pt/${lineH}px "${prefs.font}", "Malgun Gothic", sans-serif`;
@@ -2141,7 +2142,7 @@ async function renderPages() {
           const src = masks[box.dataset.id]; if (!src) return;
           const inn = box.querySelector('.in'); inn.style.clipPath = 'none'; inn.style.borderRadius = '0'; inn.innerHTML = '';
           const n = doc.createElement('img'); n.src = src; n.style.cssText = 'width:100%;height:100%;display:block'; inn.append(n);
-          box.querySelectorAll('.play, .stop, .vopen').forEach(x => x.remove());
+          box.querySelectorAll('.play, .stop').forEach(x => x.remove());
         });
       } });
     const out = [];
@@ -2436,6 +2437,8 @@ function menuItems(name) {
       ['설정…', settingsSheet],
       '-',
       ['휴지통으로 보내기', trashDoc],
+      '-',
+      ['종료', quitApp, { key: 'Alt+F4' }],             // 앱 창 닫기 (열린 탭과 글은 다음에 켤 때 되살아남)
     ];
     case 'edit': return [
       ['실행 취소', () => goHist(-1), { key: 'Ctrl+Z', off: hi <= 0 }],
@@ -2549,7 +2552,7 @@ const HELP = {
     ['3. 그림 · 동영상 (왼쪽 도구 막대 맨 위)', [
       '모양(네모·둥근 네모·원·별·하트)을 고른 뒤 종이 위를 대각선으로 끌어 상자를 만듭니다.',
       '상자를 고르고 ‘그림 넣기…’ → 갤러리·파일·카메라에서 그림을 넣습니다. ‘꽉 차게 / 다 보이게’로 맞춤을 고릅니다.',
-      '‘동영상 링크…’ : 유튜브 등 주소를 넣으면 상자 가운데 ▶를 눌러 바로 봅니다.',
+      '‘동영상 링크…’ : 유튜브 주소를 넣으면 유튜브 상자가 되어 ▶를 누르면 유튜브 창(폰은 유튜브 앱)에서 열립니다. PC·폰에 있는 동영상 파일이나 mp4 주소는 상자 안에서 바로 재생됩니다.',
       '‘글 비켜가기’가 켜져 있으면 글이 그림 옆으로 단어 단위로 비켜 흐릅니다.',
     ]],
     ['4. 선 · 펜 · 표', [
@@ -2574,7 +2577,7 @@ const HELP = {
       'Ctrl+N 새 글 · Ctrl+O 열기 · Ctrl+S 저장 · Ctrl+Shift+S 다른 이름으로 저장 · Ctrl+W 탭 닫기 · Ctrl+Tab 다음 탭',
       'Ctrl+Z 실행 취소 · Ctrl+Y 다시 실행 · Ctrl+F 찾기 · Ctrl+H 바꾸기 · F3 다음 찾기',
       'Ctrl+B 굵게 · Ctrl+I 기울임 · Ctrl+R 자 보이기/숨기기 · Ctrl+P 인쇄 · Ctrl++ / Ctrl+− / Ctrl+0 확대·축소·기본',
-      'F1 사용법 · F5 날짜·시간 넣기 · Esc 고르기·메뉴 닫기',
+      'F1 사용법 · F5 날짜·시간 넣기 · Esc 고르기·메뉴 닫기 · Alt+F4 종료',
     ]],
   ],
 };
@@ -2589,6 +2592,11 @@ function helpSheet() {
     });
     sh.append(btn(t('닫기'), closeSheet, 'primary'));
   });
+}
+function quitApp() {                                  // 파일 › 종료
+  closeMenu(); stash(); saveSession();                 // 지금 글과 탭을 기기에 저장해 두고
+  window.close();                                      // 설치한 pitex 앱 창이면 바로 닫힘
+  setTimeout(() => toast(t('브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.'), 4000), 300);   // 브라우저 탭이면 닫히지 않음
 }
 function aboutSheet() {
   openSheet(sh => {
@@ -2987,6 +2995,10 @@ const ROWS = {
   "‘{0}’ 파일을 다시 골라 주세요.": ["Please pick ‘{0}’ again.", "‘{0}’ をもう一度選んでください。", "请重新选择“{0}”。", "請重新選擇「{0}」。", "Hãy chọn lại tệp ‘{0}’.", "Bitte ‘{0}’ erneut auswählen.", "Veuillez choisir à nouveau « {0} ».", "Escolha ‘{0}’ novamente.", "Vuelve a elegir ‘{0}’."],
   "내 PC·폰의 동영상 고르기…": ["Choose a video on this PC/phone…", "この PC・スマホの動画を選ぶ…", "选择本机/手机中的视频…", "選擇本機/手機中的影片…", "Chọn video trong máy tính/điện thoại…", "Video auf diesem PC/Handy wählen…", "Choisir une vidéo sur ce PC/téléphone…", "Escolher um vídeo deste PC/celular…", "Elegir un vídeo de este PC/móvil…"],
   "또는 이 기기에 있는 동영상 파일:": ["Or a video file on this device:", "または、この端末にある動画ファイル:", "或此设备上的视频文件：", "或此裝置上的影片檔：", "Hoặc tệp video trên thiết bị này:", "Oder eine Videodatei auf diesem Gerät:", "Ou un fichier vidéo sur cet appareil :", "Ou um arquivo de vídeo neste dispositivo:", "O un archivo de vídeo de este dispositivo:"],
+  "동영상 상자 지우기": ["Delete video box", "動画ボックスを削除", "删除视频框", "刪除影片框", "Xóa khung video", "Videorahmen löschen", "Supprimer le cadre vidéo", "Excluir caixa de vídeo", "Eliminar cuadro de vídeo"],
+  "종료": ["Exit", "終了", "退出", "結束", "Thoát", "Beenden", "Quitter", "Sair", "Salir"],
+  "브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.": ["Can't close from a browser tab. Please close it with the tab's ✕.", "ブラウザーのタブからは閉じられません。タブの ✕ で閉じてください。", "无法在浏览器标签页中关闭。请点击标签页上的 ✕ 关闭。", "無法在瀏覽器分頁中關閉。請按分頁上的 ✕ 關閉。", "Không thể đóng từ thẻ trình duyệt. Hãy bấm ✕ trên thẻ để đóng.", "Im Browser-Tab nicht möglich. Bitte mit dem ✕ des Tabs schließen.", "Impossible de fermer depuis un onglet du navigateur. Fermez-le avec le ✕ de l'onglet.", "Não é possível fechar numa aba do navegador. Feche pelo ✕ da aba.", "No se puede cerrar desde una pestaña del navegador. Ciérrala con la ✕ de la pestaña."],
+  "유튜브에서 보기": ["Watch on YouTube", "YouTube で見る", "在 YouTube 上观看", "在 YouTube 上觀看", "Xem trên YouTube", "Auf YouTube ansehen", "Regarder sur YouTube", "Assistir no YouTube", "Ver en YouTube"],
   "제목 없음": ["Untitled", "無題", "无标题", "無標題", "Không tên", "Unbenannt", "Sans titre", "Sem título", "Sin título"],
   "조금 더 크게 끌어 주세요.": ["Please drag a bit larger.", "もう少し大きくドラッグしてください。", "请拖得大一些。", "請拖得大一些。", "Hãy kéo lớn hơn một chút.", "Bitte etwas größer ziehen.", "Faites glisser un peu plus grand.", "Arraste um pouco maior.", "Arrastra un poco más grande."],
   "줄 {0}, 열 {1}": ["Ln {0}, Col {1}", "{0} 行、{1} 列", "第 {0} 行，第 {1} 列", "第 {0} 行，第 {1} 列", "Dòng {0}, Cột {1}", "Zeile {0}, Spalte {1}", "Ligne {0}, Col {1}", "Lin {0}, Col {1}", "Lín {0}, Col {1}"],
