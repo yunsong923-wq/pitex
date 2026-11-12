@@ -241,6 +241,12 @@ body.exporting .box.tbl td:focus { box-shadow: none; }
 .sheetdlg.help { max-width: 560px; gap: 6px; }          /* 사용법 창 */
 .sheetdlg.help ul { margin: 0 0 6px; padding-left: 20px; color: var(--muted); line-height: 1.6; font-size: 14px; }
 .sheetdlg.help h3 { margin-top: 8px; }
+.aboutcard { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }   /* 버전 카드 */
+.aboutcard img { border-radius: 11px; flex: none; }
+.aboutcard div { display: grid; gap: 2px; flex: 1; } .aboutcard b { font-size: 16px; } .aboutcard span { color: var(--muted); font-size: 13px; }
+.aboutcard.link { cursor: pointer; margin-top: 8px; } .aboutcard.link:hover { border-color: var(--accent); }
+.aboutcard .more { color: var(--accent) !important; white-space: nowrap; }
+.aboutrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .aboutrow a { color: var(--accent); word-break: break-all; }
 .prtlist { display: grid; gap: 8px; }                  /* 인쇄 창: 고르기 목록 */
 .prtopt { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 15px; }
 .prtopt input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
@@ -1421,8 +1427,22 @@ drawLayer.addEventListener('pointerdown', e => {
   try { drawLayer.setPointerCapture(e.pointerId); } catch (_) {}
   e.preventDefault();
 });
+/* 상자·선·펜을 끌다가 화면 끝(40점 안)에 닿으면 종이가 저절로 그쪽으로 밀림 (수정사항: 아래 화면이 모자랄 때) */
+let edgeT = null, edgeE = null;
+function edgeScroll() {
+  edgeT = null; if (!dr || !edgeE) return;
+  const r = desk.getBoundingClientRect(), E = 40, sp = v => Math.ceil((E - v) / 3);   // 끝에 가까울수록 빠르게
+  const dx = edgeE.clientX > r.right - E ? sp(r.right - edgeE.clientX) : edgeE.clientX < r.left + E ? -sp(edgeE.clientX - r.left) : 0;
+  const dy = edgeE.clientY > r.bottom - E ? sp(r.bottom - edgeE.clientY) : edgeE.clientY < r.top + E ? -sp(edgeE.clientY - r.top) : 0;
+  if (!dx && !dy) return;
+  const x0 = desk.scrollLeft, y0 = desk.scrollTop; desk.scrollBy(dx, dy);
+  if (desk.scrollLeft === x0 && desk.scrollTop === y0) return;   // 더 밀 곳이 없음
+  drawLayer.dispatchEvent(new PointerEvent('pointermove', { clientX: edgeE.clientX, clientY: edgeE.clientY, shiftKey: edgeE.shiftKey }));   // 밀린 만큼 상자도 따라 커짐
+  edgeT = requestAnimationFrame(edgeScroll);
+}
 drawLayer.addEventListener('pointermove', e => {
   if (!dr) return;
+  if (e.isTrusted) { edgeE = { clientX: e.clientX, clientY: e.clientY, shiftKey: e.shiftKey }; if (!edgeT) edgeT = requestAnimationFrame(edgeScroll); }
   if (dr.pen) {
     const { x, y } = local(e), l = dr.pts[dr.pts.length - 1];
     if (Math.hypot(x - l[0], y - l[1]) < 1.2) return; // 너무 촘촘한 점은 건너뜀
@@ -2222,7 +2242,7 @@ function printSheet() {
       else printPages(pick);
     };
     range.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-    const row = h('div', '', 'row'); row.append(btn(t('취소'), closeSheet), btn(t('인쇄'), go, 'primary'));
+    const row = h('div', '', 'row'); row.append(btn(t('취소'), closeSheet), btn(t('미리보기·인쇄'), go, 'primary'));   // 누르면 Edge 인쇄 창(미리보기)이 뜸 — 바로 인쇄되지 않음
     sh.append(h('h2', t('인쇄')), h('p', tf('전체 {0}쪽', n)), list, err, row);
   });
 }
@@ -2479,7 +2499,7 @@ function menuItems(name) {
       '-',
       ['다른 인코딩으로 다시 열기', null, { sub: Object.keys(ENCS).filter(e => e !== 'UTF-8 BOM').map(e => [e, () => reopenAs(e), { raw: true, off: !rawBytes }]) }],
     ];
-    case 'help': return [['사용법', helpSheet, { key: 'F1' }], '-', ['pitex 시험판에 대하여', aboutSheet]];
+    case 'help': return [['사용법', helpSheet, { key: 'F1' }], '-', ['pitex 정보 (버전·설치)', aboutSheet, { note: 'v' + APP_VER }]];
   }
   return [];
 }
@@ -2590,7 +2610,9 @@ function helpSheet() {
       const ul = document.createElement('ul'); lines.forEach(x => ul.append(h('li', x)));
       sh.append(h('h3', title), ul);
     });
-    sh.append(btn(t('닫기'), closeSheet, 'primary'));
+    const card = aboutCard(); card.classList.add('link'); card.title = t('pitex 정보'); card.onclick = aboutSheet;   // 맨 아래: 버전 카드 → 누르면 버전·설치 안내
+    card.append(h('span', t('버전·설치 안내 ›'), 'more'));
+    sh.append(card, btn(t('닫기'), closeSheet, 'primary'));
   });
 }
 function quitApp() {                                  // 파일 › 종료
@@ -2598,12 +2620,28 @@ function quitApp() {                                  // 파일 › 종료
   window.close();                                      // 설치한 pitex 앱 창이면 바로 닫힘
   setTimeout(() => toast(t('브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.'), 4000), 300);   // 브라우저 탭이면 닫히지 않음
 }
+/* 버전 정보 · 받는 방법 (도움말 맨 아래) — 새 버전을 올릴 때 APP_VER·APP_DATE와 sw.js의 CACHE 숫자를 함께 바꿈 */
+const APP_VER = '3.7', APP_DATE = '2026-11-12', APP_URL = 'https://yunsong923-wq.github.io/pitex/';
+function aboutCard() {                                // 아이콘 + 이름 + 버전 (작은 카드)
+  const c = h('div', '', 'aboutcard');
+  const im = document.createElement('img'); im.src = 'icons/icon-192.png'; im.alt = ''; im.width = 48; im.height = 48;
+  const tx = h('div'); tx.append(h('b', 'pitex'), h('span', tf('시험판 {0} · {1}', APP_VER, APP_DATE)));
+  c.append(im, tx); return c;
+}
 function aboutSheet() {
+  closeMenu();
   openSheet(sh => {
-    sh.append(h('h2', t('pitex 시험판')),
-      h('p', t('글은 순수 txt로, 그림 상자는 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.')),
-      h('p', t('이번에 바뀐 것: 그림 고정·끌어 놓기, 자(mm)와 Ctrl+R, 모든 페이지 3cm 여백, 큰 십자 커서, 인코딩 10가지, 여러 파일 탭, 폰 화면 맞춤과 두 손가락 확대, 인쇄 여백.')),
-      h('p', t('PC에 설치하려면 Edge 주소창 오른쪽의 ‘앱 설치’ 단추를 누르세요.')),
+    sh.classList.add('mid', 'center', 'help');
+    const url = h('div', '', 'aboutrow'); const a = document.createElement('a'); a.href = APP_URL; a.target = '_blank'; a.rel = 'noopener'; a.textContent = APP_URL;
+    const cp = btn(t('주소 복사'), async () => { try { await navigator.clipboard.writeText(APP_URL); toast(t('앱 주소를 복사했습니다.')); } catch (_) { toast(APP_URL, 4000); } });
+    url.append(a, cp);
+    const ul = (...xs) => { const u = document.createElement('ul'); xs.forEach(x => u.append(h('li', t(x)))); return u; };
+    sh.append(h('h2', t('pitex 정보')), aboutCard(),
+      h('p', t('글은 순수 txt로, 그림·선·표·꾸밈은 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.')),
+      h('h3', t('앱 주소')), url,
+      h('h3', t('PC에 설치하기 (Windows)')), ul('Edge로 위 주소를 엽니다.', '주소창 오른쪽의 ‘앱 설치’(⊞) 단추를 누르고 [설치]를 누릅니다.', '시작 메뉴와 바탕화면에 pitex 아이콘이 생기고, 창 하나짜리 앱으로 열립니다.'),
+      h('h3', t('폰에 설치하기')), ul('Chrome으로 위 주소를 엽니다.', '오른쪽 위 ⋮ 메뉴 → ‘앱 설치’ 또는 ‘홈 화면에 추가’를 누릅니다.'),
+      h('h3', t('새 버전 받기')), ul('따로 내려받을 필요가 없습니다. 인터넷이 연결된 상태에서 pitex를 껐다 켜면 새 버전으로 바뀝니다.', '인터넷이 없어도 마지막으로 받은 버전으로 열립니다.', '버전 숫자는 이 창 위쪽에서 확인합니다.'),
       btn(t('확인'), closeSheet, 'primary'));
   });
 }
@@ -2999,6 +3037,26 @@ const ROWS = {
   "종료": ["Exit", "終了", "退出", "結束", "Thoát", "Beenden", "Quitter", "Sair", "Salir"],
   "브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.": ["Can't close from a browser tab. Please close it with the tab's ✕.", "ブラウザーのタブからは閉じられません。タブの ✕ で閉じてください。", "无法在浏览器标签页中关闭。请点击标签页上的 ✕ 关闭。", "無法在瀏覽器分頁中關閉。請按分頁上的 ✕ 關閉。", "Không thể đóng từ thẻ trình duyệt. Hãy bấm ✕ trên thẻ để đóng.", "Im Browser-Tab nicht möglich. Bitte mit dem ✕ des Tabs schließen.", "Impossible de fermer depuis un onglet du navigateur. Fermez-le avec le ✕ de l'onglet.", "Não é possível fechar numa aba do navegador. Feche pelo ✕ da aba.", "No se puede cerrar desde una pestaña del navegador. Ciérrala con la ✕ de la pestaña."],
   "유튜브에서 보기": ["Watch on YouTube", "YouTube で見る", "在 YouTube 上观看", "在 YouTube 上觀看", "Xem trên YouTube", "Auf YouTube ansehen", "Regarder sur YouTube", "Assistir no YouTube", "Ver en YouTube"],
+  "미리보기·인쇄": ["Preview & print", "プレビュー・印刷", "预览·打印", "預覽·列印", "Xem trước & in", "Vorschau & Drucken", "Aperçu et impression", "Visualizar e imprimir", "Vista previa e imprimir"],
+  "시험판 {0} · {1}": ["Beta {0} · {1}", "試用版 {0} · {1}", "测试版 {0} · {1}", "測試版 {0} · {1}", "Bản thử {0} · {1}", "Testversion {0} · {1}", "Version d'essai {0} · {1}", "Versão de teste {0} · {1}", "Versión de prueba {0} · {1}"],
+  "주소 복사": ["Copy address", "アドレスをコピー", "复制地址", "複製網址", "Sao chép địa chỉ", "Adresse kopieren", "Copier l'adresse", "Copiar endereço", "Copiar dirección"],
+  "앱 주소를 복사했습니다.": ["App address copied.", "アプリのアドレスをコピーしました。", "已复制应用地址。", "已複製應用程式網址。", "Đã sao chép địa chỉ ứng dụng.", "App-Adresse kopiert.", "Adresse de l'app copiée.", "Endereço do app copiado.", "Dirección de la app copiada."],
+  "pitex 정보": ["About pitex", "pitex について", "关于 pitex", "關於 pitex", "Giới thiệu pitex", "Über pitex", "À propos de pitex", "Sobre o pitex", "Acerca de pitex"],
+  "pitex 정보 (버전·설치)": ["About pitex (version & install)", "pitex について (バージョン・インストール)", "关于 pitex (版本·安装)", "關於 pitex (版本·安裝)", "Giới thiệu pitex (phiên bản & cài đặt)", "Über pitex (Version & Installation)", "À propos de pitex (version et installation)", "Sobre o pitex (versão e instalação)", "Acerca de pitex (versión e instalación)"],
+  "글은 순수 txt로, 그림·선·표·꾸밈은 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.": ["A notepad that saves text as plain txt and pictures, lines, tables and formatting in a companion file (.txtx.pitex). People without pitex just see the txt.", "本文は純粋な txt で、画像・線・表・書式はペアファイル (.txtx.pitex) で保存するメモ帳です。pitex がない人には txt だけが見えます。", "正文保存为纯 txt，图片、线条、表格和格式保存在配套文件 (.txtx.pitex) 中的记事本。没有 pitex 的人只会看到 txt。", "正文儲存為純 txt，圖片、線條、表格和格式儲存在配套檔案 (.txtx.pitex) 中的記事本。沒有 pitex 的人只會看到 txt。", "Trình ghi chú lưu văn bản dạng txt thuần, còn hình, đường, bảng và định dạng trong tệp đi kèm (.txtx.pitex). Người không có pitex chỉ thấy tệp txt.", "Ein Editor, der Text als reines txt und Bilder, Linien, Tabellen und Formatierung in einer Begleitdatei (.txtx.pitex) speichert. Wer pitex nicht hat, sieht nur das txt.", "Un bloc-notes qui enregistre le texte en txt pur et les images, lignes, tableaux et mises en forme dans un fichier compagnon (.txtx.pitex). Sans pitex, on ne voit que le txt.", "Um bloco de notas que salva o texto em txt puro e imagens, linhas, tabelas e formatação num arquivo complementar (.txtx.pitex). Quem não tem pitex vê só o txt.", "Un bloc de notas que guarda el texto como txt puro y las imágenes, líneas, tablas y formato en un archivo complementario (.txtx.pitex). Quien no tiene pitex solo ve el txt."],
+  "앱 주소": ["App address", "アプリのアドレス", "应用地址", "應用程式網址", "Địa chỉ ứng dụng", "App-Adresse", "Adresse de l'app", "Endereço do app", "Dirección de la app"],
+  "PC에 설치하기 (Windows)": ["Install on PC (Windows)", "PC にインストール (Windows)", "在电脑上安装 (Windows)", "在電腦上安裝 (Windows)", "Cài trên máy tính (Windows)", "Auf dem PC installieren (Windows)", "Installer sur PC (Windows)", "Instalar no PC (Windows)", "Instalar en el PC (Windows)"],
+  "Edge로 위 주소를 엽니다.": ["Open the address above in Edge.", "Edge で上のアドレスを開きます。", "用 Edge 打开上面的地址。", "用 Edge 開啟上面的網址。", "Mở địa chỉ trên bằng Edge.", "Öffnen Sie die obige Adresse in Edge.", "Ouvrez l'adresse ci-dessus dans Edge.", "Abra o endereço acima no Edge.", "Abre la dirección de arriba en Edge."],
+  "주소창 오른쪽의 ‘앱 설치’(⊞) 단추를 누르고 [설치]를 누릅니다.": ["Click the ‘Install app’ (⊞) button at the right of the address bar, then [Install].", "アドレスバー右の「アプリのインストール」(⊞) を押し、[インストール] を押します。", "点击地址栏右侧的“安装应用”(⊞) 按钮，然后点击 [安装]。", "按下網址列右側的「安裝應用程式」(⊞) 按鈕，再按 [安裝]。", "Bấm nút ‘Cài đặt ứng dụng’ (⊞) bên phải thanh địa chỉ, rồi bấm [Cài đặt].", "Klicken Sie rechts in der Adressleiste auf ‘App installieren’ (⊞) und dann auf [Installieren].", "Cliquez sur ‘Installer l'application’ (⊞) à droite de la barre d'adresse, puis sur [Installer].", "Clique em ‘Instalar app’ (⊞) à direita da barra de endereço e depois em [Instalar].", "Pulsa ‘Instalar aplicación’ (⊞) a la derecha de la barra de direcciones y luego [Instalar]."],
+  "시작 메뉴와 바탕화면에 pitex 아이콘이 생기고, 창 하나짜리 앱으로 열립니다.": ["A pitex icon appears in the Start menu and on the desktop, and it opens as its own app window.", "スタートメニューとデスクトップに pitex のアイコンができ、専用のアプリ画面で開きます。", "开始菜单和桌面上会出现 pitex 图标，并以独立的应用窗口打开。", "開始功能表和桌面會出現 pitex 圖示，並以獨立的應用程式視窗開啟。", "Biểu tượng pitex xuất hiện trong menu Start và trên màn hình nền, mở như một cửa sổ ứng dụng riêng.", "Im Startmenü und auf dem Desktop erscheint ein pitex-Symbol; es öffnet sich als eigenes App-Fenster.", "Une icône pitex apparaît dans le menu Démarrer et sur le bureau, et s'ouvre dans sa propre fenêtre.", "Um ícone do pitex aparece no menu Iniciar e na área de trabalho, e ele abre como um app em janela própria.", "Aparece un icono de pitex en el menú Inicio y en el escritorio, y se abre como una ventana de aplicación propia."],
+  "폰에 설치하기": ["Install on phone", "スマホにインストール", "在手机上安装", "在手機上安裝", "Cài trên điện thoại", "Auf dem Handy installieren", "Installer sur le téléphone", "Instalar no celular", "Instalar en el móvil"],
+  "Chrome으로 위 주소를 엽니다.": ["Open the address above in Chrome.", "Chrome で上のアドレスを開きます。", "用 Chrome 打开上面的地址。", "用 Chrome 開啟上面的網址。", "Mở địa chỉ trên bằng Chrome.", "Öffnen Sie die obige Adresse in Chrome.", "Ouvrez l'adresse ci-dessus dans Chrome.", "Abra o endereço acima no Chrome.", "Abre la dirección de arriba en Chrome."],
+  "오른쪽 위 ⋮ 메뉴 → ‘앱 설치’ 또는 ‘홈 화면에 추가’를 누릅니다.": ["Tap the ⋮ menu at the top right → ‘Install app’ or ‘Add to Home screen’.", "右上の ⋮ メニュー →「アプリをインストール」または「ホーム画面に追加」を押します。", "点右上角 ⋮ 菜单 →“安装应用”或“添加到主屏幕”。", "點右上角 ⋮ 選單 →「安裝應用程式」或「加到主畫面」。", "Chạm menu ⋮ ở góc trên bên phải → ‘Cài đặt ứng dụng’ hoặc ‘Thêm vào màn hình chính’.", "Tippen Sie oben rechts auf ⋮ → ‘App installieren’ oder ‘Zum Startbildschirm hinzufügen’.", "Touchez le menu ⋮ en haut à droite → ‘Installer l'application’ ou ‘Ajouter à l'écran d'accueil’.", "Toque no menu ⋮ no canto superior direito → ‘Instalar app’ ou ‘Adicionar à tela inicial’.", "Toca el menú ⋮ arriba a la derecha → ‘Instalar aplicación’ o ‘Añadir a pantalla de inicio’."],
+  "새 버전 받기": ["Getting new versions", "新しいバージョンを受け取る", "获取新版本", "取得新版本", "Nhận phiên bản mới", "Neue Versionen erhalten", "Obtenir les nouvelles versions", "Receber novas versões", "Obtener versiones nuevas"],
+  "따로 내려받을 필요가 없습니다. 인터넷이 연결된 상태에서 pitex를 껐다 켜면 새 버전으로 바뀝니다.": ["No separate download is needed. Close and reopen pitex while online and it updates to the new version.", "別途ダウンロードする必要はありません。インターネットにつながった状態で pitex を開き直すと新しいバージョンになります。", "无需另外下载。联网时关闭并重新打开 pitex，就会更新为新版本。", "不需另外下載。連網時關閉並重新開啟 pitex，就會更新為新版本。", "Không cần tải riêng. Khi có mạng, tắt rồi mở lại pitex là lên phiên bản mới.", "Kein separater Download nötig. Schließen und öffnen Sie pitex online erneut, dann wird es aktualisiert.", "Aucun téléchargement séparé. Fermez puis rouvrez pitex en étant connecté : il passe à la nouvelle version.", "Não é preciso baixar nada. Feche e abra o pitex com internet e ele passa para a nova versão.", "No hace falta descargar nada. Cierra y vuelve a abrir pitex con internet y se actualiza a la nueva versión."],
+  "인터넷이 없어도 마지막으로 받은 버전으로 열립니다.": ["Without internet, it opens with the last version received.", "インターネットがなくても、最後に受け取ったバージョンで開きます。", "没有网络时，也会以最后获取的版本打开。", "沒有網路時，也會以最後取得的版本開啟。", "Không có mạng vẫn mở được bằng phiên bản nhận gần nhất.", "Ohne Internet öffnet es sich mit der zuletzt erhaltenen Version.", "Sans Internet, il s'ouvre avec la dernière version reçue.", "Sem internet, abre com a última versão recebida.", "Sin internet, se abre con la última versión recibida."],
+  "버전 숫자는 이 창 위쪽에서 확인합니다.": ["Check the version number at the top of this window.", "バージョン番号はこの画面の上で確認できます。", "版本号可在此窗口上方查看。", "版本號可在此視窗上方查看。", "Xem số phiên bản ở phía trên cửa sổ này.", "Die Versionsnummer steht oben in diesem Fenster.", "Le numéro de version figure en haut de cette fenêtre.", "Veja o número da versão no topo desta janela.", "Consulta el número de versión en la parte superior de esta ventana."],
+  "버전·설치 안내 ›": ["Version & install ›", "バージョン・インストール ›", "版本·安装 ›", "版本·安裝 ›", "Phiên bản & cài đặt ›", "Version & Installation ›", "Version et installation ›", "Versão e instalação ›", "Versión e instalación ›"],
   "제목 없음": ["Untitled", "無題", "无标题", "無標題", "Không tên", "Unbenannt", "Sans titre", "Sem título", "Sin título"],
   "조금 더 크게 끌어 주세요.": ["Please drag a bit larger.", "もう少し大きくドラッグしてください。", "请拖得大一些。", "請拖得大一些。", "Hãy kéo lớn hơn một chút.", "Bitte etwas größer ziehen.", "Faites glisser un peu plus grand.", "Arraste um pouco maior.", "Arrastra un poco más grande."],
   "줄 {0}, 열 {1}": ["Ln {0}, Col {1}", "{0} 行、{1} 列", "第 {0} 行，第 {1} 列", "第 {0} 行，第 {1} 列", "Dòng {0}, Cột {1}", "Zeile {0}, Spalte {1}", "Ligne {0}, Col {1}", "Lin {0}, Col {1}", "Lín {0}, Col {1}"],
