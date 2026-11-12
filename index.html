@@ -246,6 +246,7 @@ body.exporting .box.tbl td:focus { box-shadow: none; }
 .aboutcard div { display: grid; gap: 2px; flex: 1; } .aboutcard b { font-size: 16px; } .aboutcard span { color: var(--muted); font-size: 13px; }
 .aboutcard.link { cursor: pointer; margin-top: 8px; } .aboutcard.link:hover { border-color: var(--accent); }
 .aboutcard .more { color: var(--accent) !important; white-space: nowrap; }
+.aboutcard .pass { color: var(--accent) !important; font-weight: 600; }   /* 평생이용권 안내 줄 */
 .aboutrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .aboutrow a { color: var(--accent); word-break: break-all; }
 .prtlist { display: grid; gap: 8px; }                  /* 인쇄 창: 고르기 목록 */
 .prtopt { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 15px; }
@@ -1405,7 +1406,7 @@ function setBoxMode(on) {
   boxMode = on; drawLayer.hidden = !on; $('drawHint').hidden = !on;
   $('toolPic').classList.toggle('on', on && (drawKind === 'image' || drawKind === 'video')); $('toolLine').classList.toggle('on', on && drawKind === 'line'); $('toolTable').classList.toggle('on', on && drawKind === 'table');
   if (!on && (drawKind === 'line' || drawKind === 'table')) drawKind = 'image';
-  if (on) { if (drawKind === 'image' || drawKind === 'video') toast(t('그림 상자 그리기: 대각선으로 끌어 보세요.')); selectBox(null); }
+  if (on) { if (drawKind === 'video') toast(t('동영상 상자: 한 번 누르면 기본 크기(16:9), 끌면 원하는 크기로 만듭니다.'), 3500); else if (drawKind === 'image') toast(t('그림 상자 그리기: 대각선으로 끌어 보세요.')); selectBox(null); }
 }
 let dr = null;
 drawLayer.addEventListener('pointerdown', e => {
@@ -1480,6 +1481,12 @@ drawLayer.addEventListener('pointerup', () => {
     layer.append(f); snap(); changed(); setBoxMode(false); selectBox(f);
     if (lineKind === 'curve') toast(t('가운데 동그라미를 끌면 선이 휘어집니다.'), 3500);
     return;
+  }
+  if (drawKind === 'video' && (!d.w || d.w < 30 || d.h < 30)) {   // 동영상 상자를 한 번만 눌렀으면 → 16:9 기본 크기 (폭 80mm × 높이 45mm)
+    const W = 80 * MM, H = 45 * MM, pg = Math.max(0, Math.min(pages - 1, Math.floor(d.y0 / STRIDE))), top = pg * STRIDE;
+    d.w = W; d.h = H;
+    d.x = Math.max(MARGIN_X, Math.min(d.x0, A4W - MARGIN_X - W));            // 누른 자리에서 시작, 글 여백 안으로
+    d.y = Math.max(top + MARGIN, Math.min(d.y0, top + A4H - MARGIN - H));
   }
   if (!d.w || d.w < 30 || d.h < 30) return toast(t('조금 더 크게 끌어 주세요.'));
   const page = Math.max(0, Math.min(pages - 1, Math.floor(d.y / STRIDE)));
@@ -2572,7 +2579,7 @@ const HELP = {
     ['3. 그림 · 동영상 (왼쪽 도구 막대 맨 위)', [
       '모양(네모·둥근 네모·원·별·하트)을 고른 뒤 종이 위를 대각선으로 끌어 상자를 만듭니다.',
       '상자를 고르고 ‘그림 넣기…’ → 갤러리·파일·카메라에서 그림을 넣습니다. ‘꽉 차게 / 다 보이게’로 맞춤을 고릅니다.',
-      '‘동영상 링크…’ : 유튜브 주소를 넣으면 유튜브 상자가 되어 ▶를 누르면 유튜브 창(폰은 유튜브 앱)에서 열립니다. PC·폰에 있는 동영상 파일이나 mp4 주소는 상자 안에서 바로 재생됩니다.',
+      '‘동영상 링크…’ : 종이를 한 번 누르면 16:9 기본 크기, 끌면 원하는 크기로 상자가 생깁니다. 유튜브 주소를 넣으면 유튜브 상자가 되어 ▶를 누르면 유튜브 창(폰은 유튜브 앱)에서 열립니다. PC·폰에 있는 동영상 파일이나 mp4 주소는 상자 안에서 바로 재생됩니다.',
       '‘글 비켜가기’가 켜져 있으면 글이 그림 옆으로 단어 단위로 비켜 흐릅니다.',
     ]],
     ['4. 선 · 펜 · 표', [
@@ -2621,11 +2628,11 @@ function quitApp() {                                  // 파일 › 종료
   setTimeout(() => toast(t('브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.'), 4000), 300);   // 브라우저 탭이면 닫히지 않음
 }
 /* 버전 정보 · 받는 방법 (도움말 맨 아래) — 새 버전을 올릴 때 APP_VER·APP_DATE와 sw.js의 CACHE 숫자를 함께 바꿈 */
-const APP_VER = '3.7', APP_DATE = '2026-11-12', APP_URL = 'https://yunsong923-wq.github.io/pitex/';
+const APP_VER = '3.8', APP_DATE = '2026-11-12', APP_URL = 'https://yunsong923-wq.github.io/pitex/';
 function aboutCard() {                                // 아이콘 + 이름 + 버전 (작은 카드)
   const c = h('div', '', 'aboutcard');
   const im = document.createElement('img'); im.src = 'icons/icon-192.png'; im.alt = ''; im.width = 48; im.height = 48;
-  const tx = h('div'); tx.append(h('b', 'pitex'), h('span', tf('시험판 {0} · {1}', APP_VER, APP_DATE)));
+  const tx = h('div'); tx.append(h('b', 'pitex'), h('span', tf('시험판 {0} · {1}', APP_VER, APP_DATE)), h('span', t('정식판: 30일 무료 체험 · 평생이용권'), 'pass'));   // 정식판(마이크로소프트 스토어) 안내
   c.append(im, tx); return c;
 }
 function aboutSheet() {
@@ -2641,6 +2648,7 @@ function aboutSheet() {
       h('h3', t('앱 주소')), url,
       h('h3', t('PC에 설치하기 (Windows)')), ul('Edge로 위 주소를 엽니다.', '주소창 오른쪽의 ‘앱 설치’(⊞) 단추를 누르고 [설치]를 누릅니다.', '시작 메뉴와 바탕화면에 pitex 아이콘이 생기고, 창 하나짜리 앱으로 열립니다.'),
       h('h3', t('폰에 설치하기')), ul('Chrome으로 위 주소를 엽니다.', '오른쪽 위 ⋮ 메뉴 → ‘앱 설치’ 또는 ‘홈 화면에 추가’를 누릅니다.'),
+      h('h3', t('정식판과 평생이용권')), ul('정식판은 마이크로소프트 스토어에서 받습니다. (준비 중)', '설치 후 30일 동안은 모든 기능을 무료로 씁니다.', '30일이 지나면 PDF 보내기와 HTML 보내기만 잠기고, 나머지 기능은 계속 무료입니다.', '평생이용권(한국 1,000원, 그 밖의 나라 1$)을 한 번 사면 두 기능이 다시 열리고, 평생 무료 업그레이드가 포함됩니다.'),
       h('h3', t('새 버전 받기')), ul('따로 내려받을 필요가 없습니다. 인터넷이 연결된 상태에서 pitex를 껐다 켜면 새 버전으로 바뀝니다.', '인터넷이 없어도 마지막으로 받은 버전으로 열립니다.', '버전 숫자는 이 창 위쪽에서 확인합니다.'),
       btn(t('확인'), closeSheet, 'primary'));
   });
@@ -3057,6 +3065,13 @@ const ROWS = {
   "인터넷이 없어도 마지막으로 받은 버전으로 열립니다.": ["Without internet, it opens with the last version received.", "インターネットがなくても、最後に受け取ったバージョンで開きます。", "没有网络时，也会以最后获取的版本打开。", "沒有網路時，也會以最後取得的版本開啟。", "Không có mạng vẫn mở được bằng phiên bản nhận gần nhất.", "Ohne Internet öffnet es sich mit der zuletzt erhaltenen Version.", "Sans Internet, il s'ouvre avec la dernière version reçue.", "Sem internet, abre com a última versão recebida.", "Sin internet, se abre con la última versión recibida."],
   "버전 숫자는 이 창 위쪽에서 확인합니다.": ["Check the version number at the top of this window.", "バージョン番号はこの画面の上で確認できます。", "版本号可在此窗口上方查看。", "版本號可在此視窗上方查看。", "Xem số phiên bản ở phía trên cửa sổ này.", "Die Versionsnummer steht oben in diesem Fenster.", "Le numéro de version figure en haut de cette fenêtre.", "Veja o número da versão no topo desta janela.", "Consulta el número de versión en la parte superior de esta ventana."],
   "버전·설치 안내 ›": ["Version & install ›", "バージョン・インストール ›", "版本·安装 ›", "版本·安裝 ›", "Phiên bản & cài đặt ›", "Version & Installation ›", "Version et installation ›", "Versão e instalação ›", "Versión e instalación ›"],
+  "동영상 상자: 한 번 누르면 기본 크기(16:9), 끌면 원하는 크기로 만듭니다.": ["Video box: tap once for the default size (16:9), or drag for any size.", "動画ボックス：1 回押すと標準サイズ (16:9)、ドラッグすると好きな大きさで作ります。", "视频框：点一下为默认大小 (16:9)，拖动可设为任意大小。", "影片框：點一下為預設大小 (16:9)，拖曳可設為任意大小。", "Khung video: chạm một lần để có cỡ mặc định (16:9), kéo để chọn cỡ tùy ý.", "Videorahmen: einmal tippen für Standardgröße (16:9), ziehen für beliebige Größe.", "Cadre vidéo : touchez une fois pour la taille par défaut (16:9), ou faites glisser pour la taille voulue.", "Caixa de vídeo: toque uma vez para o tamanho padrão (16:9) ou arraste para o tamanho que quiser.", "Cuadro de vídeo: toca una vez para el tamaño predeterminado (16:9) o arrastra para el tamaño que quieras."],
+  "정식판: 30일 무료 체험 · 평생이용권": ["Full version: 30-day free trial · Lifetime pass", "製品版：30 日間無料体験・永久ライセンス", "正式版：30 天免费试用 · 终身使用权", "正式版：30 天免費試用 · 終身使用權", "Bản chính thức: dùng thử 30 ngày · Vé trọn đời", "Vollversion: 30 Tage gratis testen · Lebenslange Lizenz", "Version complète : 30 jours d'essai · Licence à vie", "Versão completa: 30 dias grátis · Licença vitalícia", "Versión completa: 30 días de prueba · Licencia de por vida"],
+  "정식판과 평생이용권": ["Full version and lifetime pass", "製品版と永久ライセンス", "正式版与终身使用权", "正式版與終身使用權", "Bản chính thức và vé trọn đời", "Vollversion und lebenslange Lizenz", "Version complète et licence à vie", "Versão completa e licença vitalícia", "Versión completa y licencia de por vida"],
+  "정식판은 마이크로소프트 스토어에서 받습니다. (준비 중)": ["The full version will be available from the Microsoft Store. (Coming soon)", "製品版は Microsoft Store で入手します。(準備中)", "正式版将在 Microsoft Store 提供。(准备中)", "正式版將在 Microsoft Store 提供。(準備中)", "Bản chính thức sẽ có trên Microsoft Store. (Sắp ra mắt)", "Die Vollversion gibt es im Microsoft Store. (In Vorbereitung)", "La version complète sera disponible sur le Microsoft Store. (Bientôt)", "A versão completa estará na Microsoft Store. (Em breve)", "La versión completa estará en Microsoft Store. (Próximamente)"],
+  "설치 후 30일 동안은 모든 기능을 무료로 씁니다.": ["For 30 days after installing, every feature is free.", "インストール後 30 日間はすべての機能を無料で使えます。", "安装后 30 天内所有功能均可免费使用。", "安裝後 30 天內所有功能均可免費使用。", "Trong 30 ngày sau khi cài, mọi tính năng đều miễn phí.", "30 Tage nach der Installation sind alle Funktionen kostenlos.", "Pendant 30 jours après l'installation, toutes les fonctions sont gratuites.", "Durante 30 dias após a instalação, todos os recursos são gratuitos.", "Durante 30 días tras instalarla, todas las funciones son gratis."],
+  "30일이 지나면 PDF 보내기와 HTML 보내기만 잠기고, 나머지 기능은 계속 무료입니다.": ["After 30 days only PDF and HTML export are locked; everything else stays free.", "30 日を過ぎると PDF と HTML への書き出しだけが使えなくなり、ほかの機能は引き続き無料です。", "30 天后仅锁定 PDF 和 HTML 导出，其他功能继续免费。", "30 天後僅鎖定 PDF 和 HTML 匯出，其他功能繼續免費。", "Sau 30 ngày chỉ khóa xuất PDF và HTML; mọi tính năng khác vẫn miễn phí.", "Nach 30 Tagen werden nur PDF- und HTML-Export gesperrt; alles andere bleibt kostenlos.", "Après 30 jours, seuls les exports PDF et HTML sont verrouillés ; le reste reste gratuit.", "Após 30 dias, só a exportação em PDF e HTML fica bloqueada; o resto continua grátis.", "Tras 30 días solo se bloquean la exportación a PDF y HTML; lo demás sigue gratis."],
+  "평생이용권(한국 1,000원, 그 밖의 나라 1$)을 한 번 사면 두 기능이 다시 열리고, 평생 무료 업그레이드가 포함됩니다.": ["Buy the lifetime pass once ($1; ₩1,000 in Korea) to unlock both again, with free upgrades for life.", "永久ライセンス (1$、韓国は 1,000 ウォン) を一度買うと 2 つの機能が再び使え、生涯無料アップグレード付きです。", "购买一次终身使用权 (1$，韩国 1,000 韩元) 即可重新开启这两项功能，并终身免费升级。", "購買一次終身使用權 (1$，韓國 1,000 韓元) 即可重新開啟這兩項功能，並終身免費升級。", "Mua vé trọn đời một lần (1$; tại Hàn Quốc 1.000₩) để mở lại hai tính năng, kèm nâng cấp miễn phí trọn đời.", "Mit der einmal gekauften lebenslangen Lizenz (1 $; in Korea 1.000 ₩) sind beide wieder frei – inklusive lebenslanger kostenloser Upgrades.", "Achetez une fois la licence à vie (1 $ ; 1 000 ₩ en Corée) pour les débloquer, avec mises à niveau gratuites à vie.", "Compre uma vez a licença vitalícia (US$ 1; ₩1.000 na Coreia) para desbloquear os dois, com atualizações grátis para sempre.", "Compra una vez la licencia de por vida (1 $; 1.000 ₩ en Corea) para desbloquear ambas, con actualizaciones gratis de por vida."],
   "제목 없음": ["Untitled", "無題", "无标题", "無標題", "Không tên", "Unbenannt", "Sans titre", "Sem título", "Sin título"],
   "조금 더 크게 끌어 주세요.": ["Please drag a bit larger.", "もう少し大きくドラッグしてください。", "请拖得大一些。", "請拖得大一些。", "Hãy kéo lớn hơn một chút.", "Bitte etwas größer ziehen.", "Faites glisser un peu plus grand.", "Arraste um pouco maior.", "Arrastra un poco más grande."],
   "줄 {0}, 열 {1}": ["Ln {0}, Col {1}", "{0} 行、{1} 列", "第 {0} 行，第 {1} 列", "第 {0} 行，第 {1} 列", "Dòng {0}, Cột {1}", "Zeile {0}, Spalte {1}", "Ligne {0}, Col {1}", "Lin {0}, Col {1}", "Lín {0}, Col {1}"],
