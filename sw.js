@@ -1,7 +1,7 @@
 /* pitex 오프라인 도우미 (service worker)
    - 인터넷이 되면: 늘 GitHub에서 새 파일을 먼저 받아 씀 → 올리면 다음에 열 때 바로 새 버전
    - 인터넷이 안 되면: 기기에 보관해 둔 파일로 열림 */
-const CACHE = 'pitex-v3-4';                        // 버전을 바꾸면 보관함을 새로 만듦
+const CACHE = 'pitex-v3-5';                        // 버전을 바꾸면 보관함을 새로 만듦
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {             // 설치될 때: 앱 파일 보관
