@@ -74,7 +74,7 @@ body { display: flex; flex-direction: column; height: 100dvh; background: var(--
 #tabNew { flex: none; width: 32px; height: 30px; border: 0; border-radius: 6px; background: transparent; color: var(--fg); font-size: 18px; cursor: pointer; align-self: center; }
 #tabNew:hover { background: var(--hover); }
 /* 오른쪽 위 달 모양 단추: 누를 때마다 밝게 ↔ 다크 */
-#themeBtn { flex: none; margin-left: auto; width: 42px; height: 34px; display: grid; place-items: center; background: transparent; border: 1px solid transparent; border-radius: 8px; color: var(--fg); cursor: pointer; align-self: center; }
+#themeBtn { flex: none; margin-inline-start: auto; width: 42px; height: 34px; display: grid; place-items: center; background: transparent; border: 1px solid transparent; border-radius: 8px; color: var(--fg); cursor: pointer; align-self: center; }
 #themeBtn:hover { background: var(--hover); }
 #themeBtn svg { width: 26px; height: 26px; }
 :root[data-theme="dark"] #themeBtn { color: #ffd95a; }
@@ -87,7 +87,7 @@ body { display: flex; flex-direction: column; height: 100dvh; background: var(--
 .dropdown { position: fixed; z-index: 30; min-width: 240px; max-width: calc(100vw - 16px); background: var(--menu-bg); border: 1px solid var(--line);
   border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 4px; max-height: calc(100vh - 16px); overflow-y: auto; }
 .dropdown button { display: flex; width: 100%; gap: 10px; align-items: center; font: 14px var(--font-ui); color: var(--fg); background: transparent;
-  border: 0; border-radius: 4px; padding: 7px 10px; cursor: pointer; text-align: left; }   /* 메뉴 줄 간격 조금 좁게 → 작은 화면에서도 끝까지 보임 */
+  border: 0; border-radius: 4px; padding: 7px 10px; cursor: pointer; text-align: start; }   /* 메뉴 줄 간격 조금 좁게 → 작은 화면에서도 끝까지 보임 */
 body.touch .dropdown button { padding: 10px 10px; }   /* 폰은 손가락으로 누르기 쉽게 */
 .dropdown button:hover:not(:disabled) { background: var(--hover); }
 .dropdown button:disabled { color: var(--muted); opacity: .6; cursor: default; }
@@ -95,7 +95,7 @@ body.touch .dropdown button { padding: 10px 10px; }   /* 폰은 손가락으로 
 .dropdown .lb { flex: 1; }
 .dropdown .key { color: var(--muted); font-size: 12px; }                 /* Ctrl+S 같은 단축키 */
 .dropdown hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
-.dropdown .sub { padding-left: 22px; border-left: 2px solid var(--accent-soft); margin: 0 0 4px 16px; }   /* ▸ 하위 항목 */
+.dropdown .sub { padding-inline-start: 22px; border-inline-start: 2px solid var(--accent-soft); margin: 0 0 4px; margin-inline-start: 16px; }   /* ▸ 하위 항목 */
 
 /* 도구 줄: 자주 쓰는 것만 작은 단추로 */
 .toolbar { display: flex; gap: 2px; align-items: center; padding: 3px 0 6px; overflow-x: auto; scrollbar-width: none; }
@@ -117,20 +117,18 @@ body.touch .dropdown button { padding: 10px 10px; }   /* 폰은 손가락으로 
 .hint { margin: 0 0 8px; font-size: 13px; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 8px 10px; }
 
 /* ── 책상: 자(가로·세로)는 고정, 그 안의 종이만 밀림 ── */
-#deskWrap { flex: 1; min-height: 0; position: relative; --tw: 46px; }   /* --tw = 왼쪽 도구 막대 폭 */
-@media (max-width: 600px) { #deskWrap { --tw: 40px; } }                  /* 폰은 조금 얇게 */
-/* ── 왼쪽 도구 막대: 항상 보임 (그림 · 선 · 펜 · 표) ── */
-#tools { position: absolute; top: 0; left: 0; bottom: 0; width: var(--tw); z-index: 5; background: var(--chrome); border-right: 1px solid var(--line);
-  display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 8px; box-sizing: border-box; }
-#tools button { width: calc(var(--tw) - 8px); height: calc(var(--tw) - 8px); display: grid; place-items: center; border: 1px solid transparent; border-radius: 7px;
+#deskWrap { flex: 1; min-height: 0; position: relative; --tw: 0px; }   /* --tw = 왼쪽 도구 막대 폭 (이제 없음 → 0) */
+/* ── 그림 · 선 · 펜 · 표 도구: 위쪽 도구 막대 맨 왼쪽 (수정사항_5) ── */
+#tools { display: flex; flex: none; gap: 2px; align-items: center; }
+#tools button { flex: none; width: 36px; height: 34px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 5px;
   background: transparent; color: var(--fg); cursor: pointer; position: relative; padding: 0; }
 #tools button:hover { background: var(--hover); }
 #tools button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 #tools button.soon { opacity: .4; }                                       /* 아직 만들지 않은 도구 */
-#tools button svg { width: 24px; height: 24px; }
+#tools button svg { width: 22px; height: 22px; }
 #tools button::after { content: ""; position: absolute; right: 3px; bottom: 3px; border: 3px solid transparent; border-right-color: currentColor; border-bottom-color: currentColor; opacity: .55; }   /* ◢ 하위 메뉴 표시 */
 #tools button.nosub::after { display: none; }
-#desk { position: absolute; inset: 0; overflow: auto; background: var(--desk); overscroll-behavior: contain; touch-action: pan-x pan-y; }
+#desk { position: absolute; inset: 0; overflow: auto; overflow-y: scroll; background: var(--desk); overscroll-behavior: contain; touch-action: pan-x pan-y; }
 #desk { left: var(--tw); }                                /* 도구 막대 자리만큼 비켜 줌 */
 body.ruler #desk { top: 20px; left: calc(var(--tw) + 20px); }   /* 자가 보이면 자 자리만큼 더 비켜 줌 */
 #desk.quiet { scrollbar-width: none; }                    /* 1페이지일 때는 옆 수직 막대를 숨김 */
@@ -239,7 +237,7 @@ body.exporting .box.tbl td:focus { box-shadow: none; }
 .sheetdlg.narrow { max-width: 380px; }
 .sheetdlg.mid { max-width: 480px; }
 .sheetdlg.help { max-width: 560px; gap: 6px; }          /* 사용법 창 */
-.sheetdlg.help ul { margin: 0 0 6px; padding-left: 20px; color: var(--muted); line-height: 1.6; font-size: 14px; }
+.sheetdlg.help ul { margin: 0 0 6px; padding-inline-start: 20px; color: var(--muted); line-height: 1.6; font-size: 14px; }
 .sheetdlg.help h3 { margin-top: 8px; }
 .aboutcard { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }   /* 버전 카드 */
 .aboutcard img { border-radius: 11px; flex: none; }
@@ -272,6 +270,7 @@ body.exporting .stk.sel { outline: 0; }
 .penpanel { padding: 10px; display: grid; gap: 10px; min-width: 230px; }
 .penpanel .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .penpanel .seg button { justify-content: center; border: 1px solid var(--line); }
+.penpanel > button:last-child { justify-content: center; border: 1px solid var(--line); }   /* 닫기 단추 */
 .penpanel .seg button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
 .penpanel .sw8 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .penpanel .sw8 button { width: 30px; height: 30px; justify-self: center; padding: 0; border-radius: 50%; border: 2px solid var(--line); }
@@ -398,9 +397,13 @@ body.exporting .box.sel { outline: 0; }
     <button type="button" data-menu="help"></button>
   </nav>
   <div class="toolbar">
-    <button class="tb" id="tbNew" type="button">📄</button>
-    <button class="tb" id="tbOpen" type="button">📂</button>
-    <button class="tb" id="tbSave" type="button">💾</button>
+    <!-- 그림 · 선 · 펜 · 표 (수정사항_5: 왼쪽 세로 막대에서 위쪽 막대 맨 왼쪽으로). 누르면 하위 메뉴가 아래로 펼쳐짐 -->
+    <span id="tools">
+      <button type="button" id="toolPic" data-tool="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
+      <button type="button" id="toolLine" data-tool="line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor"/><circle cx="19" cy="5" r="1.6" fill="currentColor"/></svg></button>
+      <button type="button" id="toolPen" data-tool="pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M15 4l5 5L9 20H4v-5z"/><path d="M13 6l5 5"/></svg></button>
+      <button type="button" id="toolTable" data-tool="table" class="nosub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M3 15h18M9 4v16M15 4v16"/></svg></button>
+    </span>
     <span class="sep"></span>
     <button class="tb" id="undoBtn" type="button">↶</button>
     <button class="tb" id="redoBtn" type="button">↷</button>
@@ -431,14 +434,7 @@ body.exporting .box.sel { outline: 0; }
 </header>
 
 <!-- 책상: 자는 고정, 종이만 밀림 -->
-<main id="deskWrap">
-  <!-- 왼쪽 도구 막대 (항상 보임). 누르면 하위 메뉴가 나옴 -->
-  <nav id="tools">
-    <button type="button" id="toolPic" data-tool="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
-    <button type="button" id="toolLine" data-tool="line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor"/><circle cx="19" cy="5" r="1.6" fill="currentColor"/></svg></button>
-    <button type="button" id="toolPen" data-tool="pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M15 4l5 5L9 20H4v-5z"/><path d="M13 6l5 5"/></svg></button>
-    <button type="button" id="toolTable" data-tool="table" class="nosub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M3 15h18M9 4v16M15 4v16"/></svg></button>
-  </nav>
+<main id="deskWrap" dir="ltr">                     <!-- 종이·자는 언어와 상관없이 왼쪽→오른쪽 -->
   <div id="rulerCorner"></div>
   <canvas id="rulerH"></canvas>
   <canvas id="rulerV"></canvas>
@@ -509,9 +505,9 @@ let selBox = null, boxMode = false;
 /* ════════════════════════════════════════════════
    0. 언어 (한국어 글자를 열쇠로, 다른 언어 번역을 찾아 씀)
    ════════════════════════════════════════════════ */
-const LANGS = [                                    // smartDir과 같은 언어 + 중국어 번체 (아랍어는 나중에)
+const LANGS = [                                    // smartDir과 같은 언어 + 중국어 번체 + 아랍어(메뉴·안내 글만, 화면은 오른쪽→왼쪽)
   ['ko', '한국어'], ['en', 'English'], ['ja', '日本語'], ['zh', '中文(简体)'], ['zh-TW', '中文(繁體)'],
-  ['vi', 'Tiếng Việt'], ['de', 'Deutsch'], ['fr', 'Français'], ['pt', 'Português'], ['es', 'Español'],
+  ['vi', 'Tiếng Việt'], ['de', 'Deutsch'], ['fr', 'Français'], ['pt', 'Português'], ['es', 'Español'], ['ar', 'العربية'],
 ];
 let LANG = 'ko';
 const I18N = {};                   // 번역은 맨 아래 번역표(ROWS)에서 채움
@@ -571,7 +567,7 @@ const MY_MM = 20, MX_MM = 18;                         // 여백 mm: 위아래 20
 const MARGIN = Math.round(MY_MM * 96 / 25.4), MARGIN_X = Math.round(MX_MM * 96 / 25.4);   // 76점, 68점
 const STRIDE = A4H + GAP;                             // 한 장의 위 끝 → 다음 장의 위 끝
 let lineH = 25, perPage = 35, pageH = 875, pages = 1, Z = 1, zoomFit = false;
-const ZOOMS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+const ZOOMS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
 function geometry() {
   const px = prefs.size * 4 / 3;                    // pt → 화면 점(px)
   lineH = Math.round(px * 1.7);
@@ -583,9 +579,43 @@ function geometry() {
 const paras = () => [...ed.children].filter(n => n.tagName === 'P');
 let composing = false;                                // 한글 조합 중에는 화면을 건드리지 않음
 ed.addEventListener('compositionstart', () => composing = true);
-ed.addEventListener('compositionend', () => { composing = false; layoutSoon(); });
+ed.addEventListener('compositionend', () => { composing = false; layoutSoon(true); });
 let layoutQueued = false;
-function layoutSoon() { if (!layoutQueued) { layoutQueued = true; requestAnimationFrame(() => { layoutQueued = false; layoutPages(); }); } }
+/* 화면 다시 짜기 예약 (수정사항_5 4번: 커서가 멋대로 움직이지 않게 '둔감하게')
+   - 글을 치는 동안(lazy)에는 페이지·그림 자리가 실제로 어긋났을 때만 다시 짬 → 평소에는 글과 커서를 전혀 건드리지 않음
+   - 그림을 옮기거나 꾸밈을 바꾸는 등 다른 일은 늘 다시 짬 */
+let layoutForce = false, idleT = null;
+function layoutSoon(lazy) {
+  if (!lazy) layoutForce = true;
+  if (layoutQueued) return;
+  layoutQueued = true;
+  requestAnimationFrame(() => {
+    layoutQueued = false;
+    if (composing) return;                            // 한글 조합 중에는 손대지 않음 (조합이 끝나면 다시 예약됨)
+    if (layoutForce || !layoutOk()) { layoutForce = false; layoutPages(); return; }
+    sizeDesk(); status();                             // 어긋난 곳이 없으면 아래 상태 줄만 고침
+    clearTimeout(idleT);                              // 글 치기를 0.8초 쉬면 한 번 깔끔하게 다시 짬 (페이지나 그림이 있는 글만)
+    idleT = setTimeout(() => { if (!composing && ed.querySelector('.pgap, .wrapf') && ed.contains(getSelection().focusNode)) layoutPages(); }, 800);
+  });
+}
+/* 지금 페이지 빈칸과 그림 비켜가기 자리가 맞게 놓여 있는지 (글·커서는 건드리지 않고 재 보기만 함) */
+let wrapMiss = [];                                    // 글이 아직 닿지 않아 비켜가기 자리를 넣지 못한 그림들의 윗선
+function layoutOk() {
+  const gaps = [...ed.querySelectorAll('.pgap')];
+  if (gaps.length !== pages - 1) return false;
+  const pr = paper.getBoundingClientRect(), Y = el => (el.getBoundingClientRect().top - pr.top) / Z;
+  let gapEnd = 0;
+  for (let k = 0; k < gaps.length; k++) {             // 빈칸 아래 끝 = 다음 장 글이 시작하는 높이여야 함
+    gapEnd = Y(gaps[k]) + gaps[k].offsetHeight;
+    if (Math.abs(gapEnd - ((k + 1) * STRIDE + MARGIN)) > 1.5) return false;
+  }
+  const ps = paras(), last = ps[ps.length - 1], end = last ? last.offsetTop + last.offsetHeight : 0;
+  if (end > (pages - 1) * STRIDE + MARGIN + pageH + 1) return false;   // 마지막 장이 넘침 → 새 장이 필요
+  if (gaps.length && end <= gapEnd + 1) return false;                  // 마지막 장이 비었음 → 장을 줄여야 함
+  for (const g of ed.querySelectorAll('.wrapf')) if (Math.abs(Y(g) - +g.dataset.t) > 1.5) return false;   // 그림 옆자리가 그림과 어긋남
+  if (wrapMiss.some(t => end > t + 1)) return false;                   // 글이 그림 높이까지 내려옴 → 비켜가기 시작
+  return true;
+}
 
 /* 커서 자리 기억하기/되돌리기: "몇 번째 문단의 몇 번째 글자" (페이지 빈칸은 세지 않음) */
 function textMap(p) {
@@ -610,20 +640,63 @@ function posOf(node, off) {                            // 화면 자리 → {p: 
 function nodeAt(c) {                                   // {p, o} → [글자 조각, 자리]
   const ps = paras(); const p = ps[Math.min(c.p, ps.length - 1)]; if (!p) return null;
   const m = textMap(p), o = Math.min(c.o, m.text.length);
+  if (c.e) { const k = m.nodes.find(x => x.n.nodeValue.length && x.at + x.n.nodeValue.length === o); if (k) return [k.n, k.n.nodeValue.length]; }   // 빈칸 '앞'에 있던 커서는 앞 조각 끝에
   const r = m.nodes.length ? rangeIn(m, o, o) : null;
   return r ? [r.startContainer, r.startOffset] : [p, 0];
 }
+function gapOffsets(p) {                               // 이 문단 안 빈칸(페이지·그림 자리)이 몇 번째 글자 앞에 있는지
+  const out = [], w = document.createTreeWalker(p, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT); let n, at = 0;
+  while ((n = w.nextNode())) { if (n.nodeType === 3) at += n.nodeValue.length; else if (n.classList.contains('pgap') || n.classList.contains('wrapf')) out.push({ g: n, at }); }
+  return out;
+}
 function saveCaret() {                                 // 커서(와 고른 범위의 시작점)를 기억
   const s = getSelection(); if (!s.rangeCount || !ed.contains(s.focusNode)) return null;
-  const f = posOf(s.focusNode, s.focusOffset); if (!f) return null;
+  let fn = s.focusNode, fo = s.focusOffset;
+  if (fn === ed) { const ps0 = paras(); fn = [...ed.childNodes].slice(fo).find(x => x.tagName === 'P') || ps0[ps0.length - 1]; fo = 0; if (!fn) return null; }   // 커서가 문단 밖(편집 창 자체)에 걸린 드문 경우
+  const f = posOf(fn, fo); if (!f) return null;
+  if (fn.nodeType === 3 && fo === fn.nodeValue.length) {            // 커서가 빈칸 바로 '앞'(윗줄 끝)에 있는지 기억
+    const pp = fn.parentElement.closest('p'); if (pp && gapOffsets(pp).some(x => x.at === f.o && (fn.compareDocumentPosition(x.g) & Node.DOCUMENT_POSITION_FOLLOWING))) f.e = 1;
+  }
   if (!s.isCollapsed && ed.contains(s.anchorNode)) { const a = posOf(s.anchorNode, s.anchorOffset); if (a) { f.ap = a.p; f.ao = a.o; } }   // 글자를 골라 둔 상태도 그대로 (굵게 누른 뒤 기울임도 바로 되게)
   return f;
 }
 function restoreCaret(c) {
   if (!c) return; const f = nodeAt(c); if (!f) return;
   const a = c.ap !== undefined ? nodeAt({ p: c.ap, o: c.ao }) : f;
-  const s = getSelection(); try { s.setBaseAndExtent(a[0], a[1], f[0], f[1]); } catch (_) {}
+  const s = getSelection();
+  if (s.anchorNode === a[0] && s.anchorOffset === a[1] && s.focusNode === f[0] && s.focusOffset === f[1]) return;   // 이미 그 자리면 손대지 않음
+  try { s.setBaseAndExtent(a[0], a[1], f[0], f[1]); } catch (_) {}
 }
+/* 커서가 빈칸(페이지 사이·그림 옆자리) 옆 '글 밖'에 걸리지 않게 (수정사항_5 4번)
+   화살표로 빈칸을 지날 때 커서가 빈칸 앞뒤의 보이지 않는 자리에 한두 번 멈추고, 그때 글을 치면 엉뚱한 곳에 들어가던 문제를 막음.
+   → 그런 자리에 서는 순간 바로 옆 글자 자리로 옮겨 줌 (←면 앞 글자, →면 뒤 글자) */
+let navKey = '';
+ed.addEventListener('keydown', e => { navKey = e.key; }, true);
+document.addEventListener('pointerdown', () => { navKey = ''; }, true);
+function unparkCaret() {
+  const s = getSelection(); if (composing || !s.rangeCount || !s.isCollapsed) return;
+  let n = s.focusNode, o = s.focusOffset; if (!n || n.nodeType !== 1 || !ed.contains(n)) return;
+  const isGap = x => !!x && x.nodeType === 1 && (x.classList.contains('pgap') || x.classList.contains('wrapf'));
+  if (isGap(n)) { o = [...n.parentNode.childNodes].indexOf(n); n = n.parentNode; }
+  const kids = n.childNodes, g = isGap(kids[o]) ? kids[o] : isGap(kids[o - 1]) ? kids[o - 1] : null;
+  if (!g) return;                                     // 빈칸 옆이 아니면 그대로
+  const back = navKey === 'ArrowLeft', fwd = navKey === 'ArrowRight', ps = paras();
+  const endOf = q => ({ p: ps.indexOf(q), o: textMap(q).text.length });
+  let to = null;
+  if (n === ed) {                                     // 문단과 문단 사이 (페이지가 문단 경계에서 나뉜 곳)
+    const all = [...kids], i = all.indexOf(g), prevP = all.slice(0, i).reverse().find(x => x.tagName === 'P'), nextP = all.slice(i).find(x => x.tagName === 'P');
+    to = back && prevP ? endOf(prevP) : nextP ? { p: ps.indexOf(nextP), o: 0 } : prevP ? endOf(prevP) : null;
+  } else {                                            // 문단 안 (긴 문단이 다음 장으로 넘어가는 곳, 그림 옆자리)
+    const pp = n.closest('p'); if (!pp) return;
+    const hit = gapOffsets(pp).find(x => x.g === g); if (!hit) return;
+    const pi = ps.indexOf(pp), len = textMap(pp).text.length;
+    if (back && hit.at === 0) to = pi > 0 ? endOf(ps[pi - 1]) : { p: pi, o: 0 };
+    else to = { p: pi, o: back ? hit.at - 1 : fwd ? Math.min(len, hit.at + 1) : hit.at };
+  }
+  if (to) restoreCaret(to);
+}
+document.addEventListener('selectionchange', unparkCaret);
+ed.addEventListener('beforeinput', unparkCaret, true);   // 글이 들어가기 직전에도 한 번 더 확인
 function removeGaps() {                               // 페이지 빈칸·그림 비켜가기 자리 모두 빼기
   ed.querySelectorAll('.pgap, .wrapf').forEach(g => { const par = g.parentNode; g.remove(); if (par !== ed) par.normalize(); });
 }
@@ -631,6 +704,7 @@ function removeGaps() {                               // 페이지 빈칸·그�
    그림이 글 폭 가운데보다 왼쪽이면 글은 오른쪽으로, 아니면 왼쪽으로. 남는 폭이 20mm보다 좁으면 글은 그림 아래로. 줄은 단어 단위로 바뀜 */
 const WRAP_GAP = 3 * 96 / 25.4;                      // 그림과 글 사이 3mm
 function wrapBoxesOnPage(k) {
+  if (k === 0) wrapMiss = [];
   if (!prefs.wrap) return;                            // 자동 줄 바꿈이 꺼져 있으면 비켜가지 않음
   const pageTop = k * STRIDE, textTop = pageTop + MARGIN, textEnd = textTop + pageH;
   const L = MARGIN_X, R = A4W - MARGIN_X;            // 글이 들어가는 왼쪽·오른쪽 끝
@@ -638,7 +712,7 @@ function wrapBoxesOnPage(k) {
     .map(f => ({ top: pageTop + +f.dataset.y * MM, bot: pageTop + (+f.dataset.y + +f.dataset.h) * MM, x1: +f.dataset.x * MM, x2: (+f.dataset.x + +f.dataset.w) * MM }))
     .filter(b => b.bot > textTop && b.top < textEnd && b.x2 > L && b.x1 < R)   // 글 자리와 겹치는 그림만
     .sort((a, b) => a.top - b.top);
-  for (const b of boxes) insertWrapFor(b, Math.max(b.top, textTop), Math.min(b.bot, textEnd), L, R);
+  for (const b of boxes) if (!insertWrapFor(b, Math.max(b.top, textTop), Math.min(b.bot, textEnd), L, R)) wrapMiss.push(Math.max(b.top, textTop));
 }
 function insertWrapFor(b, top, bot, L, R) {
   const pr = paper.getBoundingClientRect();
@@ -655,7 +729,7 @@ function insertWrapFor(b, top, bot, L, R) {
       at = rangeIn(m, lo, lo); if (!at) continue;
       lineTop = pTop + Math.floor((topOf(lo) - pTop + 2) / lineH) * lineH;
     }
-    if (lineTop >= bot) return;                       // 그림 옆에 올 글이 없음
+    if (lineTop >= bot) return false;                 // 그림 옆에 올 글이 없음
     const mt = Math.max(0, top - lineTop);            // 줄 위에서 그림 윗선까지
     const hgt = Math.ceil((bot - lineTop) / lineH) * lineH - mt;   // 아래 끝을 줄에 맞춰 → 다음 줄들이 반듯하게
     let side = (b.x1 + b.x2) / 2 < (L + R) / 2 ? 'l' : 'r';
@@ -663,9 +737,11 @@ function insertWrapFor(b, top, bot, L, R) {
     if (R - L - w < 20 * MM) w = R - L;               // 옆에 남는 폭이 너무 좁으면 글은 그림 아래로
     const g = h('span', '', 'wrapf ' + side); g.contentEditable = 'false';
     Object.assign(g.style, { width: Math.min(w, R - L) + 'px', height: Math.max(1, hgt) + 'px', marginTop: mt + 'px' });
+    g.dataset.t = Math.round(lineTop + mt);           // 이 자리가 놓여야 할 높이 (나중에 어긋났는지 재 볼 때 씀)
     if (at) at.insertNode(g); else p.insertBefore(g, p.firstChild);
-    return;
+    return true;
   }
+  return false;                                       // 글이 아직 그림 높이까지 오지 않음
 }
 /* 종이 안 높이(점) b에서 시작하는 글 줄 앞에 빈칸 넣기 */
 function insertGapAt(b, gapH) {
@@ -694,6 +770,7 @@ function insertGapAt(b, gapH) {
 }
 function layoutPages() {
   if (composing) return;
+  clearTimeout(idleT); layoutForce = false;
   const keep = saveCaret();
   removeGaps();
   pages = 1;
@@ -720,13 +797,12 @@ function sizeDesk() {                                 // 확대·축소에 맞�
   if (zoomFit) Z = fitZ();
   paper.style.transform = Z === 1 ? '' : `scale(${Z})`;
   const w = Math.max(A4W, ed.scrollWidth);
-  sizer.style.width = (w * Z) + 'px';
+  sizer.style.width = Math.floor(w * Z) + 'px';
   sizer.style.height = ((pages * STRIDE - GAP) * Z) + 'px';
-  desk.classList.toggle('quiet', pages === 1 && sizer.offsetWidth <= desk.clientWidth);
   $('sbZoom').textContent = Math.round(Z * 100) + '%';
   drawRulers();
 }
-const fitZ = () => Math.max(0.2, Math.min(1, desk.clientWidth / A4W));   // 폰: A4 폭을 화면에 딱 맞추는 배율
+const fitZ = () => Math.max(0.2, Math.min(4, (desk.clientWidth - .5) / A4W));   // 종이(A4 폭)를 편집 창 폭에 꽉 채우는 배율 (수정사항_5 3번: 자를 뺀 나머지는 모두 편집 창)
 window.addEventListener('resize', () => { sizeDesk(); });
 function local(e) { const r = paper.getBoundingClientRect(); return { x: (e.clientX - r.left) / Z, y: (e.clientY - r.top) / Z }; }   // 화면 점 → 종이 안 좌표
 
@@ -1032,7 +1108,7 @@ function fillTable(f) {                               // 표 그리기
   tt.cells.forEach((rw, r) => {
     const tr = document.createElement('tr');
     if (r < tt.head) tr.className = 'hd'; else if (r >= tt.rows - tt.foot) tr.className = 'ft';
-    rw.forEach((txt, c) => { const td = document.createElement('td'); td.contentEditable = 'true'; td.spellcheck = false; td.textContent = txt; td.dataset.r = r; td.dataset.c = c;
+    rw.forEach((txt, c) => { const td = document.createElement('td'); td.contentEditable = 'true'; td.spellcheck = false; td.textContent = txt; if (!txt) td.append(document.createElement('br')); td.dataset.r = r; td.dataset.c = c;   // 빈 칸에도 줄 하나를 넣어 둠 → 누르자마자 커서가 칸 가운데에
       const al = tt.align && tt.align[r + ',' + c]; if (al) td.classList.add('a' + al);   // 'l' 왼쪽, 'r' 오른쪽 (없으면 가운데)
       tr.append(td); });
     tb.append(tr);
@@ -1048,7 +1124,7 @@ function fitTable(f) {                                // 자동 맞춤(행): 글
 }
 const isTbl = el => !!(el && el.dataset && el.dataset.type === 'table');
 let lastCell = null;                                  // 마지막으로 누른 칸 (폰에서 길게 누르면 커서가 빠져도 기억)
-layer.addEventListener('focusin', e => { const td = e.target.closest && e.target.closest('td'); if (td) lastCell = td; });
+layer.addEventListener('focusin', e => { const td = e.target.closest && e.target.closest('td'); if (td) { lastCell = td; if (!td.firstChild) td.append(document.createElement('br')); } });
 function setAlign(f, td, a) {                         // 칸 글 맞춤: 'l' 왼쪽 · 'c' 가운데 · 'r' 오른쪽
   const tt = f._t; tt.align = tt.align || {}; const k = td.dataset.r + ',' + td.dataset.c;
   if (a === 'c') delete tt.align[k]; else tt.align[k] = a;
@@ -1331,22 +1407,22 @@ layer.addEventListener('paste', e => {                // 칸에 붙여넣기: �
   const td = e.target.closest && e.target.closest('td'); if (!td) return;
   e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
 });
-/* 왼쪽 도구 막대 */
+/* 그림·선·펜·표 도구 (위쪽 막대 맨 왼쪽) */
 $('tools').addEventListener('click', e => {
   const b = e.target.closest('button[data-tool]'); if (!b) return;
   const r = b.getBoundingClientRect();
   if (b.dataset.tool === 'pic') {
     if (boxMode) { setBoxMode(false); return; }        // 그리는 중이면 한 번 더 눌러 끄기
     if (openMenu === b) return closeMenu();
-    popMenu(r.right + 6, r.top, picItems(), b);
+    popMenu(r.left, r.bottom + 3, picItems(), b);
   } else if (b.dataset.tool === 'line') {
     if (boxMode) { setBoxMode(false); return; }
     if (openMenu === b) return closeMenu();
-    popMenu(r.right + 6, r.top, lineItems(), b);
+    popMenu(r.left, r.bottom + 3, lineItems(), b);
   } else if (b.dataset.tool === 'pen') {
     if (penOn) { setPen(false); closeMenu(); return; }  // 칠하는 중이면 한 번 더 눌러 끄기
     if (openMenu === b) return closeMenu();
-    penPanel(r.right + 6, r.top, b);
+    penPanel(r.left, r.bottom + 3, b);
   } else if (b.dataset.tool === 'table') { if (boxMode) setBoxMode(false); else startTable(); }
 });
 document.addEventListener('pointerdown', e => {       // 종이(책상) 위에서 상자 밖을 누를 때만 고름 풀기 — 메뉴판·도구 줄을 눌러도 고른 상자는 그대로
@@ -1392,9 +1468,10 @@ function penPanel(x, y, anchor) {                     // 펜을 누르면: 크�
       b.onclick = () => { if (mk) prefs.markW = w; else prefs.penW = w; savePrefsQuiet(); setPen(true); draw(); }; wd.append(b);
     });
     const go = btn(penOn ? t('펜 끄기') : t('칠하기 시작'), () => { setPen(!penOn); closeMenu(); }, penOn ? '' : 'primary');
-    dd.append(seg, h('div', t('색깔'), 'ttl'), sw, h('div', t('굵기'), 'ttl'), wd, go);
+    dd.append(seg, h('div', t('색깔'), 'ttl'), sw, h('div', t('굵기'), 'ttl'), wd, go, btn(t('닫기'), closeMenu));   // 닫기: 창만 닫음 (펜 상태는 그대로)
   };
   draw(); $('menuLayer').append(dd);
+  if (root.dir === 'rtl') x = anchor.getBoundingClientRect().right - dd.offsetWidth;
   dd.style.left = Math.max(8, Math.min(x, innerWidth - dd.offsetWidth - 8)) + 'px';
   dd.style.top = Math.max(8, Math.min(y, innerHeight - dd.offsetHeight - 8)) + 'px';
 }
@@ -1780,8 +1857,8 @@ function status() {
   $('sbEnc').textContent = fileInfo.enc;
   $('sbZoom').textContent = Math.round(Z * 100) + '%';
 }
-function changed() {
-  const was = fileSaved; fileSaved = false; layoutSoon();
+function changed(lazy) {                              // lazy = 글을 치는 중 (화면은 필요할 때만 다시 짬)
+  const was = fileSaved; fileSaved = false; layoutSoon(lazy);
   if (was) renderTabs();                              // 탭에 ● 표시
   saveSessionSoon();
 }
@@ -1814,13 +1891,20 @@ ed.addEventListener('beforeinput', e => {
 ed.addEventListener('input', () => {
   if (!composing) ensureShape();
   clearTimeout(histT); histT = setTimeout(snap, 500);
-  changed();
+  changed(true);
 });
 /* 백스페이스·Delete: 페이지 빈칸을 먼저 빼고 지우게 해서 한 번에 윗줄로 올라감 (수정사항 2) */
 ed.addEventListener('keydown', e => {
   if ((e.key === 'Backspace' || e.key === 'Delete') && !e.isComposing && ed.querySelector('.pgap, .wrapf')) {
+    unparkCaret();                                     // 커서가 빈칸 옆 글 밖에 걸려 있으면 먼저 글 안으로
     const s = getSelection(); if (!s.isCollapsed) return;
-    const c = saveCaret(); removeGaps(); restoreCaret(c);
+    const c = saveCaret(); if (!c) return;
+    const p0 = paras()[c.p]; if (!p0) return;
+    const back = e.key === 'Backspace', len = textMap(p0).text.length;
+    const sib = back ? p0.previousElementSibling : p0.nextElementSibling;
+    const near = gapOffsets(p0).some(x => x.at === c.o) || ((back ? c.o === 0 : c.o === len) && sib && sib.classList.contains('pgap'));
+    if (!near) return;                                 // 빈칸 옆이 아니면 그대로 둠 (글·커서를 건드리지 않음)
+    removeGaps(); delete c.e; restoreCaret(c);
   }
 });
 ed.addEventListener('paste', e => {                   // 붙여넣기: 글자만, 여러 줄이면 줄마다 문단
@@ -2341,7 +2425,7 @@ function settingsSheet() {
     const lSel = sel(t('언어 · Language'), LANGS, prefs.lang, v => { prefs.lang = v; savePrefs(); settingsSheet(); });
     lSel.r.style.cssText = 'padding:12px 16px;border:0';
     card3.append(lSel.r);
-    sh.append(card, card2, h('h3', t('언어')), card3, h('p', t('언어는 smartDir 번역표와 같고, 중국어 번체를 더했습니다. (아랍어는 나중에 결정)')), btn(t('닫기'), closeSheet, 'primary'));
+    sh.append(card, card2, h('h3', t('언어')), card3, btn(t('닫기'), closeSheet, 'primary'));
   });
 }
 
@@ -2350,9 +2434,9 @@ function settingsSheet() {
    ════════════════════════════════════════════════ */
 function zoom(d) {
   let base = zoomFit ? fitZ() : Z;
-  if (d === 0) { zoomFit = TOUCH || desk.clientWidth < A4W + 32; Z = zoomFit ? fitZ() : 1; }
+  if (d === 0) { zoomFit = true; Z = fitZ(); }      // 기본 = 창 폭에 꽉 차게
   else { const next = d > 0 ? ZOOMS.find(z => z > base + .001) : [...ZOOMS].reverse().find(z => z < base - .001); zoomFit = false; Z = next || base; }
-  if (!TOUCH) store.set('zoom', zoomFit ? 'fit' : Z);
+  if (!TOUCH) store.set('zoom3', zoomFit ? 'fit' : Z);
   sizeDesk();
 }
 $('tbZoomIn').onclick = () => zoom(1);
@@ -2532,6 +2616,7 @@ function popMenu(x, y, items, anchor) {               // 메뉴 펼치기 (메�
   const dd = h('div', '', 'dropdown'); dd.setAttribute('role', 'menu');
   items.forEach(it => dd.append(it === '-' ? document.createElement('hr') : menuButton(it)));
   $('menuLayer').append(dd);
+  if (root.dir === 'rtl' && anchor && anchor.getBoundingClientRect) x = anchor.getBoundingClientRect().right - dd.offsetWidth;   // 아랍어: 단추 오른쪽 끝에 맞춰 펼침
   dd.style.left = Math.max(8, Math.min(x, innerWidth - dd.offsetWidth - 8)) + 'px';
   if ((!anchor || anchor.closest && anchor.closest('#tools')) && y > innerHeight / 2) {               // 오른쪽 클릭이 화면 아래쪽이면 → 메뉴를 위로 펼침 (하위 항목도 위로 늘어남)
     dd.style.bottom = Math.max(8, innerHeight - y) + 'px';
@@ -2565,7 +2650,7 @@ const HELP = {
   ko: [
     ['1. 글 쓰기', [
       '글은 A4 종이 모양에 씁니다. 한 장이 차면 다음 장으로 저절로 넘어갑니다. 위아래 여백 20mm, 좌우 18mm.',
-      '글꼴·글자 크기·자동 줄 바꿈은 ‘설정’에서 바꿉니다. 도구 막대의 A− / A+ 는 화면만 작게·크게 봅니다.',
+      '글꼴·글자 크기·자동 줄 바꿈은 ‘설정’에서 바꿉니다. 종이는 창 폭에 꽉 차게 보이고, 도구 막대의 A− / A+ 로 화면만 작게·크게 봅니다(Ctrl+0: 다시 창 폭에 맞춤).',
       '새 글은 ‘제목 없음 1’, ‘제목 없음 2’처럼 이름이 붙고, 여러 글을 탭으로 함께 열어 둘 수 있습니다.',
       '날짜·시간 넣기: F5',
     ]],
@@ -2576,13 +2661,13 @@ const HELP = {
       'B 굵게(Ctrl+B) · I 기울임(Ctrl+I) · S 취소선 — 글자를 고른 뒤 누르세요.',
       '꾸밈은 짝꿍 파일에 저장됩니다. txt 파일에는 꾸밈 없는 순수 글자만 들어가 다른 메모장에서도 그대로 읽힙니다.',
     ]],
-    ['3. 그림 · 동영상 (왼쪽 도구 막대 맨 위)', [
+    ['3. 그림 · 동영상 (도구 막대 맨 왼쪽 단추)', [
       '모양(네모·둥근 네모·원·별·하트)을 고른 뒤 종이 위를 대각선으로 끌어 상자를 만듭니다.',
       '상자를 고르고 ‘그림 넣기…’ → 갤러리·파일·카메라에서 그림을 넣습니다. ‘꽉 차게 / 다 보이게’로 맞춤을 고릅니다.',
       '‘동영상 링크…’ : 종이를 한 번 누르면 16:9 기본 크기, 끌면 원하는 크기로 상자가 생깁니다. 유튜브 주소를 넣으면 유튜브 상자가 되어 ▶를 누르면 유튜브 창(폰은 유튜브 앱)에서 열립니다. PC·폰에 있는 동영상 파일이나 mp4 주소는 상자 안에서 바로 재생됩니다.',
       '‘글 비켜가기’가 켜져 있으면 글이 그림 옆으로 단어 단위로 비켜 흐릅니다.',
     ]],
-    ['4. 선 · 펜 · 표', [
+    ['4. 선 · 펜 · 표 (도구 막대 왼쪽 단추들)', [
       '선: 자유 선 · 수직·수평 선 · 곡선. 곡선은 가운데 손잡이를 끌어 휘게 합니다.',
       '펜: 크레용 / 형광펜, 색깔과 굵기를 고르고 ‘칠하기 시작’. 펜 단추를 한 번 더 누르면 꺼집니다.',
       '표: 칸 수·머리글·바닥글은 ‘표 속성’에서, 칸 글 맞춤은 오른쪽 클릭 메뉴에서. ‘엑셀·CSV에서 가져오기…’로 엑셀 표의 값을 불러옵니다.',
@@ -2612,6 +2697,7 @@ function helpSheet() {
   closeMenu();
   openSheet(sh => {
     sh.classList.add('mid', 'center', 'help');
+    if (!HELP[LANG]) sh.dir = 'ltr';                   // 사용법이 아직 한국어뿐이면 왼쪽→오른쪽으로
     sh.append(h('h2', t('사용법')));
     (HELP[LANG] || HELP.ko).forEach(([title, lines]) => {
       const ul = document.createElement('ul'); lines.forEach(x => ul.append(h('li', x)));
@@ -2628,7 +2714,7 @@ function quitApp() {                                  // 파일 › 종료
   setTimeout(() => toast(t('브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.'), 4000), 300);   // 브라우저 탭이면 닫히지 않음
 }
 /* 버전 정보 · 받는 방법 (도움말 맨 아래) — 새 버전을 올릴 때 APP_VER·APP_DATE와 sw.js의 CACHE 숫자를 함께 바꿈 */
-const APP_VER = '3.8', APP_DATE = '2026-11-12', APP_URL = 'https://yunsong923-wq.github.io/pitex/';
+const APP_VER = '3.9', APP_DATE = '2026-11-13', APP_URL = 'https://yunsong923-wq.github.io/pitex/';
 function aboutCard() {                                // 아이콘 + 이름 + 버전 (작은 카드)
   const c = h('div', '', 'aboutcard');
   const im = document.createElement('img'); im.src = 'icons/icon-192.png'; im.alt = ''; im.width = 48; im.height = 48;
@@ -2648,14 +2734,11 @@ function aboutSheet() {
       h('h3', t('앱 주소')), url,
       h('h3', t('PC에 설치하기 (Windows)')), ul('Edge로 위 주소를 엽니다.', '주소창 오른쪽의 ‘앱 설치’(⊞) 단추를 누르고 [설치]를 누릅니다.', '시작 메뉴와 바탕화면에 pitex 아이콘이 생기고, 창 하나짜리 앱으로 열립니다.'),
       h('h3', t('폰에 설치하기')), ul('Chrome으로 위 주소를 엽니다.', '오른쪽 위 ⋮ 메뉴 → ‘앱 설치’ 또는 ‘홈 화면에 추가’를 누릅니다.'),
-      h('h3', t('정식판과 평생이용권')), ul('정식판은 마이크로소프트 스토어에서 받습니다. (준비 중)', '설치 후 30일 동안은 모든 기능을 무료로 씁니다.', '30일이 지나면 PDF 보내기와 HTML 보내기만 잠기고, 나머지 기능은 계속 무료입니다.', '평생이용권(한국 1,000원, 그 밖의 나라 1$)을 한 번 사면 두 기능이 다시 열리고, 평생 무료 업그레이드가 포함됩니다.'),
+      h('h3', t('정식판과 평생이용권')), ul('정식판은 마이크로소프트 스토어에서 받습니다. (준비 중)', '설치 후 30일 동안은 모든 기능을 무료로 씁니다.', '30일이 지나면 PDF 보내기와 HTML 보내기만 잠기고, 나머지 기능은 계속 무료입니다.', '평생이용권(한국 1,100원 부가세 포함, 그 밖의 나라 1$)을 한 번 사면 두 기능이 다시 열리고, 평생 무료 업그레이드가 포함됩니다.'),
       h('h3', t('새 버전 받기')), ul('따로 내려받을 필요가 없습니다. 인터넷이 연결된 상태에서 pitex를 껐다 켜면 새 버전으로 바뀝니다.', '인터넷이 없어도 마지막으로 받은 버전으로 열립니다.', '버전 숫자는 이 창 위쪽에서 확인합니다.'),
       btn(t('확인'), closeSheet, 'primary'));
   });
 }
-$('tbNew').onclick = newDoc;
-$('tbOpen').onclick = openDialog;
-$('tbSave').onclick = saveDoc;
 $('tbFind').onclick = () => $('findbar').hidden ? openFind() : closeFind();
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { const pl = layer.querySelector('.box.playing'); if (pl) { fillBox(pl); return; } if (penOn && !openMenu) { setPen(false); return; } if (openMenu) closeMenu(); else if (!$('findbar').hidden) closeFind(); else if ($('overlay').innerHTML) closeSheet(); else if (boxMode) setBoxMode(false); else selectBox(null); return; }
@@ -2756,9 +2839,9 @@ document.addEventListener('selectionchange', () => {
 
 /* 언어 바꾸기: 화면에 고정된 글자들을 다시 씀 */
 function applyLang() {
-  root.lang = LANG;
+  root.lang = LANG; root.dir = LANG === 'ar' ? 'rtl' : 'ltr';   // 아랍어: 메뉴·창을 오른쪽에서 왼쪽으로 (종이와 자는 그대로)
   document.querySelectorAll('#menubar [data-menu]').forEach(b => b.textContent = t(MENUS[b.dataset.menu]));
-  const tips = { tbNew: '새로 만들기', tbOpen: '열기', tbSave: '저장 (Ctrl+S)', undoBtn: '실행 취소 (Ctrl+Z)', redoBtn: '다시 실행 (Ctrl+Y)', tbFind: '찾기 (Ctrl+F)', tbRuler: '자 (Ctrl+R)', tbZoomOut: '축소', tbZoomIn: '확대', tbHead: '제목', tbList: '목록', tbBold: '굵게 (Ctrl+B)', tbItal: '기울임 (Ctrl+I)', tbStrk: '취소선', tabNew: '새 탭', toolPic: '그림', toolLine: '선', toolPen: '펜', toolTable: '표' };
+  const tips = { undoBtn: '실행 취소 (Ctrl+Z)', redoBtn: '다시 실행 (Ctrl+Y)', tbFind: '찾기 (Ctrl+F)', tbRuler: '자 (Ctrl+R)', tbZoomOut: '축소', tbZoomIn: '확대', tbHead: '제목', tbList: '목록', tbBold: '굵게 (Ctrl+B)', tbItal: '기울임 (Ctrl+I)', tbStrk: '취소선', tabNew: '새 탭', toolPic: '그림', toolLine: '선', toolPen: '펜', toolTable: '표' };
   Object.entries(tips).forEach(([id, s]) => { $(id).title = t(s); $(id).setAttribute('aria-label', t(s)); });
   $('themeBtn').title = t('밝게 / 다크'); $('themeBtn').setAttribute('aria-label', t('밝게 / 다크'));
   $('findText').placeholder = t('찾을 말'); $('replText').placeholder = t('바꿀 말');
@@ -2791,9 +2874,9 @@ function sampleDoc() {
 }
 async function start() {
   LANG = prefs.lang; applyLang();
-  const z = store.get('zoom');
-  if (TOUCH || desk.clientWidth < A4W + 32 || z === 'fit') zoomFit = true;     // 폰: A4를 화면 폭에 맞춤
-  else if (ZOOMS.includes(+z)) Z = +z;
+  const z = store.get('zoom3');
+  if (!TOUCH && ZOOMS.includes(+z)) Z = +z;          // A−/A+로 직접 고른 배율이 있으면 그대로
+  else zoomFit = true;                               // 기본: 종이를 창 폭에 꽉 차게
   applyPrefs();
   if (!(await loadSession())) docs = [sampleDoc()];
   loadDoc(cur);
@@ -2811,307 +2894,307 @@ if ('launchQueue' in window) window.launchQueue.setConsumer(async p => {
 /* 번역표: 한 줄 = 한 문장. 한국어(열쇠): [English, 日本語, 中文(简体), 中文(繁體), Tiếng Việt, Deutsch, Français, Português(브라질), Español(중남미)]
    smartDir 번역표와 같은 9개 언어 + 중국어 번체 = 한국어 포함 10개 언어. {0} {1}은 숫자·이름이 들어갈 자리 */
 const ROWS = {
-  "글 비켜가기": ["Wrap text around", "文字を回り込ませる", "文字环绕", "文字環繞", "Chữ bao quanh", "Text umfließen", "Habiller le texte", "Contornar texto", "Ajustar texto alrededor"],
-  "칸 글 맞춤": ["Cell alignment", "セルの配置", "单元格对齐", "單元格對齊", "Căn lề ô", "Zellenausrichtung", "Alignement de la cellule", "Alinhamento da célula", "Alineación de celda"],
-  "왼쪽": ["Left", "左", "左", "左", "Trái", "Links", "Gauche", "Esquerda", "Izquierda"],
-  "가운데": ["Center", "中央", "居中", "居中", "Giữa", "Mitte", "Centre", "Centro", "Centro"],
-  "오른쪽": ["Right", "右", "右", "右", "Phải", "Rechts", "Droite", "Direita", "Derecha"],
-  "엑셀·CSV": ["Excel·CSV", "Excel・CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV"],
-  "엑셀·CSV에서 가져오기…": ["Import from Excel·CSV…", "Excel・CSV から取り込む…", "从 Excel·CSV 导入…", "從 Excel·CSV 匯入…", "Nhập từ Excel·CSV…", "Aus Excel·CSV importieren…", "Importer depuis Excel·CSV…", "Importar do Excel·CSV…", "Importar desde Excel·CSV…"],
-  "가져올 시트를 고르세요": ["Choose a sheet to import", "取り込むシートを選んでください", "请选择要导入的工作表", "請選擇要匯入的工作表", "Chọn trang tính để nhập", "Zu importierendes Blatt wählen", "Choisissez la feuille à importer", "Escolha a planilha a importar", "Elige la hoja a importar"],
-  "엑셀을 읽는 중…": ["Reading spreadsheet…", "Excel を読み込み中…", "正在读取表格…", "正在讀取表格…", "Đang đọc bảng tính…", "Tabelle wird gelesen…", "Lecture du classeur…", "Lendo planilha…", "Leyendo hoja de cálculo…"],
-  "엑셀 도구를 받지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not load the spreadsheet tool. Please check your internet connection.", "Excel 読み込みツールを取得できませんでした。インターネット接続を確認してください。", "无法载入表格工具。请检查网络连接。", "無法載入表格工具。請檢查網路連線。", "Không tải được công cụ bảng tính. Vui lòng kiểm tra kết nối Internet.", "Tabellenwerkzeug konnte nicht geladen werden. Bitte Internetverbindung prüfen.", "Impossible de charger l’outil tableur. Vérifiez votre connexion Internet.", "Não foi possível carregar a ferramenta de planilha. Verifique a internet.", "No se pudo cargar la herramienta de hojas. Revisa tu conexión a internet."],
-  "이 파일을 읽지 못했습니다.": ["Could not read this file.", "このファイルを読み込めませんでした。", "无法读取此文件。", "無法讀取此檔案。", "Không đọc được tệp này.", "Diese Datei konnte nicht gelesen werden.", "Impossible de lire ce fichier.", "Não foi possível ler este arquivo.", "No se pudo leer este archivo."],
-  "시트가 비어 있습니다.": ["The sheet is empty.", "シートが空です。", "工作表为空。", "工作表為空。", "Trang tính trống.", "Das Blatt ist leer.", "La feuille est vide.", "A planilha está vazia.", "La hoja está vacía."],
-  "표가 커서 200행·60열까지만 가져왔습니다.": ["The table was large, so only up to 200 rows and 60 columns were imported.", "表が大きいため、200行・60列まで取り込みました。", "表格过大，仅导入了前 200 行、60 列。", "表格過大，僅匯入了前 200 行、60 列。", "Bảng quá lớn nên chỉ nhập tối đa 200 hàng, 60 cột.", "Die Tabelle war groß; nur bis 200 Zeilen und 60 Spalten importiert.", "Le tableau était grand : seules 200 lignes et 60 colonnes ont été importées.", "A tabela era grande; só até 200 linhas e 60 colunas foram importadas.", "La tabla era grande; solo se importaron hasta 200 filas y 60 columnas."],
-  "{0}행 {1}열을 가져왔습니다.": ["Imported {0} rows × {1} columns.", "{0}行 {1}列を取り込みました。", "已导入 {0} 行 {1} 列。", "已匯入 {0} 行 {1} 列。", "Đã nhập {0} hàng {1} cột.", "{0} Zeilen × {1} Spalten importiert.", "{0} lignes × {1} colonnes importées.", "{0} linhas × {1} colunas importadas.", "{0} filas × {1} columnas importadas."],
-  "엑셀은 값만 가져옵니다. 계산식은 결과 숫자로 들어오고, 첫 줄은 머리글이 됩니다.": ["Excel imports values only: formulas come in as their results, and the first row becomes the header.", "Excel は値だけを取り込みます。計算式は結果の数値で入り、1行目は見出しになります。", "Excel 只导入数值：公式以计算结果导入，第一行成为标题行。", "Excel 只匯入數值：公式以計算結果匯入，第一行成為標題行。", "Excel chỉ nhập giá trị: công thức được nhập thành kết quả, hàng đầu thành tiêu đề.", "Excel importiert nur Werte: Formeln kommen als Ergebnis, die erste Zeile wird Kopfzeile.", "Excel n’importe que les valeurs : les formules arrivent en résultats, la première ligne devient l’en-tête.", "O Excel importa só valores: fórmulas entram como resultado e a primeira linha vira cabeçalho.", "Excel solo importa valores: las fórmulas llegan como resultado y la primera fila es el encabezado."],
-  "곡선": ["Curve", "曲線", "曲线", "曲線", "Đường cong", "Kurve", "Courbe", "Curva", "Curva"],
-  "가운데 동그라미를 끌면 선이 휘어집니다.": ["Drag the middle circle to bend the line.", "中央の丸をドラッグすると線が曲がります。", "拖动中间的圆点可弯曲线条。", "拖動中間的圓點可彎曲線條。", "Kéo vòng tròn ở giữa để uốn đường.", "Mittleren Kreis ziehen, um die Linie zu biegen.", "Faites glisser le cercle central pour courber la ligne.", "Arraste o círculo do meio para curvar a linha.", "Arrastra el círculo central para curvar la línea."],
-  "곡선: 먼저 시작점에서 끝점까지 끈 다음, 가운데 동그라미로 휘게 하세요.": ["Curve: drag from start to end, then bend it with the middle circle.", "曲線：始点から終点までドラッグし、中央の丸で曲げてください。", "曲线：先从起点拖到终点，再用中间的圆点弯曲。", "曲線：先從起點拖到終點，再用中間的圓點彎曲。", "Đường cong: kéo từ đầu đến cuối, rồi uốn bằng vòng tròn giữa.", "Kurve: vom Start zum Ende ziehen, dann mit dem mittleren Kreis biegen.", "Courbe : faites glisser du début à la fin, puis courbez avec le cercle central.", "Curva: arraste do início ao fim e depois curve com o círculo do meio.", "Curva: arrastra del inicio al final y luego cúrvala con el círculo central."],
-  "표: 대각선으로 끌어 자리를 잡으세요.": ["Table: drag diagonally to place it.", "表：斜めにドラッグして位置を決めてください。", "表格：沿对角线拖动确定位置。", "表格：沿對角線拖動確定位置。", "Bảng: kéo chéo để đặt vị trí.", "Tabelle: diagonal ziehen, um sie zu platzieren.", "Tableau : faites glisser en diagonale pour le placer.", "Tabela: arraste na diagonal para posicioná-la.", "Tabla: arrastra en diagonal para colocarla."],
-  "본문 행": ["Body rows", "本文行", "正文行", "正文行", "Hàng nội dung", "Textzeilen", "Lignes du corps", "Linhas do corpo", "Filas del cuerpo"],
-  "열": ["Columns", "列", "列", "列", "Cột", "Spalten", "Colonnes", "Colunas", "Columnas"],
-  "머리글 행": ["Header rows", "ヘッダー行", "标题行", "標題行", "Hàng tiêu đề", "Kopfzeilen", "Lignes d’en-tête", "Linhas de cabeçalho", "Filas de encabezado"],
-  "바닥글 행": ["Footer rows", "フッター行", "页脚行", "頁尾行", "Hàng chân", "Fußzeilen", "Lignes de pied", "Linhas de rodapé", "Filas de pie"],
-  "행": ["Rows", "行", "行", "行", "Hàng", "Zeilen", "Lignes", "Linhas", "Filas"],
-  "자동 맞춤": ["Auto fit", "自動調整", "自动调整", "自動調整", "Tự khớp", "Automatisch anpassen", "Ajustement auto", "Ajuste automático", "Ajuste automático"],
-  "행이 하나 이상 있어야 합니다.": ["There must be at least one row.", "行が1つ以上必要です。", "至少需要一行。", "至少需要一行。", "Phải có ít nhất một hàng.", "Mindestens eine Zeile ist nötig.", "Il faut au moins une ligne.", "É preciso pelo menos uma linha.", "Debe haber al menos una fila."],
-  "행은 200개까지 만들 수 있습니다.": ["Up to 200 rows are allowed.", "行は200個まで作れます。", "最多可建 200 行。", "最多可建 200 行。", "Tối đa 200 hàng.", "Höchstens 200 Zeilen.", "200 lignes au maximum.", "No máximo 200 linhas.", "Máximo 200 filas."],
-  "칸을 눌러 글을 쓰세요. Tab으로 다음 칸으로 갑니다.": ["Tap a cell to type. Press Tab for the next cell.", "セルを押して入力してください。Tab で次のセルへ。", "点击单元格输入文字。按 Tab 到下一格。", "點選單元格輸入文字。按 Tab 到下一格。", "Nhấn vào ô để gõ. Nhấn Tab sang ô tiếp theo.", "Zelle antippen zum Schreiben. Tab für die nächste Zelle.", "Touchez une cellule pour écrire. Tab pour la cellule suivante.", "Toque numa célula para digitar. Tab vai para a próxima.", "Toca una celda para escribir. Tab pasa a la siguiente."],
-  "표 속성": ["Table properties", "表のプロパティ", "表格属性", "表格屬性", "Thuộc tính bảng", "Tabelleneigenschaften", "Propriétés du tableau", "Propriedades da tabela", "Propiedades de la tabla"],
-  "표 속성…": ["Table properties…", "表のプロパティ…", "表格属性…", "表格屬性…", "Thuộc tính bảng…", "Tabelleneigenschaften…", "Propriétés du tableau…", "Propriedades da tabela…", "Propiedades de la tabla…"],
-  "줄 위에 넣기": ["Insert row above", "上に行を挿入", "在上方插入行", "在上方插入行", "Chèn hàng phía trên", "Zeile oberhalb einfügen", "Insérer une ligne au-dessus", "Inserir linha acima", "Insertar fila arriba"],
-  "줄 아래에 넣기": ["Insert row below", "下に行を挿入", "在下方插入行", "在下方插入行", "Chèn hàng phía dưới", "Zeile unterhalb einfügen", "Insérer une ligne en dessous", "Inserir linha abaixo", "Insertar fila abajo"],
-  "칸 왼쪽에 넣기": ["Insert column left", "左に列を挿入", "在左侧插入列", "在左側插入列", "Chèn cột bên trái", "Spalte links einfügen", "Insérer une colonne à gauche", "Inserir coluna à esquerda", "Insertar columna a la izquierda"],
-  "칸 오른쪽에 넣기": ["Insert column right", "右に列を挿入", "在右侧插入列", "在右側插入列", "Chèn cột bên phải", "Spalte rechts einfügen", "Insérer une colonne à droite", "Inserir coluna à direita", "Insertar columna a la derecha"],
-  "이 줄 지우기": ["Delete this row", "この行を削除", "删除此行", "刪除此行", "Xóa hàng này", "Diese Zeile löschen", "Supprimer cette ligne", "Excluir esta linha", "Eliminar esta fila"],
-  "이 칸(세로줄) 지우기": ["Delete this column", "この列を削除", "删除此列", "刪除此列", "Xóa cột này", "Diese Spalte löschen", "Supprimer cette colonne", "Excluir esta coluna", "Eliminar esta columna"],
-  "표 지우기": ["Delete table", "表を削除", "删除表格", "刪除表格", "Xóa bảng", "Tabelle löschen", "Supprimer le tableau", "Excluir tabela", "Eliminar tabla"],
-  "표 {0}": ["Tables {0}", "表 {0}", "表格 {0}", "表格 {0}", "Bảng {0}", "Tabellen {0}", "Tableaux {0}", "Tabelas {0}", "Tablas {0}"],
-  "크레용": ["Crayon", "クレヨン", "蜡笔", "蠟筆", "Bút sáp", "Wachsmalstift", "Crayon", "Giz de cera", "Crayón"],
-  "형광펜": ["Highlighter", "蛍光ペン", "荧光笔", "熒光筆", "Bút dạ quang", "Textmarker", "Surligneur", "Marca-texto", "Resaltador"],
-  "색깔": ["Color", "色", "颜色", "顏色", "Màu", "Farbe", "Couleur", "Cor", "Color"],
-  "굵기": ["Thickness", "太さ", "粗细", "粗細", "Độ dày", "Stärke", "Épaisseur", "Espessura", "Grosor"],
-  "펜 끄기": ["Turn off pen", "ペンを終了", "关闭画笔", "關閉畫筆", "Tắt bút", "Stift ausschalten", "Désactiver le stylo", "Desligar caneta", "Apagar bolígrafo"],
-  "칠하기 시작": ["Start drawing", "描き始める", "开始绘制", "開始繪製", "Bắt đầu vẽ", "Zeichnen beginnen", "Commencer à dessiner", "Começar a desenhar", "Empezar a dibujar"],
-  "칠한 자국 지우기": ["Delete stroke", "描いた跡を削除", "删除笔迹", "刪除筆跡", "Xóa nét vẽ", "Strich löschen", "Supprimer le trait", "Excluir traço", "Eliminar trazo"],
-  "칠한 자국을 지웠습니다. ↶로 되돌릴 수 있습니다.": ["Stroke deleted. Press ↶ to undo.", "描いた跡を削除しました。↶ で元に戻せます。", "已删除笔迹。可按 ↶ 撤销。", "已刪除筆跡。可按 ↶ 撤銷。", "Đã xóa nét vẽ. Nhấn ↶ để hoàn tác.", "Strich gelöscht. Mit ↶ rückgängig machen.", "Trait supprimé. Appuyez sur ↶ pour annuler.", "Traço excluído. Toque em ↶ para desfazer.", "Trazo eliminado. Toca ↶ para deshacer."],
-  "펜: 종이 위에 칠하세요. 펜 단추를 다시 누르거나 Esc를 누르면 끝납니다.": ["Pen: draw on the paper. Press the pen button again or Esc to finish.", "ペン：紙の上に描いてください。ペンボタンをもう一度押すか Esc で終了します。", "画笔：在纸上绘制。再次按画笔按钮或 Esc 结束。", "畫筆：在紙上繪製。再次按畫筆按鈕或 Esc 結束。", "Bút: vẽ lên giấy. Nhấn lại nút bút hoặc Esc để kết thúc.", "Stift: auf dem Papier zeichnen. Stift-Taste erneut oder Esc drücken zum Beenden.", "Stylo : dessinez sur la page. Appuyez à nouveau sur le stylo ou sur Échap pour terminer.", "Caneta: desenhe no papel. Toque de novo na caneta ou Esc para terminar.", "Bolígrafo: dibuja en el papel. Pulsa de nuevo el bolígrafo o Esc para terminar."],
-  "자유 선": ["Free line", "自由線", "自由线", "自由線", "Đường tự do", "Freie Linie", "Ligne libre", "Linha livre", "Línea libre"],
-  "수직·수평 선": ["Vertical/horizontal line", "垂直・水平線", "垂直/水平线", "垂直/水平線", "Đường dọc/ngang", "Senkrechte/waagerechte Linie", "Ligne verticale/horizontale", "Linha vertical/horizontal", "Línea vertical/horizontal"],
-  "선 지우기": ["Delete line", "線を削除", "删除线条", "刪除線條", "Xóa đường kẻ", "Linie löschen", "Supprimer la ligne", "Excluir linha", "Eliminar línea"],
-  "선을 지웠습니다. ↶로 되돌릴 수 있습니다.": ["Line deleted. Press ↶ to undo.", "線を削除しました。↶ で元に戻せます。", "已删除线条。可按 ↶ 撤销。", "已刪除線條。可按 ↶ 撤銷。", "Đã xóa đường kẻ. Nhấn ↶ để hoàn tác.", "Linie gelöscht. Mit ↶ rückgängig machen.", "Ligne supprimée. Appuyez sur ↶ pour annuler.", "Linha excluída. Toque em ↶ para desfazer.", "Línea eliminada. Toca ↶ para deshacer."],
-  "수직·수평 선: 시작점을 누른 채 끌어 보세요.": ["Vertical/horizontal line: press at the start point and drag.", "垂直・水平線：始点を押したままドラッグしてください。", "垂直/水平线：按住起点拖动。", "垂直/水平線：按住起點拖動。", "Đường dọc/ngang: giữ điểm bắt đầu rồi kéo.", "Senkrechte/waagerechte Linie: am Startpunkt drücken und ziehen.", "Ligne verticale/horizontale : appuyez au point de départ et faites glisser.", "Linha vertical/horizontal: pressione no ponto inicial e arraste.", "Línea vertical/horizontal: presiona en el punto inicial y arrastra."],
-  "자유 선: 시작점을 누른 채 끌어 보세요.": ["Free line: press at the start point and drag.", "自由線：始点を押したままドラッグしてください。", "自由线：按住起点拖动。", "自由線：按住起點拖動。", "Đường tự do: giữ điểm bắt đầu rồi kéo.", "Freie Linie: am Startpunkt drücken und ziehen.", "Ligne libre : appuyez au point de départ et faites glisser.", "Linha livre: pressione no ponto inicial e arraste.", "Línea libre: presiona en el punto inicial y arrastra."],
-  "조금 더 길게 끌어 주세요.": ["Please drag a little longer.", "もう少し長くドラッグしてください。", "请拖得长一些。", "請拖得長一些。", "Hãy kéo dài hơn một chút.", "Bitte etwas länger ziehen.", "Faites glisser un peu plus loin.", "Arraste um pouco mais.", "Arrastra un poco más."],
-  "재생": ["Play", "再生", "播放", "播放", "Phát", "Abspielen", "Lire", "Reproduzir", "Reproducir"],
-  "재생 멈추기": ["Stop playback", "再生を停止", "停止播放", "停止播放", "Dừng phát", "Wiedergabe stoppen", "Arrêter la lecture", "Parar reprodução", "Detener reproducción"],
-  "주소가 올바르지 않습니다.": ["The address is not valid.", "アドレスが正しくありません。", "地址无效。", "地址無效。", "Địa chỉ không hợp lệ.", "Die Adresse ist ungültig.", "L’adresse n’est pas valide.", "O endereço não é válido.", "La dirección no es válida."],
-  "동영상 링크": ["Video link", "動画リンク", "视频链接", "影片連結", "Liên kết video", "Videolink", "Lien vidéo", "Link de vídeo", "Enlace de video"],
-  "동영상 링크…": ["Video link…", "動画リンク…", "视频链接…", "影片連結…", "Liên kết video…", "Videolink…", "Lien vidéo…", "Link de vídeo…", "Enlace de video…"],
-  "유튜브 또는 mp4 주소를 넣어 주세요.": ["Enter a YouTube or mp4 address.", "YouTube または mp4 のアドレスを入力してください。", "请输入 YouTube 或 mp4 地址。", "請輸入 YouTube 或 mp4 地址。", "Nhập địa chỉ YouTube hoặc mp4.", "YouTube- oder mp4-Adresse eingeben.", "Saisissez une adresse YouTube ou mp4.", "Digite um endereço do YouTube ou mp4.", "Escribe una dirección de YouTube o mp4."],
-  "유튜브·주소 열기": ["Open on YouTube / in browser", "YouTube・ブラウザで開く", "在 YouTube/浏览器中打开", "在 YouTube/瀏覽器中開啟", "Mở trên YouTube / trình duyệt", "Auf YouTube / im Browser öffnen", "Ouvrir sur YouTube / dans le navigateur", "Abrir no YouTube / navegador", "Abrir en YouTube / navegador"],
-  "다음 단계에서 만듭니다.": ["Coming in the next stage.", "次の段階で作ります。", "将在下一阶段制作。", "將在下一階段製作。", "Sẽ làm ở giai đoạn sau.", "Kommt in der nächsten Stufe.", "Arrive à l’étape suivante.", "Vem na próxima etapa.", "Llega en la próxima etapa."],
-  "선": ["Line", "線", "线条", "線條", "Đường kẻ", "Linie", "Ligne", "Linha", "Línea"],
-  "펜": ["Pen", "ペン", "画笔", "畫筆", "Bút", "Stift", "Stylo", "Caneta", "Bolígrafo"],
-  "표": ["Table", "表", "表格", "表格", "Bảng", "Tabelle", "Tableau", "Tabela", "Tabla"],
-  "하트": ["Heart", "ハート", "心形", "心形", "Trái tim", "Herz", "Cœur", "Coração", "Corazón"],
-  "모양": ["Shape", "形", "形状", "形狀", "Hình dạng", "Form", "Forme", "Forma", "Forma"],
-  "네모": ["Rectangle", "四角形", "矩形", "矩形", "Hình chữ nhật", "Rechteck", "Rectangle", "Retângulo", "Rectángulo"],
-  "둥근 네모": ["Rounded rectangle", "角丸四角形", "圆角矩形", "圓角矩形", "Chữ nhật bo góc", "Abgerundetes Rechteck", "Rectangle arrondi", "Retângulo arredondado", "Rectángulo redondeado"],
-  "원": ["Circle", "円", "圆形", "圓形", "Hình tròn", "Kreis", "Cercle", "Círculo", "Círculo"],
-  "별": ["Star", "星", "星形", "星形", "Ngôi sao", "Stern", "Étoile", "Estrela", "Estrella"],
-  "Shift를 누른 채 끌면 정사각형·정원이 됩니다.": ["Hold Shift while dragging for a perfect square or circle.", "Shift を押しながらドラッグすると正方形・正円になります。", "按住 Shift 拖动可得到正方形或正圆。", "按住 Shift 拖動可得到正方形或正圓。", "Giữ Shift khi kéo để có hình vuông hoặc hình tròn đều.", "Mit gedrückter Umschalttaste ziehen ergibt ein Quadrat oder einen Kreis.", "Maintenez Maj en faisant glisser pour obtenir un carré ou un cercle parfait.", "Segure Shift ao arrastar para um quadrado ou círculo perfeito.", "Mantén Shift al arrastrar para un cuadrado o círculo perfecto."],
-  "(빈 상자 {0})": ["({0} empty)", "(空 {0})", "(空 {0})", "(空 {0})", "({0} trống)", "({0} leer)", "({0} vide(s))", "({0} vazia(s))", "({0} vacía(s))"],
-  "HTML로 보냈습니다.": ["Exported as HTML.", "HTMLで書き出しました。", "已导出为 HTML。", "已匯出為 HTML。", "Đã xuất dạng HTML.", "Als HTML exportiert.", "Exporté en HTML.", "Exportado como HTML.", "Exportado como HTML."],
-  "JPG는 파일이 작고, PNG는 글자가 더 또렷합니다. 여러 페이지는 위아래로 이어 붙여 한 장으로 만듭니다.": ["JPG files are smaller; PNG keeps text sharper. Multiple pages are stacked into one image.", "JPGはファイルが小さく、PNGは文字がよりくっきりします。複数ページは上下につなげて1枚にします。", "JPG 文件更小，PNG 文字更清晰。多页会上下拼接成一张图。", "JPG 檔案更小，PNG 文字更清晰。多頁會上下拼接成一張圖。", "JPG nhẹ hơn, PNG chữ sắc nét hơn. Nhiều trang sẽ được ghép dọc thành một ảnh.", "JPG ist kleiner, PNG hat schärferen Text. Mehrere Seiten werden untereinander zu einem Bild zusammengefügt.", "JPG est plus léger, PNG garde un texte plus net. Plusieurs pages sont empilées en une seule image.", "JPG é menor; PNG deixa o texto mais nítido. Várias páginas são empilhadas em uma só imagem.", "JPG es más liviano; PNG deja el texto más nítido. Varias páginas se apilan en una sola imagen."],
-  "PC에 설치하려면 Edge 주소창 오른쪽의 ‘앱 설치’ 단추를 누르세요.": ["To install on your PC, click the “Install app” button at the right of the Edge address bar.", "PCにインストールするには、Edgeのアドレスバー右側の「アプリをインストール」ボタンを押してください。", "要安装到电脑，请点击 Edge 地址栏右侧的“安装应用”按钮。", "要安裝到電腦，請點選 Edge 位址列右側的“安裝應用”按鈕。", "Để cài lên PC, nhấn nút “Cài đặt ứng dụng” ở bên phải thanh địa chỉ Edge.", "Zum Installieren auf dem PC auf „App installieren“ rechts in der Edge-Adressleiste klicken.", "Pour installer sur le PC, cliquez sur « Installer l’application » à droite de la barre d’adresse d’Edge.", "Para instalar no PC, clique em “Instalar aplicativo” à direita da barra de endereços do Edge.", "Para instalar en la PC, haz clic en “Instalar aplicación” a la derecha de la barra de direcciones de Edge."],
-  "PDF로 보냈습니다.": ["Exported as PDF.", "PDFで書き出しました。", "已导出为 PDF。", "已匯出為 PDF。", "Đã xuất dạng PDF.", "Als PDF exportiert.", "Exporté en PDF.", "Exportado como PDF.", "Exportado como PDF."],
-  "PDF를 만드는 중…": ["Creating PDF…", "PDFを作成中…", "正在生成 PDF…", "正在生成 PDF…", "Đang tạo PDF…", "PDF wird erstellt…", "Création du PDF…", "Criando PDF…", "Creando PDF…"],
-  "PDF를 만들지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not create the PDF. Please check your internet connection.", "PDFを作成できませんでした。インターネット接続を確認してください。", "无法生成 PDF。请检查网络连接。", "無法生成 PDF。請檢查網路連線。", "Không tạo được PDF. Vui lòng kiểm tra kết nối Internet.", "PDF konnte nicht erstellt werden. Bitte Internetverbindung prüfen.", "Impossible de créer le PDF. Vérifiez votre connexion Internet.", "Não foi possível criar o PDF. Verifique sua conexão com a internet.", "No se pudo crear el PDF. Revisa tu conexión a internet."],
-  "PITEX 파일로 보냈습니다.": ["Exported as a PITEX file.", "PITEXファイルで書き出しました。", "已导出为 PITEX 文件。", "已匯出為 PITEX 檔案。", "Đã xuất dạng tệp PITEX.", "Als PITEX-Datei exportiert.", "Exporté en fichier PITEX.", "Exportado como arquivo PITEX.", "Exportado como archivo PITEX."],
-  "pitex 문서 (txt · pitex)": ["pitex documents (txt · pitex)", "pitex 文書 (txt · pitex)", "pitex 文档 (txt · pitex)", "pitex 文件 (txt · pitex)", "Tài liệu pitex (txt · pitex)", "pitex-Dokumente (txt · pitex)", "Documents pitex (txt · pitex)", "Documentos pitex (txt · pitex)", "Documentos pitex (txt · pitex)"],
-  "pitex 시험판": ["pitex trial", "pitex 試用版", "pitex 试用版", "pitex 試用版", "pitex bản thử", "pitex Testversion", "pitex version d’essai", "pitex versão de teste", "pitex versión de prueba"],
-  "pitex 시험판에 대하여": ["About pitex trial", "pitex 試用版について", "关于 pitex 试用版", "關於 pitex 試用版", "Giới thiệu pitex bản thử", "Über die pitex Testversion", "À propos de pitex version d’essai", "Sobre o pitex versão de teste", "Acerca de pitex versión de prueba"],
-  "pitex 파일": ["pitex file", "pitex ファイル", "pitex 文件", "pitex 檔案", "Tệp pitex", "pitex-Datei", "Fichier pitex", "Arquivo pitex", "Archivo pitex"],
-  "pitex 파일을 읽지 못했습니다.": ["Could not read the pitex file.", "pitex ファイルを読み込めませんでした。", "无法读取 pitex 文件。", "無法讀取 pitex 檔案。", "Không đọc được tệp pitex.", "pitex-Datei konnte nicht gelesen werden.", "Impossible de lire le fichier pitex.", "Não foi possível ler o arquivo pitex.", "No se pudo leer el archivo pitex."],
-  "txt 또는 pitex 파일을 골라 주세요.": ["Please choose a txt or pitex file.", "txt または pitex ファイルを選んでください。", "请选择 txt 或 pitex 文件。", "請選擇 txt 或 pitex 檔案。", "Vui lòng chọn tệp txt hoặc pitex.", "Bitte eine txt- oder pitex-Datei wählen.", "Choisissez un fichier txt ou pitex.", "Escolha um arquivo txt ou pitex.", "Elige un archivo txt o pitex."],
-  "{0}(으)로 다시 열었습니다.": ["Reopened as {0}.", "{0} で開き直しました。", "已用 {0} 重新打开。", "已用 {0} 重新開啟。", "Đã mở lại bằng {0}.", "Als {0} neu geöffnet.", "Rouvert en {0}.", "Reaberto como {0}.", "Reabierto como {0}."],
-  "{0}(으)로 바꿀 수 없는 글자 {1}개는 ?로 저장되었습니다.": ["{1} characters could not be converted to {0} and were saved as ?.", "{0} に変換できない{1}文字は ? として保存されました。", "有 {1} 个字符无法转换为 {0}，已保存为 ?。", "有 {1} 個字元無法轉換為 {0}，已儲存為 ?。", "{1} ký tự không chuyển được sang {0} đã được lưu thành ?.", "{1} Zeichen ließen sich nicht in {0} umwandeln und wurden als ? gespeichert.", "{1} caractère(s) non convertible(s) en {0} enregistré(s) comme ?.", "{1} caracteres não puderam ser convertidos para {0} e foram salvos como ?.", "{1} caracteres no se pudieron convertir a {0} y se guardaron como ?."],
-  "{0}개 파일을 탭으로 열었습니다.": ["Opened {0} files in tabs.", "{0}個のファイルをタブで開きました。", "已在标签页中打开 {0} 个文件。", "已在標籤頁中開啟 {0} 個檔案。", "Đã mở {0} tệp trong các thẻ.", "{0} Dateien in Tabs geöffnet.", "{0} fichiers ouverts dans des onglets.", "{0} arquivos abertos em abas.", "{0} archivos abiertos en pestañas."],
-  "{0}곳을 바꿨습니다.": ["Replaced {0}.", "{0}か所を置換しました。", "已替换 {0} 处。", "已替換 {0} 處。", "Đã thay {0} chỗ.", "{0} Stellen ersetzt.", "{0} remplacement(s) effectué(s).", "{0} substituições feitas.", "{0} reemplazos hechos."],
-  "{0}쪽": ["p.{0}", "{0}ページ", "第{0}页", "第{0}頁", "Tr.{0}", "S.{0}", "p.{0}", "p.{0}", "p.{0}"],
-  "‘{0}’에 저장하지 않은 글이 있습니다. 저장하지 않고 닫을까요?": ["“{0}” has unsaved changes. Close without saving?", "「{0}」に保存していない変更があります。保存せずに閉じますか？", "“{0}”有未保存的更改。不保存就关闭吗？", "“{0}”有未儲存的更改。不儲存就關閉嗎？", "“{0}” có thay đổi chưa lưu. Đóng mà không lưu?", "„{0}“ hat ungespeicherte Änderungen. Ohne Speichern schließen?", "« {0} » contient des modifications non enregistrées. Fermer sans enregistrer ?", "“{0}” tem alterações não salvas. Fechar sem salvar?", "“{0}” tiene cambios sin guardar. ¿Cerrar sin guardar?"],
-  "‘{0}’을(를) 지울까요?": ["Clear “{0}”?", "「{0}」を消去しますか？", "要清除“{0}”吗？", "要清除“{0}”嗎？", "Xóa “{0}”?", "„{0}“ leeren?", "Effacer « {0} » ?", "Limpar “{0}”?", "¿Borrar “{0}”?"],
-  "갤러리": ["Gallery", "ギャラリー", "图库", "相簿", "Thư viện", "Galerie", "Galerie", "Galeria", "Galería"],
-  "고친 내용이 없어집니다. 다시 열까요?": ["Your changes will be lost. Reopen?", "変更内容が失われます。開き直しますか？", "更改将会丢失。要重新打开吗？", "更改將會丟失。要重新開啟嗎？", "Các thay đổi sẽ mất. Mở lại?", "Änderungen gehen verloren. Neu öffnen?", "Vos modifications seront perdues. Rouvrir ?", "Suas alterações serão perdidas. Reabrir?", "Se perderán los cambios. ¿Reabrir?"],
-  "그림": ["Picture", "画像", "图片", "圖片", "Hình", "Bild", "Image", "Imagem", "Imagen"],
-  "그림 넣기": ["Insert picture", "画像を挿入", "插入图片", "插入圖片", "Chèn hình", "Bild einfügen", "Insérer une image", "Inserir imagem", "Insertar imagen"],
-  "그림 넣기…": ["Insert picture…", "画像を挿入…", "插入图片…", "插入圖片…", "Chèn hình…", "Bild einfügen…", "Insérer une image…", "Inserir imagem…", "Insertar imagen…"],
-  "그림 레이어 보이기": ["Show picture layer", "画像レイヤーを表示", "显示图片图层", "顯示圖片圖層", "Hiện lớp hình", "Bildebene anzeigen", "Afficher le calque d’images", "Mostrar camada de imagens", "Mostrar capa de imágenes"],
-  "그림 바꾸기": ["Change picture", "画像を変更", "更换图片", "更換圖片", "Đổi hình", "Bild ändern", "Changer l’image", "Trocar imagem", "Cambiar imagen"],
-  "그림 바꾸기…": ["Change picture…", "画像を変更…", "更换图片…", "更換圖片…", "Đổi hình…", "Bild ändern…", "Changer l’image…", "Trocar imagem…", "Cambiar imagen…"],
-  "그림 불러오기": ["Load picture", "画像を読み込む", "载入图片", "載入圖片", "Tải hình", "Bild laden", "Charger une image", "Carregar imagem", "Cargar imagen"],
-  "그림 상자": ["Picture box", "画像ボックス", "图片框", "圖片框", "Khung hình", "Bildrahmen", "Cadre d’image", "Caixa de imagem", "Cuadro de imagen"],
-  "그림 상자 {0}": ["Picture boxes {0}", "画像ボックス {0}", "图片框 {0}", "圖片框 {0}", "Khung hình {0}", "Bildrahmen {0}", "Cadres {0}", "Caixas {0}", "Cuadros {0}"],
-  "그림 상자 그리기": ["Draw picture box", "画像ボックスを描く", "绘制图片框", "繪製圖片框", "Vẽ khung hình", "Bildrahmen zeichnen", "Dessiner un cadre", "Desenhar caixa de imagem", "Dibujar cuadro de imagen"],
-  "그림 상자 그리기: 대각선으로 끌어 보세요.": ["Draw picture box: drag diagonally.", "画像ボックスを描く：斜めにドラッグしてください。", "绘制图片框：请沿对角线拖动。", "繪製圖片框：請沿對角線拖動。", "Vẽ khung hình: hãy kéo chéo.", "Bildrahmen zeichnen: diagonal ziehen.", "Dessiner un cadre : faites glisser en diagonale.", "Desenhar caixa: arraste na diagonal.", "Dibujar cuadro: arrastra en diagonal."],
-  "그림 상자가 있어 짝꿍 파일도 저장합니다. 같은 폴더에 저장해 주세요.": ["This document has picture boxes, so the companion file is saved too. Please save it in the same folder.", "画像ボックスがあるため、ペアファイルも保存します。同じフォルダーに保存してください。", "文档中有图片框，因此也会保存配套文件。请保存在同一文件夹中。", "文件中有圖片框，因此也會儲存配套檔案。請儲存在同一資料夾中。", "Tài liệu có khung hình nên tệp đi kèm cũng được lưu. Vui lòng lưu cùng thư mục.", "Da Bildrahmen vorhanden sind, wird auch die Begleitdatei gespeichert. Bitte im selben Ordner speichern.", "Le document contient des cadres : le fichier compagnon est aussi enregistré. Enregistrez-le dans le même dossier.", "Há caixas de imagem, então o arquivo complementar também será salvo. Salve-o na mesma pasta.", "Hay cuadros de imagen, así que también se guarda el archivo complementario. Guárdalo en la misma carpeta."],
-  "그림 상자를 지웠습니다. ↶로 되돌릴 수 있습니다.": ["Picture box deleted. Press ↶ to undo.", "画像ボックスを削除しました。↶ で元に戻せます。", "已删除图片框。可按 ↶ 撤销。", "已刪除圖片框。可按 ↶ 撤銷。", "Đã xóa khung hình. Nhấn ↶ để hoàn tác.", "Bildrahmen gelöscht. Mit ↶ rückgängig machen.", "Cadre supprimé. Appuyez sur ↶ pour annuler.", "Caixa excluída. Toque em ↶ para desfazer.", "Cuadro eliminado. Toca ↶ para deshacer."],
-  "그림 자리가 생겼습니다. 두 번 누르면 그림을 넣습니다.": ["Picture box created. Double-tap it to insert a picture.", "画像の枠ができました。2回押すと画像を挿入します。", "已创建图片框。双击即可插入图片。", "已建立圖片框。雙擊即可插入圖片。", "Đã tạo khung hình. Nhấn hai lần để chèn hình.", "Bildrahmen erstellt. Doppelt tippen, um ein Bild einzufügen.", "Cadre créé. Touchez-le deux fois pour insérer une image.", "Caixa criada. Toque duas vezes para inserir uma imagem.", "Cuadro creado. Tócalo dos veces para insertar una imagen."],
-  "그림(JPG/PNG)": ["Image (JPG/PNG)", "画像 (JPG/PNG)", "图片 (JPG/PNG)", "圖片 (JPG/PNG)", "Hình (JPG/PNG)", "Bild (JPG/PNG)", "Image (JPG/PNG)", "Imagem (JPG/PNG)", "Imagen (JPG/PNG)"],
-  "그림으로 보내기": ["Export as image", "画像で書き出す", "导出为图片", "匯出為圖片", "Xuất thành hình", "Als Bild exportieren", "Exporter en image", "Exportar como imagem", "Exportar como imagen"],
-  "그림으로 보냈습니다.": ["Exported as an image.", "画像で書き出しました。", "已导出为图片。", "已匯出為圖片。", "Đã xuất thành hình.", "Als Bild exportiert.", "Exporté en image.", "Exportado como imagem.", "Exportado como imagen."],
-  "그림을 넣었습니다.": ["Picture inserted.", "画像を挿入しました。", "已插入图片。", "已插入圖片。", "Đã chèn hình.", "Bild eingefügt.", "Image insérée.", "Imagem inserida.", "Imagen insertada."],
-  "그림을 만드는 중…": ["Creating image…", "画像を作成中…", "正在生成图片…", "正在生成圖片…", "Đang tạo hình…", "Bild wird erstellt…", "Création de l’image…", "Criando imagem…", "Creando imagen…"],
-  "그림을 만들지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not create the image. Please check your internet connection.", "画像を作成できませんでした。インターネット接続を確認してください。", "无法生成图片。请检查网络连接。", "無法生成圖片。請檢查網路連線。", "Không tạo được hình. Vui lòng kiểm tra kết nối Internet.", "Bild konnte nicht erstellt werden. Bitte Internetverbindung prüfen.", "Impossible de créer l’image. Vérifiez votre connexion Internet.", "Não foi possível criar a imagem. Verifique sua conexão com a internet.", "No se pudo crear la imagen. Revisa tu conexión a internet."],
-  "그림을 맞추는 중…": ["Fitting picture…", "画像を合わせています…", "正在调整图片…", "正在調整圖片…", "Đang canh hình…", "Bild wird angepasst…", "Ajustement de l’image…", "Ajustando imagem…", "Ajustando imagen…"],
-  "글": ["Text", "本文", "正文", "正文", "Văn bản", "Text", "Texte", "Texto", "Texto"],
-  "글 {0}자": ["{0} chars", "{0}文字", "{0} 字", "{0} 字", "{0} ký tự", "{0} Zeichen", "{0} caractères", "{0} caracteres", "{0} caracteres"],
-  "글꼴": ["Font", "フォント", "字体", "字型", "Phông chữ", "Schriftart", "Police", "Fonte", "Fuente"],
-  "글꼴 목록": ["Family", "ファミリ", "字体系列", "字型系列", "Họ phông", "Familie", "Famille", "Família", "Familia"],
-  "글은 순수 txt로, 그림 상자는 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.": ["A notepad that saves text as plain txt and picture boxes in a companion file (.txtx.pitex). People without pitex just see the txt.", "本文は純粋な txt で、画像ボックスはペアファイル (.txtx.pitex) で保存するメモ帳です。pitex がない人には txt だけが見えます。", "正文保存为纯 txt，图片框保存在配套文件 (.txtx.pitex) 中的记事本。没有 pitex 的人只会看到 txt。", "正文儲存為純 txt，圖片框儲存在配套檔案 (.txtx.pitex) 中的記事本。沒有 pitex 的人只會看到 txt。", "Trình ghi chú lưu văn bản dạng txt thuần và khung hình trong tệp đi kèm (.txtx.pitex). Người không có pitex chỉ thấy tệp txt.", "Ein Editor, der Text als reines txt und Bildrahmen in einer Begleitdatei (.txtx.pitex) speichert. Wer pitex nicht hat, sieht nur das txt.", "Un bloc-notes qui enregistre le texte en txt pur et les cadres dans un fichier compagnon (.txtx.pitex). Sans pitex, on ne voit que le txt.", "Um bloco de notas que salva o texto em txt puro e as caixas de imagem num arquivo complementar (.txtx.pitex). Quem não tem pitex vê só o txt.", "Un bloc de notas que guarda el texto como txt puro y los cuadros de imagen en un archivo complementario (.txtx.pitex). Quien no tiene pitex solo ve el txt."],
-  "기본 크기": ["Restore default zoom", "既定のズームに戻す", "恢复默认缩放", "恢復預設縮放", "Khôi phục thu phóng mặc định", "Standardzoom", "Zoom par défaut", "Zoom padrão", "Zoom predeterminado"],
-  "기본적으로 창 안에 텍스트 맞춤": ["Fit text within the window by default", "既定でウィンドウ内にテキストを合わせる", "默认使文本适应窗口", "預設使文字適應視窗", "Mặc định vừa văn bản trong cửa sổ", "Text standardmäßig an das Fenster anpassen", "Ajuster le texte à la fenêtre par défaut", "Ajustar o texto à janela por padrão", "Ajustar el texto a la ventana de forma predeterminada"],
-  "꽉 차게": ["Fill", "全体に合わせる", "填满", "填滿", "Lấp đầy", "Füllen", "Remplir", "Preencher", "Rellenar"],
-  "꽉 차게 (가장자리 잘림)": ["Fill (edges cropped)", "全体に合わせる（端が切れる）", "填满（边缘被裁切）", "填滿（邊緣被裁切）", "Lấp đầy (cắt mép)", "Füllen (Ränder beschnitten)", "Remplir (bords rognés)", "Preencher (bordas cortadas)", "Rellenar (bordes recortados)"],
-  "끌어서 크기 정하기": ["drag to size", "ドラッグしてサイズ指定", "拖动确定大小", "拖動確定大小", "kéo để chỉnh cỡ", "ziehen für Größe", "glisser pour la taille", "arraste para o tamanho", "arrastra para el tamaño"],
-  "끔": ["Off", "オフ", "关", "關", "Tắt", "Aus", "Désactivé", "Desligado", "Desactivado"],
-  "날짜·시간 넣기": ["Time/Date", "日付と時刻", "日期/时间", "日期/時間", "Ngày/giờ", "Datum/Uhrzeit", "Date/heure", "Data/hora", "Fecha/hora"],
-  "내려받았습니다: {0}": ["Downloaded: {0}", "ダウンロードしました：{0}", "已下载：{0}", "已下載：{0}", "Đã tải xuống: {0}", "Heruntergeladen: {0}", "Téléchargé : {0}", "Baixado: {0}", "Descargado: {0}"],
-  "다 보이게": ["Fit", "全体を表示", "完整显示", "完整顯示", "Vừa khung", "Einpassen", "Ajuster", "Ajustar", "Ajustar"],
-  "다 보이게 (여백 생김)": ["Fit (with margins)", "全体を表示（余白あり）", "完整显示（留白）", "完整顯示（留白）", "Vừa khung (có lề)", "Einpassen (mit Rand)", "Ajuster (avec marges)", "Ajustar (com margens)", "Ajustar (con márgenes)"],
-  "다른 이름으로 저장": ["Save as", "名前を付けて保存", "另存为", "另存為", "Lưu thành", "Speichern unter", "Enregistrer sous", "Salvar como", "Guardar como"],
-  "다른 이름으로 저장…": ["Save as…", "名前を付けて保存…", "另存为…", "另存為…", "Lưu thành…", "Speichern unter…", "Enregistrer sous…", "Salvar como…", "Guardar como…"],
-  "다른 인코딩으로 다시 열기": ["Reopen with encoding", "エンコードを指定して開き直す", "用其他编码重新打开", "用其他編碼重新開啟", "Mở lại với mã hóa khác", "Mit Codierung neu öffnen", "Rouvrir avec un encodage", "Reabrir com codificação", "Reabrir con codificación"],
-  "다시 불러오기": ["Load again", "再読み込み", "重新载入", "重新載入", "Tải lại", "Erneut laden", "Recharger", "Carregar novamente", "Volver a cargar"],
-  "다시 실행": ["Redo", "やり直し", "重做", "重做", "Làm lại", "Wiederholen", "Rétablir", "Refazer", "Rehacer"],
-  "다시 실행 (Ctrl+Y)": ["Redo (Ctrl+Y)", "やり直し (Ctrl+Y)", "重做 (Ctrl+Y)", "重做 (Ctrl+Y)", "Làm lại (Ctrl+Y)", "Wiederholen (Strg+Y)", "Rétablir (Ctrl+Y)", "Refazer (Ctrl+Y)", "Rehacer (Ctrl+Y)"],
-  "다음 단계": ["Next stage", "次の段階", "下一阶段", "下一階段", "Giai đoạn sau", "Nächste Stufe", "Étape suivante", "Próxima etapa", "Próxima etapa"],
-  "다음 찾기": ["Find next", "次を検索", "查找下一个", "查詢下一個", "Tìm tiếp", "Weitersuchen", "Suivant", "Localizar próxima", "Buscar siguiente"],
-  "닫기": ["Close", "閉じる", "关闭", "關閉", "Đóng", "Schließen", "Fermer", "Fechar", "Cerrar"],
-  "대소문자 구분": ["Match case", "大文字と小文字を区別", "区分大小写", "區分大小寫", "Phân biệt hoa thường", "Groß-/Kleinschreibung", "Respecter la casse", "Diferenciar maiúsculas", "Coincidir mayúsculas"],
-  "도움말": ["Help", "ヘルプ", "帮助", "幫助", "Trợ giúp", "Hilfe", "Aide", "Ajuda", "Ayuda"],
-  "되돌리기": ["Undo", "元に戻す", "撤销", "撤銷", "Hoàn tác", "Rückgängig", "Défaire", "Desfazer", "Deshacer"],
-  "되살렸습니다.": ["Restored.", "元に戻しました。", "已恢复。", "已恢復。", "Đã khôi phục.", "Wiederhergestellt.", "Restauré.", "Restaurado.", "Restaurado."],
-  "메뉴": ["Menu", "メニュー", "菜单", "選單", "Menu", "Menü", "Menu", "Menu", "Menú"],
-  "모두 바꾸기": ["Replace all", "すべて置換", "全部替换", "全部替換", "Thay tất cả", "Alle ersetzen", "Tout remplacer", "Substituir tudo", "Reemplazar todo"],
-  "모두 선택": ["Select all", "すべて選択", "全选", "全選", "Chọn tất cả", "Alles auswählen", "Tout sélectionner", "Selecionar tudo", "Seleccionar todo"],
-  "바꾸기": ["Replace", "置換", "替换", "替換", "Thay", "Ersetzen", "Remplacer", "Substituir", "Reemplazar"],
-  "바꾸기…": ["Replace…", "置換…", "替换…", "替換…", "Thay…", "Ersetzen…", "Remplacer…", "Substituir…", "Reemplazar…"],
-  "바꿀 말": ["Replace with", "置換後の文字列", "替换为", "替換為", "Thay bằng", "Ersetzen durch", "Remplacer par", "Substituir por", "Reemplazar con"],
-  "바다의 파도 소리가 내 영혼을 차분하게 합니다.": ["The sound of ocean waves calms my soul.", "海の波の音が私の心を落ち着かせてくれます。", "海浪的声音让我的心灵平静。", "海浪的聲音讓我的心靈平靜。", "Tiếng sóng biển làm tâm hồn tôi lắng dịu.", "Das Rauschen der Meereswellen beruhigt meine Seele.", "Le bruit des vagues apaise mon âme.", "O som das ondas do mar acalma minha alma.", "El sonido de las olas del mar calma mi alma."],
-  "밝게 / 다크": ["Light / Dark", "ライト / ダーク", "浅色 / 深色", "淺色 / 深色", "Sáng / Tối", "Hell / Dunkel", "Clair / Sombre", "Claro / Escuro", "Claro / Oscuro"],
-  "보기": ["View", "表示", "查看", "檢視", "Xem", "Ansicht", "Affichage", "Exibir", "Ver"],
-  "보내기": ["Export", "エクスポート", "导出", "匯出", "Xuất", "Exportieren", "Exporter", "Exportar", "Exportar"],
-  "삭제": ["Delete", "削除", "删除", "刪除", "Xóa", "Löschen", "Supprimer", "Excluir", "Eliminar"],
-  "상자 지우기": ["Delete box", "ボックスを削除", "删除图片框", "刪除圖片框", "Xóa khung", "Rahmen löschen", "Supprimer le cadre", "Excluir caixa", "Eliminar cuadro"],
-  "상자 크기는 그대로 두고, 그림을 상자에 맞춥니다.": ["The box keeps its size; the picture is fitted to the box.", "ボックスの大きさはそのままで、画像をボックスに合わせます。", "图片框大小不变，图片会适应图片框。", "圖片框大小不變，圖片會適應圖片框。", "Khung giữ nguyên kích thước; hình được canh vừa khung.", "Der Rahmen behält seine Größe; das Bild wird angepasst.", "Le cadre garde sa taille ; l’image s’y adapte.", "A caixa mantém o tamanho; a imagem se ajusta a ela.", "El cuadro mantiene su tamaño; la imagen se ajusta a él."],
-  "상자를 먼저 고르세요": ["Select a box first", "先にボックスを選択", "请先选择图片框", "請先選擇圖片框", "Hãy chọn khung trước", "Zuerst einen Rahmen wählen", "Sélectionnez d’abord un cadre", "Selecione uma caixa primeiro", "Selecciona un cuadro primero"],
-  "상자에 맞추는 방법 (fit in box)": ["Fit in box", "ボックスへの合わせ方", "适应图片框的方式", "適應圖片框的方式", "Cách canh vào khung", "In den Rahmen einpassen", "Ajustement au cadre", "Ajuste à caixa", "Ajuste al cuadro"],
-  "상태 표시줄": ["Status bar", "ステータス バー", "状态栏", "狀態列", "Thanh trạng thái", "Statusleiste", "Barre d’état", "Barra de status", "Barra de estado"],
-  "새 글입니다.": ["New document.", "新しい文書です。", "新文档。", "新文件。", "Tài liệu mới.", "Neues Dokument.", "Nouveau document.", "Novo documento.", "Documento nuevo."],
-  "새 탭": ["New tab", "新しいタブ", "新标签页", "新標籤頁", "Thẻ mới", "Neuer Tab", "Nouvel onglet", "Nova aba", "Nueva pestaña"],
-  "새 파일 이름": ["New file name", "新しいファイル名", "新文件名", "新檔名", "Tên tệp mới", "Neuer Dateiname", "Nouveau nom de fichier", "Novo nome do arquivo", "Nuevo nombre de archivo"],
-  "새로 만들기": ["New", "新規", "新建", "新建", "Mới", "Neu", "Nouveau", "Novo", "Nuevo"],
-  "서유럽": ["Western European", "西ヨーロッパ", "西欧", "西歐", "Tây Âu", "Westeuropäisch", "Europe occidentale", "Europa Ocidental", "Europa occidental"],
-  "설정": ["Settings", "設定", "设置", "設定", "Cài đặt", "Einstellungen", "Paramètres", "Configurações", "Configuración"],
-  "설정…": ["Settings…", "設定…", "设置…", "設定…", "Cài đặt…", "Einstellungen…", "Paramètres…", "Configurações…", "Configuración…"],
-  "설치된 글꼴 {0}개": ["{0} installed fonts", "インストール済みフォント {0}個", "已安装字体 {0} 个", "已安裝字型 {0} 個", "{0} phông đã cài", "{0} installierte Schriftarten", "{0} polices installées", "{0} fontes instaladas", "{0} fuentes instaladas"],
-  "설치된 글꼴을 보려면 허락이 필요합니다. ": ["Permission is needed to list installed fonts. ", "インストール済みフォントを表示するには許可が必要です。", "需要授权才能显示已安装的字体。", "需要授權才能顯示已安裝的字型。", "Cần cho phép để hiện các phông đã cài. ", "Zum Anzeigen installierter Schriftarten ist eine Erlaubnis nötig. ", "Une autorisation est nécessaire pour lister les polices installées. ", "É preciso permitir para listar as fontes instaladas. ", "Se necesita permiso para listar las fuentes instaladas. "],
-  "설치된 글꼴을 불러오는 중… ": ["Loading installed fonts… ", "インストール済みフォントを読み込み中… ", "正在载入已安装字体… ", "正在載入已安裝字型… ", "Đang tải phông đã cài… ", "Installierte Schriftarten werden geladen… ", "Chargement des polices installées… ", "Carregando fontes instaladas… ", "Cargando fuentes instaladas… "],
-  "스타일": ["Style", "スタイル", "字形", "字形", "Kiểu", "Schriftschnitt", "Style", "Estilo", "Estilo"],
-  "시작점을 누른 채 대각선으로 끌면 그림 자리(X 상자)가 생깁니다. □ 그림 상자를 다시 누르면 그리기를 끕니다.": ["Press and drag diagonally to create a picture box (X box). Press □ Picture box again to stop drawing.", "始点を押したまま斜めにドラッグすると画像の枠（Xボックス）ができます。□ 画像ボックスをもう一度押すと描画を終了します。", "按住起点沿对角线拖动即可创建图片框（X 框）。再次点击 □ 图片框可结束绘制。", "按住起點沿對角線拖動即可建立圖片框（X 框）。再次點選 □ 圖片框可結束繪製。", "Giữ điểm bắt đầu rồi kéo chéo để tạo khung hình (khung X). Nhấn lại □ Khung hình để tắt vẽ.", "Startpunkt halten und diagonal ziehen, um einen Bildrahmen (X-Rahmen) zu erstellen. □ Bildrahmen erneut drücken, um das Zeichnen zu beenden.", "Maintenez le point de départ et glissez en diagonale pour créer un cadre (cadre X). Appuyez à nouveau sur □ Cadre pour arrêter.", "Segure o ponto inicial e arraste na diagonal para criar uma caixa (caixa X). Toque de novo em □ Caixa para parar.", "Mantén el punto inicial y arrastra en diagonal para crear un cuadro (cuadro X). Toca de nuevo □ Cuadro para dejar de dibujar."],
-  "실행 취소": ["Undo", "元に戻す", "撤销", "撤銷", "Hoàn tác", "Rückgängig", "Annuler", "Desfazer", "Deshacer"],
-  "실행 취소 (Ctrl+Z)": ["Undo (Ctrl+Z)", "元に戻す (Ctrl+Z)", "撤销 (Ctrl+Z)", "撤銷 (Ctrl+Z)", "Hoàn tác (Ctrl+Z)", "Rückgängig (Strg+Z)", "Annuler (Ctrl+Z)", "Desfazer (Ctrl+Z)", "Deshacer (Ctrl+Z)"],
-  "언어": ["Language", "言語", "语言", "語言", "Ngôn ngữ", "Sprache", "Langue", "Idioma", "Idioma"],
-  "언어 · Language": ["Language", "言語 · Language", "语言 · Language", "語言 · Language", "Ngôn ngữ · Language", "Sprache · Language", "Langue · Language", "Idioma · Language", "Idioma · Language"],
-  "언어는 smartDir 번역표와 같고, 중국어 번체를 더했습니다. (아랍어는 나중에 결정)": ["Languages follow the smartDir translation table, plus Traditional Chinese. (Arabic to be decided later)", "言語は smartDir の翻訳表と同じです。（アラビア語は後で決定）", "语言与 smartDir 翻译表相同。（阿拉伯语以后再定）", "語言與 smartDir 翻譯表相同。（阿拉伯語以後再定）", "Ngôn ngữ giống bảng dịch của smartDir. (Tiếng Ả Rập sẽ quyết định sau)", "Die Sprachen entsprechen der smartDir-Übersetzungstabelle. (Arabisch wird später entschieden)", "Les langues suivent la table de traduction de smartDir. (L’arabe sera décidé plus tard)", "Os idiomas seguem a tabela de tradução do smartDir. (Árabe será decidido depois)", "Los idiomas siguen la tabla de traducción de smartDir. (El árabe se decidirá después)"],
-  "열기": ["Open", "開く", "打开", "開啟", "Mở", "Öffnen", "Ouvrir", "Abrir", "Abrir"],
-  "열기…": ["Open…", "開く…", "打开…", "開啟…", "Mở…", "Öffnen…", "Ouvrir…", "Abrir…", "Abrir…"],
-  "열었습니다: {0}": ["Opened: {0}", "開きました：{0}", "已打开：{0}", "已開啟：{0}", "Đã mở: {0}", "Geöffnet: {0}", "Ouvert : {0}", "Aberto: {0}", "Abierto: {0}"],
-  "이 그림을 읽지 못했습니다. 다른 그림을 골라 주세요.": ["Could not read this picture. Please choose another.", "この画像を読み込めませんでした。別の画像を選んでください。", "无法读取此图片。请选择其他图片。", "無法讀取此圖片。請選擇其他圖片。", "Không đọc được hình này. Vui lòng chọn hình khác.", "Dieses Bild konnte nicht gelesen werden. Bitte ein anderes wählen.", "Impossible de lire cette image. Choisissez-en une autre.", "Não foi possível ler esta imagem. Escolha outra.", "No se pudo leer esta imagen. Elige otra."],
-  "이 브라우저는 설치된 글꼴 목록을 보여 줄 수 없어 자주 쓰는 글꼴만 보입니다.": ["This browser cannot list installed fonts, so only common fonts are shown.", "このブラウザーはインストール済みフォントを一覧表示できないため、よく使うフォントだけを表示します。", "此浏览器无法列出已安装的字体，因此只显示常用字体。", "此瀏覽器無法列出已安裝的字型，因此只顯示常用字型。", "Trình duyệt này không liệt kê được phông đã cài nên chỉ hiện các phông phổ biến.", "Dieser Browser kann installierte Schriftarten nicht auflisten; es werden nur gängige angezeigt.", "Ce navigateur ne peut pas lister les polices installées ; seules les polices courantes sont affichées.", "Este navegador não lista as fontes instaladas; só as mais comuns aparecem.", "Este navegador no puede listar las fuentes instaladas; solo se muestran las más comunes."],
-  "이 브라우저는 파일 창을 쓸 수 없어 내려받기로 저장합니다.": ["This browser has no file dialog, so the file is saved as a download.", "このブラウザーはファイルダイアログを使えないため、ダウンロードで保存します。", "此浏览器无法使用文件对话框，将以下载方式保存。", "此瀏覽器無法使用檔案對話方塊，將以下載方式儲存。", "Trình duyệt này không có hộp thoại tệp nên sẽ lưu bằng cách tải xuống.", "Dieser Browser hat keinen Dateidialog; die Datei wird heruntergeladen.", "Ce navigateur n’a pas de boîte de dialogue de fichiers ; le fichier sera téléchargé.", "Este navegador não tem janela de arquivos; o arquivo será baixado.", "Este navegador no tiene ventana de archivos; el archivo se descargará."],
-  "이 시험판(PWA)에서는 화면의 글만 지우고, PC의 파일은 그대로 둡니다. 파일을 휴지통으로 보내는 기능은 Tauri(.exe) 판에서 넣습니다.": ["This trial (PWA) only clears the document on screen; files on your PC are kept. Sending files to the Recycle Bin comes in the Tauri (.exe) version.", "この試用版（PWA）では画面の文書だけを消去し、PCのファイルはそのまま残します。ファイルをごみ箱に送る機能は Tauri（.exe）版で追加します。", "此试用版（PWA）只清除屏幕上的文档，电脑中的文件保持不变。将文件移到回收站的功能会在 Tauri（.exe）版中加入。", "此試用版（PWA）只清除螢幕上的文件，電腦中的檔案保持不變。將檔案移到回收站的功能會在 Tauri（.exe）版中加入。", "Bản thử (PWA) này chỉ xóa tài liệu trên màn hình, tệp trên PC vẫn giữ nguyên. Tính năng chuyển tệp vào Thùng rác sẽ có ở bản Tauri (.exe).", "Diese Testversion (PWA) leert nur das Dokument auf dem Bildschirm; Dateien auf dem PC bleiben erhalten. Das Verschieben in den Papierkorb kommt in der Tauri-Version (.exe).", "Cette version d’essai (PWA) n’efface que le document à l’écran ; les fichiers du PC sont conservés. L’envoi à la Corbeille viendra avec la version Tauri (.exe).", "Esta versão de teste (PWA) só limpa o documento na tela; os arquivos do PC são mantidos. Enviar à Lixeira virá na versão Tauri (.exe).", "Esta versión de prueba (PWA) solo borra el documento en pantalla; los archivos de la PC se conservan. Enviar a la Papelera llegará en la versión Tauri (.exe)."],
-  "이름 바꾸기": ["Rename", "名前の変更", "重命名", "重新命名", "Đổi tên", "Umbenennen", "Renommer", "Renomear", "Cambiar nombre"],
-  "이름에 / \\ : * ? \" < > | 는 쓸 수 없습니다.": ["Names cannot contain / \\ : * ? \" < > |", "名前に / \\ : * ? \" < > | は使えません。", "名称中不能包含 / \\ : * ? \" < > |", "名稱中不能包含 / \\ : * ? \" < > |", "Tên không được chứa / \\ : * ? \" < > |", "Namen dürfen / \\ : * ? \" < > | nicht enthalten.", "Le nom ne peut pas contenir / \\ : * ? \" < > |", "O nome não pode conter / \\ : * ? \" < > |", "El nombre no puede contener / \\ : * ? \" < > |"],
-  "이름을 넣어 주세요.": ["Please enter a name.", "名前を入力してください。", "请输入名称。", "請輸入名稱。", "Vui lòng nhập tên.", "Bitte einen Namen eingeben.", "Saisissez un nom.", "Digite um nome.", "Escribe un nombre."],
-  "이번에 바뀐 것: 그림 고정·끌어 놓기, 자(mm)와 Ctrl+R, 모든 페이지 3cm 여백, 큰 십자 커서, 인코딩 10가지, 여러 파일 탭, 폰 화면 맞춤과 두 손가락 확대, 인쇄 여백.": ["What’s new: fixed pictures you can drag anywhere, mm rulers with Ctrl+R, 3 cm margins on every page, full-screen crosshair cursor, 10 encodings, tabs for multiple files, fit-to-screen and pinch zoom on phones, print margins.", "今回の変更：画像の固定とドラッグ配置、mm 定規と Ctrl+R、全ページ 3cm 余白、大きな十字カーソル、10種類のエンコード、複数ファイルのタブ、スマホの画面合わせと2本指拡大、印刷余白。", "本次更新：图片固定并可拖放、毫米标尺与 Ctrl+R、所有页面 3 厘米边距、大十字光标、10 种编码、多文件标签页、手机适配屏幕与双指缩放、打印边距。", "本次更新：圖片固定並可拖放、毫米標尺與 Ctrl+R、所有頁面 3 釐米邊距、大十字游標、10 種編碼、多檔案標籤頁、手機適配螢幕與雙指縮放、列印邊距。", "Thay đổi lần này: hình cố định và kéo thả, thước mm và Ctrl+R, lề 3 cm mọi trang, con trỏ chữ thập lớn, 10 kiểu mã hóa, thẻ nhiều tệp, vừa màn hình điện thoại và phóng to hai ngón, lề in.", "Neu: fixierte, frei verschiebbare Bilder, mm-Lineale mit Strg+R, 3 cm Ränder auf jeder Seite, Vollbild-Fadenkreuz, 10 Codierungen, Tabs für mehrere Dateien, Bildschirmanpassung und Zwei-Finger-Zoom am Handy, Druckränder.", "Nouveautés : images fixes déplaçables partout, règles en mm avec Ctrl+R, marges de 3 cm sur chaque page, curseur en croix plein écran, 10 encodages, onglets multi-fichiers, ajustement à l’écran et zoom à deux doigts sur téléphone, marges d’impression.", "Novidades: imagens fixas que podem ser arrastadas, réguas em mm com Ctrl+R, margens de 3 cm em todas as páginas, cursor em cruz de tela cheia, 10 codificações, abas para vários arquivos, ajuste à tela e zoom com dois dedos no celular, margens de impressão.", "Novedades: imágenes fijas que se pueden arrastrar, reglas en mm con Ctrl+R, márgenes de 3 cm en todas las páginas, cursor en cruz de pantalla completa, 10 codificaciones, pestañas para varios archivos, ajuste a la pantalla y zoom con dos dedos en el celular, márgenes de impresión."],
-  "인쇄…": ["Print…", "印刷…", "打印…", "列印…", "In…", "Drucken…", "Imprimer…", "Imprimir…", "Imprimir…"],
-  "인코딩": ["Encoding", "エンコード", "编码", "編碼", "Mã hóa", "Codierung", "Encodage", "Codificação", "Codificación"],
-  "자": ["Ruler", "ルーラー", "标尺", "標尺", "Thước", "Lineal", "Règle", "Régua", "Regla"],
-  "자 (Ctrl+R)": ["Ruler (Ctrl+R)", "ルーラー (Ctrl+R)", "标尺 (Ctrl+R)", "標尺 (Ctrl+R)", "Thước (Ctrl+R)", "Lineal (Strg+R)", "Règle (Ctrl+R)", "Régua (Ctrl+R)", "Regla (Ctrl+R)"],
-  "자동 줄 바꿈": ["Word wrap", "右端で折り返す", "自动换行", "自動換行", "Tự xuống dòng", "Zeilenumbruch", "Retour automatique à la ligne", "Quebra automática de linha", "Ajuste de línea"],
-  "저장": ["Save", "保存", "保存", "儲存", "Lưu", "Speichern", "Enregistrer", "Salvar", "Guardar"],
-  "저장 (Ctrl+S)": ["Save (Ctrl+S)", "保存 (Ctrl+S)", "保存 (Ctrl+S)", "儲存 (Ctrl+S)", "Lưu (Ctrl+S)", "Speichern (Strg+S)", "Enregistrer (Ctrl+S)", "Salvar (Ctrl+S)", "Guardar (Ctrl+S)"],
-  "저장 안 됨": ["Not saved", "未保存", "未保存", "未儲存", "Chưa lưu", "Nicht gespeichert", "Non enregistré", "Não salvo", "Sin guardar"],
-  "저장됨": ["Saved", "保存済み", "已保存", "已儲存", "Đã lưu", "Gespeichert", "Enregistré", "Salvo", "Guardado"],
-  "저장하지 못했습니다.": ["Could not save.", "保存できませんでした。", "无法保存。", "無法儲存。", "Không lưu được.", "Speichern fehlgeschlagen.", "Impossible d’enregistrer.", "Não foi possível salvar.", "No se pudo guardar."],
-  "저장할 때 {0}(으)로 저장합니다.": ["Will be saved as {0}.", "{0} で保存します。", "将以 {0} 保存。", "將以 {0} 儲存。", "Sẽ lưu dạng {0}.", "Wird als {0} gespeichert.", "Sera enregistré en {0}.", "Será salvo como {0}.", "Se guardará como {0}."],
-  "저장했습니다: {0}": ["Saved: {0}", "保存しました：{0}", "已保存：{0}", "已儲存：{0}", "Đã lưu: {0}", "Gespeichert: {0}", "Enregistré : {0}", "Salvo: {0}", "Guardado: {0}"],
-  "제목": ["Heading", "見出し", "标题", "標題", "Tiêu đề", "Überschrift", "Titre", "Título", "Título"],
-  "목록": ["List", "リスト", "列表", "清單", "Danh sách", "Liste", "Liste", "Lista", "Lista"],
-  "굵게 (Ctrl+B)": ["Bold (Ctrl+B)", "太字 (Ctrl+B)", "加粗 (Ctrl+B)", "粗體 (Ctrl+B)", "Đậm (Ctrl+B)", "Fett (Strg+B)", "Gras (Ctrl+B)", "Negrito (Ctrl+B)", "Negrita (Ctrl+B)"],
-  "기울임 (Ctrl+I)": ["Italic (Ctrl+I)", "斜体 (Ctrl+I)", "斜体 (Ctrl+I)", "斜體 (Ctrl+I)", "Nghiêng (Ctrl+I)", "Kursiv (Strg+I)", "Italique (Ctrl+I)", "Itálico (Ctrl+I)", "Cursiva (Ctrl+I)"],
-  "취소선": ["Strikethrough", "取り消し線", "删除线", "刪除線", "Gạch ngang", "Durchgestrichen", "Barré", "Tachado", "Tachado"],
-  "본문": ["Body text", "本文", "正文", "內文", "Văn bản thường", "Fließtext", "Texte normal", "Texto normal", "Texto normal"],
-  "제목 {0}": ["Heading {0}", "見出し {0}", "标题 {0}", "標題 {0}", "Tiêu đề {0}", "Überschrift {0}", "Titre {0}", "Título {0}", "Título {0}"],
-  "목록 없음": ["No list", "リストなし", "无列表", "無清單", "Không danh sách", "Keine Liste", "Aucune liste", "Sem lista", "Sin lista"],
-  "• 글머리 기호": ["• Bullets", "• 箇条書き", "• 项目符号", "• 項目符號", "• Dấu đầu dòng", "• Aufzählung", "• Puces", "• Marcadores", "• Viñetas"],
-  "1. 번호 매기기": ["1. Numbering", "1. 番号付き", "1. 编号", "1. 編號", "1. Đánh số", "1. Nummerierung", "1. Numérotation", "1. Numeração", "1. Numeración"],
-  "☐ 체크 상자": ["☐ Checkboxes", "☐ チェックボックス", "☐ 复选框", "☐ 核取方塊", "☐ Hộp kiểm", "☐ Kontrollkästchen", "☐ Cases à cocher", "☐ Caixas de seleção", "☐ Casillas"],
-  "글 파일 이름은 .txt로 끝나야 합니다. 이름을 확인해 주세요.": ["The text file name must end in .txt. Please check the name.", "テキストファイル名は .txt で終わる必要があります。名前を確認してください。", "文本文件名必须以 .txt 结尾。请检查名称。", "文字檔名稱必須以 .txt 結尾。請檢查名稱。", "Tên tệp văn bản phải kết thúc bằng .txt. Vui lòng kiểm tra tên.", "Der Name der Textdatei muss auf .txt enden. Bitte Namen prüfen.", "Le nom du fichier texte doit se terminer par .txt. Vérifiez le nom.", "O nome do arquivo de texto deve terminar em .txt. Verifique o nome.", "El nombre del archivo de texto debe terminar en .txt. Revisa el nombre."],
-  "예: 1-3, 5 (전체 {0}쪽)": ["e.g. 1-3, 5 ({0} pages in total)", "例: 1-3, 5 (全 {0} ページ)", "例如: 1-3, 5 (共 {0} 页)", "例如: 1-3, 5 (共 {0} 頁)", "VD: 1-3, 5 (tổng {0} trang)", "z. B. 1-3, 5 ({0} Seiten insgesamt)", "ex. : 1-3, 5 ({0} pages au total)", "ex.: 1-3, 5 ({0} páginas no total)", "p. ej.: 1-3, 5 ({0} páginas en total)"],
-  "모두": ["All", "すべて", "全部", "全部", "Tất cả", "Alle", "Toutes", "Todas", "Todas"],
-  "홀수 페이지만": ["Odd pages only", "奇数ページのみ", "仅奇数页", "僅奇數頁", "Chỉ trang lẻ", "Nur ungerade Seiten", "Pages impaires seulement", "Somente páginas ímpares", "Solo páginas impares"],
-  "짝수 페이지만": ["Even pages only", "偶数ページのみ", "仅偶数页", "僅偶數頁", "Chỉ trang chẵn", "Nur gerade Seiten", "Pages paires seulement", "Somente páginas pares", "Solo páginas pares"],
-  "페이지 범위": ["Page range", "ページ範囲", "页面范围", "頁面範圍", "Phạm vi trang", "Seitenbereich", "Plage de pages", "Intervalo de páginas", "Intervalo de páginas"],
-  "페이지 번호를 1~{0} 안에서 넣어 주세요. 예: 1-3, 5": ["Enter page numbers from 1 to {0}. e.g. 1-3, 5", "1～{0} のページ番号を入力してください。例: 1-3, 5", "请输入 1~{0} 之间的页码。例如: 1-3, 5", "請輸入 1~{0} 之間的頁碼。例如: 1-3, 5", "Nhập số trang từ 1 đến {0}. VD: 1-3, 5", "Seitenzahlen von 1 bis {0} eingeben. z. B. 1-3, 5", "Saisissez des numéros de page de 1 à {0}. ex. : 1-3, 5", "Digite números de página de 1 a {0}. ex.: 1-3, 5", "Escribe números de página del 1 al {0}. p. ej.: 1-3, 5"],
-  "인쇄할 페이지가 없습니다.": ["There are no pages to print.", "印刷するページがありません。", "没有要打印的页面。", "沒有要列印的頁面。", "Không có trang nào để in.", "Keine Seiten zum Drucken.", "Aucune page à imprimer.", "Não há páginas para imprimir.", "No hay páginas para imprimir."],
-  "인쇄": ["Print", "印刷", "打印", "列印", "In", "Drucken", "Imprimer", "Imprimir", "Imprimir"],
-  "전체 {0}쪽": ["{0} pages in total", "全 {0} ページ", "共 {0} 页", "共 {0} 頁", "Tổng {0} trang", "{0} Seiten insgesamt", "{0} pages au total", "{0} páginas no total", "{0} páginas en total"],
-  "인쇄할 페이지를 준비하는 중…": ["Preparing pages to print…", "印刷するページを準備しています…", "正在准备要打印的页面…", "正在準備要列印的頁面…", "Đang chuẩn bị trang để in…", "Seiten werden zum Drucken vorbereitet…", "Préparation des pages à imprimer…", "Preparando as páginas para impressão…", "Preparando las páginas para imprimir…"],
-  "{0}쪽을 인쇄합니다.": ["Printing {0} page(s).", "{0} ページを印刷します。", "将打印 {0} 页。", "將列印 {0} 頁。", "Đang in {0} trang.", "{0} Seite(n) werden gedruckt.", "Impression de {0} page(s).", "Imprimindo {0} página(s).", "Imprimiendo {0} página(s)."],
-  "인쇄를 준비하지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Couldn't prepare printing. Please check your internet connection.", "印刷を準備できませんでした。インターネット接続を確認してください。", "无法准备打印。请检查网络连接。", "無法準備列印。請檢查網路連線。", "Không thể chuẩn bị in. Vui lòng kiểm tra kết nối internet.", "Drucken konnte nicht vorbereitet werden. Bitte Internetverbindung prüfen.", "Impossible de préparer l'impression. Vérifiez votre connexion Internet.", "Não foi possível preparar a impressão. Verifique sua conexão com a internet.", "No se pudo preparar la impresión. Revisa tu conexión a internet."],
-  "사용법": ["How to use", "使い方", "使用方法", "使用方法", "Cách dùng", "Anleitung", "Mode d'emploi", "Como usar", "Cómo usar"],
-  "동영상": ["Video", "動画", "视频", "影片", "Video", "Video", "Vidéo", "Vídeo", "Vídeo"],
-  "동영상이 너무 커서 이 기기에 기억하지 못했습니다. 다음에 열 때 다시 골라 주세요.": ["The video is too large to remember on this device. Please pick it again next time.", "動画が大きすぎてこの端末に記憶できませんでした。次回もう一度選んでください。", "视频太大，无法记在此设备上。下次打开时请重新选择。", "影片太大，無法記在此裝置上。下次開啟時請重新選擇。", "Video quá lớn nên không thể ghi nhớ trên thiết bị này. Lần sau hãy chọn lại.", "Das Video ist zu groß, um es auf diesem Gerät zu merken. Bitte beim nächsten Mal erneut wählen.", "La vidéo est trop volumineuse pour être mémorisée sur cet appareil. Choisissez-la à nouveau la prochaine fois.", "O vídeo é grande demais para ser lembrado neste dispositivo. Escolha-o novamente da próxima vez.", "El vídeo es demasiado grande para recordarlo en este dispositivo. Vuelve a elegirlo la próxima vez."],
-  "‘{0}’ 파일을 다시 골라 주세요.": ["Please pick ‘{0}’ again.", "‘{0}’ をもう一度選んでください。", "请重新选择“{0}”。", "請重新選擇「{0}」。", "Hãy chọn lại tệp ‘{0}’.", "Bitte ‘{0}’ erneut auswählen.", "Veuillez choisir à nouveau « {0} ».", "Escolha ‘{0}’ novamente.", "Vuelve a elegir ‘{0}’."],
-  "내 PC·폰의 동영상 고르기…": ["Choose a video on this PC/phone…", "この PC・スマホの動画を選ぶ…", "选择本机/手机中的视频…", "選擇本機/手機中的影片…", "Chọn video trong máy tính/điện thoại…", "Video auf diesem PC/Handy wählen…", "Choisir une vidéo sur ce PC/téléphone…", "Escolher um vídeo deste PC/celular…", "Elegir un vídeo de este PC/móvil…"],
-  "또는 이 기기에 있는 동영상 파일:": ["Or a video file on this device:", "または、この端末にある動画ファイル:", "或此设备上的视频文件：", "或此裝置上的影片檔：", "Hoặc tệp video trên thiết bị này:", "Oder eine Videodatei auf diesem Gerät:", "Ou un fichier vidéo sur cet appareil :", "Ou um arquivo de vídeo neste dispositivo:", "O un archivo de vídeo de este dispositivo:"],
-  "동영상 상자 지우기": ["Delete video box", "動画ボックスを削除", "删除视频框", "刪除影片框", "Xóa khung video", "Videorahmen löschen", "Supprimer le cadre vidéo", "Excluir caixa de vídeo", "Eliminar cuadro de vídeo"],
-  "종료": ["Exit", "終了", "退出", "結束", "Thoát", "Beenden", "Quitter", "Sair", "Salir"],
-  "브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.": ["Can't close from a browser tab. Please close it with the tab's ✕.", "ブラウザーのタブからは閉じられません。タブの ✕ で閉じてください。", "无法在浏览器标签页中关闭。请点击标签页上的 ✕ 关闭。", "無法在瀏覽器分頁中關閉。請按分頁上的 ✕ 關閉。", "Không thể đóng từ thẻ trình duyệt. Hãy bấm ✕ trên thẻ để đóng.", "Im Browser-Tab nicht möglich. Bitte mit dem ✕ des Tabs schließen.", "Impossible de fermer depuis un onglet du navigateur. Fermez-le avec le ✕ de l'onglet.", "Não é possível fechar numa aba do navegador. Feche pelo ✕ da aba.", "No se puede cerrar desde una pestaña del navegador. Ciérrala con la ✕ de la pestaña."],
-  "유튜브에서 보기": ["Watch on YouTube", "YouTube で見る", "在 YouTube 上观看", "在 YouTube 上觀看", "Xem trên YouTube", "Auf YouTube ansehen", "Regarder sur YouTube", "Assistir no YouTube", "Ver en YouTube"],
-  "미리보기·인쇄": ["Preview & print", "プレビュー・印刷", "预览·打印", "預覽·列印", "Xem trước & in", "Vorschau & Drucken", "Aperçu et impression", "Visualizar e imprimir", "Vista previa e imprimir"],
-  "시험판 {0} · {1}": ["Beta {0} · {1}", "試用版 {0} · {1}", "测试版 {0} · {1}", "測試版 {0} · {1}", "Bản thử {0} · {1}", "Testversion {0} · {1}", "Version d'essai {0} · {1}", "Versão de teste {0} · {1}", "Versión de prueba {0} · {1}"],
-  "주소 복사": ["Copy address", "アドレスをコピー", "复制地址", "複製網址", "Sao chép địa chỉ", "Adresse kopieren", "Copier l'adresse", "Copiar endereço", "Copiar dirección"],
-  "앱 주소를 복사했습니다.": ["App address copied.", "アプリのアドレスをコピーしました。", "已复制应用地址。", "已複製應用程式網址。", "Đã sao chép địa chỉ ứng dụng.", "App-Adresse kopiert.", "Adresse de l'app copiée.", "Endereço do app copiado.", "Dirección de la app copiada."],
-  "pitex 정보": ["About pitex", "pitex について", "关于 pitex", "關於 pitex", "Giới thiệu pitex", "Über pitex", "À propos de pitex", "Sobre o pitex", "Acerca de pitex"],
-  "pitex 정보 (버전·설치)": ["About pitex (version & install)", "pitex について (バージョン・インストール)", "关于 pitex (版本·安装)", "關於 pitex (版本·安裝)", "Giới thiệu pitex (phiên bản & cài đặt)", "Über pitex (Version & Installation)", "À propos de pitex (version et installation)", "Sobre o pitex (versão e instalação)", "Acerca de pitex (versión e instalación)"],
-  "글은 순수 txt로, 그림·선·표·꾸밈은 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.": ["A notepad that saves text as plain txt and pictures, lines, tables and formatting in a companion file (.txtx.pitex). People without pitex just see the txt.", "本文は純粋な txt で、画像・線・表・書式はペアファイル (.txtx.pitex) で保存するメモ帳です。pitex がない人には txt だけが見えます。", "正文保存为纯 txt，图片、线条、表格和格式保存在配套文件 (.txtx.pitex) 中的记事本。没有 pitex 的人只会看到 txt。", "正文儲存為純 txt，圖片、線條、表格和格式儲存在配套檔案 (.txtx.pitex) 中的記事本。沒有 pitex 的人只會看到 txt。", "Trình ghi chú lưu văn bản dạng txt thuần, còn hình, đường, bảng và định dạng trong tệp đi kèm (.txtx.pitex). Người không có pitex chỉ thấy tệp txt.", "Ein Editor, der Text als reines txt und Bilder, Linien, Tabellen und Formatierung in einer Begleitdatei (.txtx.pitex) speichert. Wer pitex nicht hat, sieht nur das txt.", "Un bloc-notes qui enregistre le texte en txt pur et les images, lignes, tableaux et mises en forme dans un fichier compagnon (.txtx.pitex). Sans pitex, on ne voit que le txt.", "Um bloco de notas que salva o texto em txt puro e imagens, linhas, tabelas e formatação num arquivo complementar (.txtx.pitex). Quem não tem pitex vê só o txt.", "Un bloc de notas que guarda el texto como txt puro y las imágenes, líneas, tablas y formato en un archivo complementario (.txtx.pitex). Quien no tiene pitex solo ve el txt."],
-  "앱 주소": ["App address", "アプリのアドレス", "应用地址", "應用程式網址", "Địa chỉ ứng dụng", "App-Adresse", "Adresse de l'app", "Endereço do app", "Dirección de la app"],
-  "PC에 설치하기 (Windows)": ["Install on PC (Windows)", "PC にインストール (Windows)", "在电脑上安装 (Windows)", "在電腦上安裝 (Windows)", "Cài trên máy tính (Windows)", "Auf dem PC installieren (Windows)", "Installer sur PC (Windows)", "Instalar no PC (Windows)", "Instalar en el PC (Windows)"],
-  "Edge로 위 주소를 엽니다.": ["Open the address above in Edge.", "Edge で上のアドレスを開きます。", "用 Edge 打开上面的地址。", "用 Edge 開啟上面的網址。", "Mở địa chỉ trên bằng Edge.", "Öffnen Sie die obige Adresse in Edge.", "Ouvrez l'adresse ci-dessus dans Edge.", "Abra o endereço acima no Edge.", "Abre la dirección de arriba en Edge."],
-  "주소창 오른쪽의 ‘앱 설치’(⊞) 단추를 누르고 [설치]를 누릅니다.": ["Click the ‘Install app’ (⊞) button at the right of the address bar, then [Install].", "アドレスバー右の「アプリのインストール」(⊞) を押し、[インストール] を押します。", "点击地址栏右侧的“安装应用”(⊞) 按钮，然后点击 [安装]。", "按下網址列右側的「安裝應用程式」(⊞) 按鈕，再按 [安裝]。", "Bấm nút ‘Cài đặt ứng dụng’ (⊞) bên phải thanh địa chỉ, rồi bấm [Cài đặt].", "Klicken Sie rechts in der Adressleiste auf ‘App installieren’ (⊞) und dann auf [Installieren].", "Cliquez sur ‘Installer l'application’ (⊞) à droite de la barre d'adresse, puis sur [Installer].", "Clique em ‘Instalar app’ (⊞) à direita da barra de endereço e depois em [Instalar].", "Pulsa ‘Instalar aplicación’ (⊞) a la derecha de la barra de direcciones y luego [Instalar]."],
-  "시작 메뉴와 바탕화면에 pitex 아이콘이 생기고, 창 하나짜리 앱으로 열립니다.": ["A pitex icon appears in the Start menu and on the desktop, and it opens as its own app window.", "スタートメニューとデスクトップに pitex のアイコンができ、専用のアプリ画面で開きます。", "开始菜单和桌面上会出现 pitex 图标，并以独立的应用窗口打开。", "開始功能表和桌面會出現 pitex 圖示，並以獨立的應用程式視窗開啟。", "Biểu tượng pitex xuất hiện trong menu Start và trên màn hình nền, mở như một cửa sổ ứng dụng riêng.", "Im Startmenü und auf dem Desktop erscheint ein pitex-Symbol; es öffnet sich als eigenes App-Fenster.", "Une icône pitex apparaît dans le menu Démarrer et sur le bureau, et s'ouvre dans sa propre fenêtre.", "Um ícone do pitex aparece no menu Iniciar e na área de trabalho, e ele abre como um app em janela própria.", "Aparece un icono de pitex en el menú Inicio y en el escritorio, y se abre como una ventana de aplicación propia."],
-  "폰에 설치하기": ["Install on phone", "スマホにインストール", "在手机上安装", "在手機上安裝", "Cài trên điện thoại", "Auf dem Handy installieren", "Installer sur le téléphone", "Instalar no celular", "Instalar en el móvil"],
-  "Chrome으로 위 주소를 엽니다.": ["Open the address above in Chrome.", "Chrome で上のアドレスを開きます。", "用 Chrome 打开上面的地址。", "用 Chrome 開啟上面的網址。", "Mở địa chỉ trên bằng Chrome.", "Öffnen Sie die obige Adresse in Chrome.", "Ouvrez l'adresse ci-dessus dans Chrome.", "Abra o endereço acima no Chrome.", "Abre la dirección de arriba en Chrome."],
-  "오른쪽 위 ⋮ 메뉴 → ‘앱 설치’ 또는 ‘홈 화면에 추가’를 누릅니다.": ["Tap the ⋮ menu at the top right → ‘Install app’ or ‘Add to Home screen’.", "右上の ⋮ メニュー →「アプリをインストール」または「ホーム画面に追加」を押します。", "点右上角 ⋮ 菜单 →“安装应用”或“添加到主屏幕”。", "點右上角 ⋮ 選單 →「安裝應用程式」或「加到主畫面」。", "Chạm menu ⋮ ở góc trên bên phải → ‘Cài đặt ứng dụng’ hoặc ‘Thêm vào màn hình chính’.", "Tippen Sie oben rechts auf ⋮ → ‘App installieren’ oder ‘Zum Startbildschirm hinzufügen’.", "Touchez le menu ⋮ en haut à droite → ‘Installer l'application’ ou ‘Ajouter à l'écran d'accueil’.", "Toque no menu ⋮ no canto superior direito → ‘Instalar app’ ou ‘Adicionar à tela inicial’.", "Toca el menú ⋮ arriba a la derecha → ‘Instalar aplicación’ o ‘Añadir a pantalla de inicio’."],
-  "새 버전 받기": ["Getting new versions", "新しいバージョンを受け取る", "获取新版本", "取得新版本", "Nhận phiên bản mới", "Neue Versionen erhalten", "Obtenir les nouvelles versions", "Receber novas versões", "Obtener versiones nuevas"],
-  "따로 내려받을 필요가 없습니다. 인터넷이 연결된 상태에서 pitex를 껐다 켜면 새 버전으로 바뀝니다.": ["No separate download is needed. Close and reopen pitex while online and it updates to the new version.", "別途ダウンロードする必要はありません。インターネットにつながった状態で pitex を開き直すと新しいバージョンになります。", "无需另外下载。联网时关闭并重新打开 pitex，就会更新为新版本。", "不需另外下載。連網時關閉並重新開啟 pitex，就會更新為新版本。", "Không cần tải riêng. Khi có mạng, tắt rồi mở lại pitex là lên phiên bản mới.", "Kein separater Download nötig. Schließen und öffnen Sie pitex online erneut, dann wird es aktualisiert.", "Aucun téléchargement séparé. Fermez puis rouvrez pitex en étant connecté : il passe à la nouvelle version.", "Não é preciso baixar nada. Feche e abra o pitex com internet e ele passa para a nova versão.", "No hace falta descargar nada. Cierra y vuelve a abrir pitex con internet y se actualiza a la nueva versión."],
-  "인터넷이 없어도 마지막으로 받은 버전으로 열립니다.": ["Without internet, it opens with the last version received.", "インターネットがなくても、最後に受け取ったバージョンで開きます。", "没有网络时，也会以最后获取的版本打开。", "沒有網路時，也會以最後取得的版本開啟。", "Không có mạng vẫn mở được bằng phiên bản nhận gần nhất.", "Ohne Internet öffnet es sich mit der zuletzt erhaltenen Version.", "Sans Internet, il s'ouvre avec la dernière version reçue.", "Sem internet, abre com a última versão recebida.", "Sin internet, se abre con la última versión recibida."],
-  "버전 숫자는 이 창 위쪽에서 확인합니다.": ["Check the version number at the top of this window.", "バージョン番号はこの画面の上で確認できます。", "版本号可在此窗口上方查看。", "版本號可在此視窗上方查看。", "Xem số phiên bản ở phía trên cửa sổ này.", "Die Versionsnummer steht oben in diesem Fenster.", "Le numéro de version figure en haut de cette fenêtre.", "Veja o número da versão no topo desta janela.", "Consulta el número de versión en la parte superior de esta ventana."],
-  "버전·설치 안내 ›": ["Version & install ›", "バージョン・インストール ›", "版本·安装 ›", "版本·安裝 ›", "Phiên bản & cài đặt ›", "Version & Installation ›", "Version et installation ›", "Versão e instalação ›", "Versión e instalación ›"],
-  "동영상 상자: 한 번 누르면 기본 크기(16:9), 끌면 원하는 크기로 만듭니다.": ["Video box: tap once for the default size (16:9), or drag for any size.", "動画ボックス：1 回押すと標準サイズ (16:9)、ドラッグすると好きな大きさで作ります。", "视频框：点一下为默认大小 (16:9)，拖动可设为任意大小。", "影片框：點一下為預設大小 (16:9)，拖曳可設為任意大小。", "Khung video: chạm một lần để có cỡ mặc định (16:9), kéo để chọn cỡ tùy ý.", "Videorahmen: einmal tippen für Standardgröße (16:9), ziehen für beliebige Größe.", "Cadre vidéo : touchez une fois pour la taille par défaut (16:9), ou faites glisser pour la taille voulue.", "Caixa de vídeo: toque uma vez para o tamanho padrão (16:9) ou arraste para o tamanho que quiser.", "Cuadro de vídeo: toca una vez para el tamaño predeterminado (16:9) o arrastra para el tamaño que quieras."],
-  "정식판: 30일 무료 체험 · 평생이용권": ["Full version: 30-day free trial · Lifetime pass", "製品版：30 日間無料体験・永久ライセンス", "正式版：30 天免费试用 · 终身使用权", "正式版：30 天免費試用 · 終身使用權", "Bản chính thức: dùng thử 30 ngày · Vé trọn đời", "Vollversion: 30 Tage gratis testen · Lebenslange Lizenz", "Version complète : 30 jours d'essai · Licence à vie", "Versão completa: 30 dias grátis · Licença vitalícia", "Versión completa: 30 días de prueba · Licencia de por vida"],
-  "정식판과 평생이용권": ["Full version and lifetime pass", "製品版と永久ライセンス", "正式版与终身使用权", "正式版與終身使用權", "Bản chính thức và vé trọn đời", "Vollversion und lebenslange Lizenz", "Version complète et licence à vie", "Versão completa e licença vitalícia", "Versión completa y licencia de por vida"],
-  "정식판은 마이크로소프트 스토어에서 받습니다. (준비 중)": ["The full version will be available from the Microsoft Store. (Coming soon)", "製品版は Microsoft Store で入手します。(準備中)", "正式版将在 Microsoft Store 提供。(准备中)", "正式版將在 Microsoft Store 提供。(準備中)", "Bản chính thức sẽ có trên Microsoft Store. (Sắp ra mắt)", "Die Vollversion gibt es im Microsoft Store. (In Vorbereitung)", "La version complète sera disponible sur le Microsoft Store. (Bientôt)", "A versão completa estará na Microsoft Store. (Em breve)", "La versión completa estará en Microsoft Store. (Próximamente)"],
-  "설치 후 30일 동안은 모든 기능을 무료로 씁니다.": ["For 30 days after installing, every feature is free.", "インストール後 30 日間はすべての機能を無料で使えます。", "安装后 30 天内所有功能均可免费使用。", "安裝後 30 天內所有功能均可免費使用。", "Trong 30 ngày sau khi cài, mọi tính năng đều miễn phí.", "30 Tage nach der Installation sind alle Funktionen kostenlos.", "Pendant 30 jours après l'installation, toutes les fonctions sont gratuites.", "Durante 30 dias após a instalação, todos os recursos são gratuitos.", "Durante 30 días tras instalarla, todas las funciones son gratis."],
-  "30일이 지나면 PDF 보내기와 HTML 보내기만 잠기고, 나머지 기능은 계속 무료입니다.": ["After 30 days only PDF and HTML export are locked; everything else stays free.", "30 日を過ぎると PDF と HTML への書き出しだけが使えなくなり、ほかの機能は引き続き無料です。", "30 天后仅锁定 PDF 和 HTML 导出，其他功能继续免费。", "30 天後僅鎖定 PDF 和 HTML 匯出，其他功能繼續免費。", "Sau 30 ngày chỉ khóa xuất PDF và HTML; mọi tính năng khác vẫn miễn phí.", "Nach 30 Tagen werden nur PDF- und HTML-Export gesperrt; alles andere bleibt kostenlos.", "Après 30 jours, seuls les exports PDF et HTML sont verrouillés ; le reste reste gratuit.", "Após 30 dias, só a exportação em PDF e HTML fica bloqueada; o resto continua grátis.", "Tras 30 días solo se bloquean la exportación a PDF y HTML; lo demás sigue gratis."],
-  "평생이용권(한국 1,000원, 그 밖의 나라 1$)을 한 번 사면 두 기능이 다시 열리고, 평생 무료 업그레이드가 포함됩니다.": ["Buy the lifetime pass once ($1; ₩1,000 in Korea) to unlock both again, with free upgrades for life.", "永久ライセンス (1$、韓国は 1,000 ウォン) を一度買うと 2 つの機能が再び使え、生涯無料アップグレード付きです。", "购买一次终身使用权 (1$，韩国 1,000 韩元) 即可重新开启这两项功能，并终身免费升级。", "購買一次終身使用權 (1$，韓國 1,000 韓元) 即可重新開啟這兩項功能，並終身免費升級。", "Mua vé trọn đời một lần (1$; tại Hàn Quốc 1.000₩) để mở lại hai tính năng, kèm nâng cấp miễn phí trọn đời.", "Mit der einmal gekauften lebenslangen Lizenz (1 $; in Korea 1.000 ₩) sind beide wieder frei – inklusive lebenslanger kostenloser Upgrades.", "Achetez une fois la licence à vie (1 $ ; 1 000 ₩ en Corée) pour les débloquer, avec mises à niveau gratuites à vie.", "Compre uma vez a licença vitalícia (US$ 1; ₩1.000 na Coreia) para desbloquear os dois, com atualizações grátis para sempre.", "Compra una vez la licencia de por vida (1 $; 1.000 ₩ en Corea) para desbloquear ambas, con actualizaciones gratis de por vida."],
-  "제목 없음": ["Untitled", "無題", "无标题", "無標題", "Không tên", "Unbenannt", "Sans titre", "Sem título", "Sin título"],
-  "조금 더 크게 끌어 주세요.": ["Please drag a bit larger.", "もう少し大きくドラッグしてください。", "请拖得大一些。", "請拖得大一些。", "Hãy kéo lớn hơn một chút.", "Bitte etwas größer ziehen.", "Faites glisser un peu plus grand.", "Arraste um pouco maior.", "Arrastra un poco más grande."],
-  "줄 {0}, 열 {1}": ["Ln {0}, Col {1}", "{0} 行、{1} 列", "第 {0} 行，第 {1} 列", "第 {0} 行，第 {1} 列", "Dòng {0}, Cột {1}", "Zeile {0}, Spalte {1}", "Ligne {0}, Col {1}", "Lin {0}, Col {1}", "Lín {0}, Col {1}"],
-  "줄 끝: Unix (LF) — 폰 방식": ["Line ending: Unix (LF) — phone style", "改行コード：Unix (LF) — スマホ方式", "行尾：Unix (LF) — 手机方式", "行尾：Unix (LF) — 手機方式", "Kết thúc dòng: Unix (LF) — kiểu điện thoại", "Zeilenende: Unix (LF) — Handy-Stil", "Fin de ligne : Unix (LF) — style téléphone", "Fim de linha: Unix (LF) — estilo celular", "Fin de línea: Unix (LF) — estilo celular"],
-  "줄 끝: Unix·폰 (LF)": ["Line ending: Unix·phone (LF)", "改行コード：Unix・スマホ (LF)", "行尾：Unix·手机 (LF)", "行尾：Unix·手機 (LF)", "Kết thúc dòng: Unix·điện thoại (LF)", "Zeilenende: Unix·Handy (LF)", "Fin de ligne : Unix·téléphone (LF)", "Fim de linha: Unix·celular (LF)", "Fin de línea: Unix·celular (LF)"],
-  "줄 끝: Windows (CR LF)": ["Line ending: Windows (CR LF)", "改行コード：Windows (CR LF)", "行尾：Windows (CR LF)", "行尾：Windows (CR LF)", "Kết thúc dòng: Windows (CR LF)", "Zeilenende: Windows (CR LF)", "Fin de ligne : Windows (CR LF)", "Fim de linha: Windows (CR LF)", "Fin de línea: Windows (CR LF)"],
-  "줄 끝: Windows (CR LF) — PC 메모장과 같게": ["Line ending: Windows (CR LF) — same as PC Notepad", "改行コード：Windows (CR LF) — PCのメモ帳と同じ", "行尾：Windows (CR LF) — 与电脑记事本相同", "行尾：Windows (CR LF) — 與電腦記事本相同", "Kết thúc dòng: Windows (CR LF) — giống Notepad trên PC", "Zeilenende: Windows (CR LF) — wie der PC-Editor", "Fin de ligne : Windows (CR LF) — comme le Bloc-notes du PC", "Fim de linha: Windows (CR LF) — igual ao Bloco de Notas do PC", "Fin de línea: Windows (CR LF) — igual que el Bloc de notas de la PC"],
-  "줄 번호": ["Line numbers", "行番号", "行号", "行號", "Số dòng", "Zeilennummern", "Numéros de ligne", "Números de linha", "Números de línea"],
-  "지역 인코딩": ["Regional encodings", "地域のエンコード", "区域编码", "區域編碼", "Mã hóa khu vực", "Regionale Codierungen", "Encodages régionaux", "Codificações regionais", "Codificaciones regionales"],
-  "지우기": ["Clear", "消去", "清除", "清除", "Xóa", "Leeren", "Effacer", "Limpar", "Borrar"],
-  "지웠습니다: {0}": ["Cleared: {0}", "消去しました：{0}", "已清除：{0}", "已清除：{0}", "Đã xóa: {0}", "Geleert: {0}", "Effacé : {0}", "Limpo: {0}", "Borrado: {0}"],
-  "짝꿍 파일만으로는 열 수 없습니다. 같은 이름의 txt도 함께 골라 주세요.": ["The companion file alone cannot be opened. Please select the txt with the same name too.", "ペアファイルだけでは開けません。同じ名前の txt も一緒に選んでください。", "仅配套文件无法打开。请同时选择同名的 txt。", "僅配套檔案無法開啟。請同時選擇同名的 txt。", "Không thể mở chỉ với tệp đi kèm. Hãy chọn cùng tệp txt cùng tên.", "Die Begleitdatei allein kann nicht geöffnet werden. Bitte das gleichnamige txt mit auswählen.", "Le fichier compagnon seul ne peut pas être ouvert. Sélectionnez aussi le txt du même nom.", "O arquivo complementar sozinho não abre. Selecione também o txt com o mesmo nome.", "El archivo complementario solo no se puede abrir. Selecciona también el txt del mismo nombre."],
-  "찾기": ["Find", "検索", "查找", "查詢", "Tìm", "Suchen", "Rechercher", "Localizar", "Buscar"],
-  "찾기 (Ctrl+F)": ["Find (Ctrl+F)", "検索 (Ctrl+F)", "查找 (Ctrl+F)", "查詢 (Ctrl+F)", "Tìm (Ctrl+F)", "Suchen (Strg+F)", "Rechercher (Ctrl+F)", "Localizar (Ctrl+F)", "Buscar (Ctrl+F)"],
-  "찾기…": ["Find…", "検索…", "查找…", "查詢…", "Tìm…", "Suchen…", "Rechercher…", "Localizar…", "Buscar…"],
-  "찾는 말이 없습니다.": ["Not found.", "見つかりません。", "找不到。", "找不到。", "Không tìm thấy.", "Nicht gefunden.", "Introuvable.", "Não encontrado.", "No se encontró."],
-  "찾을 말": ["Find", "検索する文字列", "查找内容", "查詢內容", "Tìm gì", "Suchen nach", "Rechercher", "Localizar", "Buscar"],
-  "축소": ["Zoom out", "縮小", "缩小", "縮小", "Thu nhỏ", "Verkleinern", "Zoom arrière", "Diminuir zoom", "Alejar"],
-  "취소": ["Cancel", "キャンセル", "取消", "取消", "Hủy", "Abbrechen", "Annuler", "Cancelar", "Cancelar"],
-  "카메라": ["Camera", "カメラ", "相机", "相機", "Máy ảnh", "Kamera", "Appareil photo", "Câmera", "Cámara"],
-  "커서": ["Cursor", "カーソル", "光标", "游標", "Con trỏ", "Cursor", "Curseur", "Cursor", "Cursor"],
-  "켬": ["On", "オン", "开", "開", "Bật", "Ein", "Activé", "Ligado", "Activado"],
-  "크기": ["Size", "サイズ", "大小", "大小", "Cỡ", "Größe", "Taille", "Tamanho", "Tamaño"],
-  "텍스트": ["Text", "テキスト", "文本", "文字", "Văn bản", "Text", "Texte", "Texto", "Texto"],
-  "텍스트 문서": ["Text document", "テキスト文書", "文本文档", "文字文件", "Tài liệu văn bản", "Textdokument", "Document texte", "Documento de texto", "Documento de texto"],
-  "텍스트 서식": ["Text formatting", "テキストの書式", "文本格式", "文字格式", "Định dạng văn bản", "Textformatierung", "Mise en forme du texte", "Formatação de texto", "Formato de texto"],
-  "텍스트로 보냈습니다.": ["Exported as text.", "テキストで書き出しました。", "已导出为文本。", "已匯出為文字。", "Đã xuất dạng văn bản.", "Als Text exportiert.", "Exporté en texte.", "Exportado como texto.", "Exportado como texto."],
-  "파일": ["File", "ファイル", "文件", "檔案", "Tệp", "Datei", "Fichier", "Arquivo", "Archivo"],
-  "파일 이름": ["File name", "ファイル名", "文件名", "檔名", "Tên tệp", "Dateiname", "Nom du fichier", "Nome do arquivo", "Nombre del archivo"],
-  "파일에 쓸 허락을 받지 못했습니다.": ["Permission to write the file was not granted.", "ファイルへの書き込みが許可されませんでした。", "未获得写入文件的权限。", "未獲得寫入檔案的許可權。", "Không được phép ghi tệp.", "Keine Berechtigung zum Schreiben der Datei.", "L’autorisation d’écrire le fichier n’a pas été accordée.", "A permissão para gravar o arquivo não foi concedida.", "No se concedió permiso para escribir el archivo."],
-  "파일에서 연 글만 다시 열 수 있습니다.": ["Only documents opened from a file can be reopened.", "ファイルから開いた文書だけ開き直せます。", "只有从文件打开的文档才能重新打开。", "只有從檔案開啟的文件才能重新開啟。", "Chỉ mở lại được tài liệu mở từ tệp.", "Nur aus einer Datei geöffnete Dokumente können neu geöffnet werden.", "Seuls les documents ouverts depuis un fichier peuvent être rouverts.", "Só documentos abertos de um arquivo podem ser reabertos.", "Solo se pueden reabrir documentos abiertos desde un archivo."],
-  "페이지 {0} / {1}": ["Page {0} / {1}", "{0} / {1} ページ", "第 {0} / {1} 页", "第 {0} / {1} 頁", "Trang {0} / {1}", "Seite {0} / {1}", "Page {0} / {1}", "Página {0} / {1}", "Página {0} / {1}"],
-  "편집": ["Edit", "編集", "编辑", "編輯", "Sửa", "Bearbeiten", "Édition", "Editar", "Editar"],
-  "한 번 더 누르면 종료됩니다": ["Press back again to exit", "もう一度押すと終了します", "再按一次退出", "再按一次退出", "Nhấn lần nữa để thoát", "Zum Beenden erneut drücken", "Appuyez à nouveau pour quitter", "Toque em Voltar de novo para sair", "Presiona Atrás otra vez para salir"],
-  "한국어": ["Korean", "韓国語", "韩语", "韓語", "Tiếng Hàn", "Koreanisch", "Coréen", "Coreano", "Coreano"],
-  "확대": ["Zoom in", "拡大", "放大", "放大", "Phóng to", "Vergrößern", "Zoom avant", "Aumentar zoom", "Acercar"],
-  "확인": ["OK", "OK", "确定", "確定", "OK", "OK", "OK", "OK", "Aceptar"],
-  "휴지통으로 보내기": ["Send to Recycle Bin", "ごみ箱に送る", "移到回收站", "移到回收站", "Chuyển vào Thùng rác", "In den Papierkorb", "Envoyer à la Corbeille", "Enviar para a Lixeira", "Enviar a la Papelera"],
+  "글 비켜가기": ["Wrap text around", "文字を回り込ませる", "文字环绕", "文字環繞", "Chữ bao quanh", "Text umfließen", "Habiller le texte", "Contornar texto", "Ajustar texto alrededor", "التفاف النص حول الصورة"],
+  "칸 글 맞춤": ["Cell alignment", "セルの配置", "单元格对齐", "單元格對齊", "Căn lề ô", "Zellenausrichtung", "Alignement de la cellule", "Alinhamento da célula", "Alineación de celda", "محاذاة نص الخلية"],
+  "왼쪽": ["Left", "左", "左", "左", "Trái", "Links", "Gauche", "Esquerda", "Izquierda", "يسار"],
+  "가운데": ["Center", "中央", "居中", "居中", "Giữa", "Mitte", "Centre", "Centro", "Centro", "وسط"],
+  "오른쪽": ["Right", "右", "右", "右", "Phải", "Rechts", "Droite", "Direita", "Derecha", "يمين"],
+  "엑셀·CSV": ["Excel·CSV", "Excel・CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV", "Excel·CSV"],
+  "엑셀·CSV에서 가져오기…": ["Import from Excel·CSV…", "Excel・CSV から取り込む…", "从 Excel·CSV 导入…", "從 Excel·CSV 匯入…", "Nhập từ Excel·CSV…", "Aus Excel·CSV importieren…", "Importer depuis Excel·CSV…", "Importar do Excel·CSV…", "Importar desde Excel·CSV…", "استيراد من Excel·CSV…"],
+  "가져올 시트를 고르세요": ["Choose a sheet to import", "取り込むシートを選んでください", "请选择要导入的工作表", "請選擇要匯入的工作表", "Chọn trang tính để nhập", "Zu importierendes Blatt wählen", "Choisissez la feuille à importer", "Escolha a planilha a importar", "Elige la hoja a importar", "اختر الورقة المراد استيرادها"],
+  "엑셀을 읽는 중…": ["Reading spreadsheet…", "Excel を読み込み中…", "正在读取表格…", "正在讀取表格…", "Đang đọc bảng tính…", "Tabelle wird gelesen…", "Lecture du classeur…", "Lendo planilha…", "Leyendo hoja de cálculo…", "جارٍ قراءة ملف Excel…"],
+  "엑셀 도구를 받지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not load the spreadsheet tool. Please check your internet connection.", "Excel 読み込みツールを取得できませんでした。インターネット接続を確認してください。", "无法载入表格工具。请检查网络连接。", "無法載入表格工具。請檢查網路連線。", "Không tải được công cụ bảng tính. Vui lòng kiểm tra kết nối Internet.", "Tabellenwerkzeug konnte nicht geladen werden. Bitte Internetverbindung prüfen.", "Impossible de charger l’outil tableur. Vérifiez votre connexion Internet.", "Não foi possível carregar a ferramenta de planilha. Verifique a internet.", "No se pudo cargar la herramienta de hojas. Revisa tu conexión a internet.", "تعذّر تحميل أداة Excel. تحقق من اتصال الإنترنت."],
+  "이 파일을 읽지 못했습니다.": ["Could not read this file.", "このファイルを読み込めませんでした。", "无法读取此文件。", "無法讀取此檔案。", "Không đọc được tệp này.", "Diese Datei konnte nicht gelesen werden.", "Impossible de lire ce fichier.", "Não foi possível ler este arquivo.", "No se pudo leer este archivo.", "تعذّرت قراءة هذا الملف."],
+  "시트가 비어 있습니다.": ["The sheet is empty.", "シートが空です。", "工作表为空。", "工作表為空。", "Trang tính trống.", "Das Blatt ist leer.", "La feuille est vide.", "A planilha está vazia.", "La hoja está vacía.", "الورقة فارغة."],
+  "표가 커서 200행·60열까지만 가져왔습니다.": ["The table was large, so only up to 200 rows and 60 columns were imported.", "表が大きいため、200行・60列まで取り込みました。", "表格过大，仅导入了前 200 行、60 列。", "表格過大，僅匯入了前 200 行、60 列。", "Bảng quá lớn nên chỉ nhập tối đa 200 hàng, 60 cột.", "Die Tabelle war groß; nur bis 200 Zeilen und 60 Spalten importiert.", "Le tableau était grand : seules 200 lignes et 60 colonnes ont été importées.", "A tabela era grande; só até 200 linhas e 60 colunas foram importadas.", "La tabla era grande; solo se importaron hasta 200 filas y 60 columnas.", "الجدول كبير، لذا تم استيراد 200 صف و60 عمودًا فقط."],
+  "{0}행 {1}열을 가져왔습니다.": ["Imported {0} rows × {1} columns.", "{0}行 {1}列を取り込みました。", "已导入 {0} 行 {1} 列。", "已匯入 {0} 行 {1} 列。", "Đã nhập {0} hàng {1} cột.", "{0} Zeilen × {1} Spalten importiert.", "{0} lignes × {1} colonnes importées.", "{0} linhas × {1} colunas importadas.", "{0} filas × {1} columnas importadas.", "تم استيراد {0} صف × {1} عمود."],
+  "엑셀은 값만 가져옵니다. 계산식은 결과 숫자로 들어오고, 첫 줄은 머리글이 됩니다.": ["Excel imports values only: formulas come in as their results, and the first row becomes the header.", "Excel は値だけを取り込みます。計算式は結果の数値で入り、1行目は見出しになります。", "Excel 只导入数值：公式以计算结果导入，第一行成为标题行。", "Excel 只匯入數值：公式以計算結果匯入，第一行成為標題行。", "Excel chỉ nhập giá trị: công thức được nhập thành kết quả, hàng đầu thành tiêu đề.", "Excel importiert nur Werte: Formeln kommen als Ergebnis, die erste Zeile wird Kopfzeile.", "Excel n’importe que les valeurs : les formules arrivent en résultats, la première ligne devient l’en-tête.", "O Excel importa só valores: fórmulas entram como resultado e a primeira linha vira cabeçalho.", "Excel solo importa valores: las fórmulas llegan como resultado y la primera fila es el encabezado.", "يُستورد من Excel القيم فقط: تدخل الصيغ كنتائجها، ويصبح الصف الأول رأس الجدول."],
+  "곡선": ["Curve", "曲線", "曲线", "曲線", "Đường cong", "Kurve", "Courbe", "Curva", "Curva", "منحنى"],
+  "가운데 동그라미를 끌면 선이 휘어집니다.": ["Drag the middle circle to bend the line.", "中央の丸をドラッグすると線が曲がります。", "拖动中间的圆点可弯曲线条。", "拖動中間的圓點可彎曲線條。", "Kéo vòng tròn ở giữa để uốn đường.", "Mittleren Kreis ziehen, um die Linie zu biegen.", "Faites glisser le cercle central pour courber la ligne.", "Arraste o círculo do meio para curvar a linha.", "Arrastra el círculo central para curvar la línea.", "اسحب الدائرة الوسطى لثني الخط."],
+  "곡선: 먼저 시작점에서 끝점까지 끈 다음, 가운데 동그라미로 휘게 하세요.": ["Curve: drag from start to end, then bend it with the middle circle.", "曲線：始点から終点までドラッグし、中央の丸で曲げてください。", "曲线：先从起点拖到终点，再用中间的圆点弯曲。", "曲線：先從起點拖到終點，再用中間的圓點彎曲。", "Đường cong: kéo từ đầu đến cuối, rồi uốn bằng vòng tròn giữa.", "Kurve: vom Start zum Ende ziehen, dann mit dem mittleren Kreis biegen.", "Courbe : faites glisser du début à la fin, puis courbez avec le cercle central.", "Curva: arraste do início ao fim e depois curve com o círculo do meio.", "Curva: arrastra del inicio al final y luego cúrvala con el círculo central.", "منحنى: اسحب أولًا من نقطة البداية إلى النهاية، ثم اثنِه بالدائرة الوسطى."],
+  "표: 대각선으로 끌어 자리를 잡으세요.": ["Table: drag diagonally to place it.", "表：斜めにドラッグして位置を決めてください。", "表格：沿对角线拖动确定位置。", "表格：沿對角線拖動確定位置。", "Bảng: kéo chéo để đặt vị trí.", "Tabelle: diagonal ziehen, um sie zu platzieren.", "Tableau : faites glisser en diagonale pour le placer.", "Tabela: arraste na diagonal para posicioná-la.", "Tabla: arrastra en diagonal para colocarla.", "جدول: اسحب قطريًا لتحديد مكانه."],
+  "본문 행": ["Body rows", "本文行", "正文行", "正文行", "Hàng nội dung", "Textzeilen", "Lignes du corps", "Linhas do corpo", "Filas del cuerpo", "صفوف المحتوى"],
+  "열": ["Columns", "列", "列", "列", "Cột", "Spalten", "Colonnes", "Colunas", "Columnas", "أعمدة"],
+  "머리글 행": ["Header rows", "ヘッダー行", "标题行", "標題行", "Hàng tiêu đề", "Kopfzeilen", "Lignes d’en-tête", "Linhas de cabeçalho", "Filas de encabezado", "صفوف الرأس"],
+  "바닥글 행": ["Footer rows", "フッター行", "页脚行", "頁尾行", "Hàng chân", "Fußzeilen", "Lignes de pied", "Linhas de rodapé", "Filas de pie", "صفوف التذييل"],
+  "행": ["Rows", "行", "行", "行", "Hàng", "Zeilen", "Lignes", "Linhas", "Filas", "صفوف"],
+  "자동 맞춤": ["Auto fit", "自動調整", "自动调整", "自動調整", "Tự khớp", "Automatisch anpassen", "Ajustement auto", "Ajuste automático", "Ajuste automático", "احتواء تلقائي"],
+  "행이 하나 이상 있어야 합니다.": ["There must be at least one row.", "行が1つ以上必要です。", "至少需要一行。", "至少需要一行。", "Phải có ít nhất một hàng.", "Mindestens eine Zeile ist nötig.", "Il faut au moins une ligne.", "É preciso pelo menos uma linha.", "Debe haber al menos una fila.", "يجب أن يوجد صف واحد على الأقل."],
+  "행은 200개까지 만들 수 있습니다.": ["Up to 200 rows are allowed.", "行は200個まで作れます。", "最多可建 200 行。", "最多可建 200 行。", "Tối đa 200 hàng.", "Höchstens 200 Zeilen.", "200 lignes au maximum.", "No máximo 200 linhas.", "Máximo 200 filas.", "يمكن إنشاء 200 صف كحد أقصى."],
+  "칸을 눌러 글을 쓰세요. Tab으로 다음 칸으로 갑니다.": ["Tap a cell to type. Press Tab for the next cell.", "セルを押して入力してください。Tab で次のセルへ。", "点击单元格输入文字。按 Tab 到下一格。", "點選單元格輸入文字。按 Tab 到下一格。", "Nhấn vào ô để gõ. Nhấn Tab sang ô tiếp theo.", "Zelle antippen zum Schreiben. Tab für die nächste Zelle.", "Touchez une cellule pour écrire. Tab pour la cellule suivante.", "Toque numa célula para digitar. Tab vai para a próxima.", "Toca una celda para escribir. Tab pasa a la siguiente.", "اضغط على خلية للكتابة. اضغط Tab للانتقال إلى الخلية التالية."],
+  "표 속성": ["Table properties", "表のプロパティ", "表格属性", "表格屬性", "Thuộc tính bảng", "Tabelleneigenschaften", "Propriétés du tableau", "Propriedades da tabela", "Propiedades de la tabla", "خصائص الجدول"],
+  "표 속성…": ["Table properties…", "表のプロパティ…", "表格属性…", "表格屬性…", "Thuộc tính bảng…", "Tabelleneigenschaften…", "Propriétés du tableau…", "Propriedades da tabela…", "Propiedades de la tabla…", "خصائص الجدول…"],
+  "줄 위에 넣기": ["Insert row above", "上に行を挿入", "在上方插入行", "在上方插入行", "Chèn hàng phía trên", "Zeile oberhalb einfügen", "Insérer une ligne au-dessus", "Inserir linha acima", "Insertar fila arriba", "إدراج صف أعلاه"],
+  "줄 아래에 넣기": ["Insert row below", "下に行を挿入", "在下方插入行", "在下方插入行", "Chèn hàng phía dưới", "Zeile unterhalb einfügen", "Insérer une ligne en dessous", "Inserir linha abaixo", "Insertar fila abajo", "إدراج صف أدناه"],
+  "칸 왼쪽에 넣기": ["Insert column left", "左に列を挿入", "在左侧插入列", "在左側插入列", "Chèn cột bên trái", "Spalte links einfügen", "Insérer une colonne à gauche", "Inserir coluna à esquerda", "Insertar columna a la izquierda", "إدراج عمود إلى اليسار"],
+  "칸 오른쪽에 넣기": ["Insert column right", "右に列を挿入", "在右侧插入列", "在右側插入列", "Chèn cột bên phải", "Spalte rechts einfügen", "Insérer une colonne à droite", "Inserir coluna à direita", "Insertar columna a la derecha", "إدراج عمود إلى اليمين"],
+  "이 줄 지우기": ["Delete this row", "この行を削除", "删除此行", "刪除此行", "Xóa hàng này", "Diese Zeile löschen", "Supprimer cette ligne", "Excluir esta linha", "Eliminar esta fila", "حذف هذا الصف"],
+  "이 칸(세로줄) 지우기": ["Delete this column", "この列を削除", "删除此列", "刪除此列", "Xóa cột này", "Diese Spalte löschen", "Supprimer cette colonne", "Excluir esta coluna", "Eliminar esta columna", "حذف هذا العمود"],
+  "표 지우기": ["Delete table", "表を削除", "删除表格", "刪除表格", "Xóa bảng", "Tabelle löschen", "Supprimer le tableau", "Excluir tabela", "Eliminar tabla", "حذف الجدول"],
+  "표 {0}": ["Tables {0}", "表 {0}", "表格 {0}", "表格 {0}", "Bảng {0}", "Tabellen {0}", "Tableaux {0}", "Tabelas {0}", "Tablas {0}", "جداول {0}"],
+  "크레용": ["Crayon", "クレヨン", "蜡笔", "蠟筆", "Bút sáp", "Wachsmalstift", "Crayon", "Giz de cera", "Crayón", "قلم تلوين"],
+  "형광펜": ["Highlighter", "蛍光ペン", "荧光笔", "熒光筆", "Bút dạ quang", "Textmarker", "Surligneur", "Marca-texto", "Resaltador", "قلم تمييز"],
+  "색깔": ["Color", "色", "颜色", "顏色", "Màu", "Farbe", "Couleur", "Cor", "Color", "اللون"],
+  "굵기": ["Thickness", "太さ", "粗细", "粗細", "Độ dày", "Stärke", "Épaisseur", "Espessura", "Grosor", "السُّمك"],
+  "펜 끄기": ["Turn off pen", "ペンを終了", "关闭画笔", "關閉畫筆", "Tắt bút", "Stift ausschalten", "Désactiver le stylo", "Desligar caneta", "Apagar bolígrafo", "إيقاف القلم"],
+  "칠하기 시작": ["Start drawing", "描き始める", "开始绘制", "開始繪製", "Bắt đầu vẽ", "Zeichnen beginnen", "Commencer à dessiner", "Começar a desenhar", "Empezar a dibujar", "بدء الرسم"],
+  "칠한 자국 지우기": ["Delete stroke", "描いた跡を削除", "删除笔迹", "刪除筆跡", "Xóa nét vẽ", "Strich löschen", "Supprimer le trait", "Excluir traço", "Eliminar trazo", "حذف أثر القلم"],
+  "칠한 자국을 지웠습니다. ↶로 되돌릴 수 있습니다.": ["Stroke deleted. Press ↶ to undo.", "描いた跡を削除しました。↶ で元に戻せます。", "已删除笔迹。可按 ↶ 撤销。", "已刪除筆跡。可按 ↶ 撤銷。", "Đã xóa nét vẽ. Nhấn ↶ để hoàn tác.", "Strich gelöscht. Mit ↶ rückgängig machen.", "Trait supprimé. Appuyez sur ↶ pour annuler.", "Traço excluído. Toque em ↶ para desfazer.", "Trazo eliminado. Toca ↶ para deshacer.", "تم حذف أثر القلم. اضغط ↶ للتراجع."],
+  "펜: 종이 위에 칠하세요. 펜 단추를 다시 누르거나 Esc를 누르면 끝납니다.": ["Pen: draw on the paper. Press the pen button again or Esc to finish.", "ペン：紙の上に描いてください。ペンボタンをもう一度押すか Esc で終了します。", "画笔：在纸上绘制。再次按画笔按钮或 Esc 结束。", "畫筆：在紙上繪製。再次按畫筆按鈕或 Esc 結束。", "Bút: vẽ lên giấy. Nhấn lại nút bút hoặc Esc để kết thúc.", "Stift: auf dem Papier zeichnen. Stift-Taste erneut oder Esc drücken zum Beenden.", "Stylo : dessinez sur la page. Appuyez à nouveau sur le stylo ou sur Échap pour terminer.", "Caneta: desenhe no papel. Toque de novo na caneta ou Esc para terminar.", "Bolígrafo: dibuja en el papel. Pulsa de nuevo el bolígrafo o Esc para terminar.", "القلم: ارسم على الورقة. اضغط زر القلم مرة أخرى أو Esc للإنهاء."],
+  "자유 선": ["Free line", "自由線", "自由线", "自由線", "Đường tự do", "Freie Linie", "Ligne libre", "Linha livre", "Línea libre", "خط حر"],
+  "수직·수평 선": ["Vertical/horizontal line", "垂直・水平線", "垂直/水平线", "垂直/水平線", "Đường dọc/ngang", "Senkrechte/waagerechte Linie", "Ligne verticale/horizontale", "Linha vertical/horizontal", "Línea vertical/horizontal", "خط عمودي/أفقي"],
+  "선 지우기": ["Delete line", "線を削除", "删除线条", "刪除線條", "Xóa đường kẻ", "Linie löschen", "Supprimer la ligne", "Excluir linha", "Eliminar línea", "حذف الخط"],
+  "선을 지웠습니다. ↶로 되돌릴 수 있습니다.": ["Line deleted. Press ↶ to undo.", "線を削除しました。↶ で元に戻せます。", "已删除线条。可按 ↶ 撤销。", "已刪除線條。可按 ↶ 撤銷。", "Đã xóa đường kẻ. Nhấn ↶ để hoàn tác.", "Linie gelöscht. Mit ↶ rückgängig machen.", "Ligne supprimée. Appuyez sur ↶ pour annuler.", "Linha excluída. Toque em ↶ para desfazer.", "Línea eliminada. Toca ↶ para deshacer.", "تم حذف الخط. اضغط ↶ للتراجع."],
+  "수직·수평 선: 시작점을 누른 채 끌어 보세요.": ["Vertical/horizontal line: press at the start point and drag.", "垂直・水平線：始点を押したままドラッグしてください。", "垂直/水平线：按住起点拖动。", "垂直/水平線：按住起點拖動。", "Đường dọc/ngang: giữ điểm bắt đầu rồi kéo.", "Senkrechte/waagerechte Linie: am Startpunkt drücken und ziehen.", "Ligne verticale/horizontale : appuyez au point de départ et faites glisser.", "Linha vertical/horizontal: pressione no ponto inicial e arraste.", "Línea vertical/horizontal: presiona en el punto inicial y arrastra.", "خط عمودي/أفقي: اضغط عند نقطة البداية واسحب."],
+  "자유 선: 시작점을 누른 채 끌어 보세요.": ["Free line: press at the start point and drag.", "自由線：始点を押したままドラッグしてください。", "自由线：按住起点拖动。", "自由線：按住起點拖動。", "Đường tự do: giữ điểm bắt đầu rồi kéo.", "Freie Linie: am Startpunkt drücken und ziehen.", "Ligne libre : appuyez au point de départ et faites glisser.", "Linha livre: pressione no ponto inicial e arraste.", "Línea libre: presiona en el punto inicial y arrastra.", "خط حر: اضغط عند نقطة البداية واسحب."],
+  "조금 더 길게 끌어 주세요.": ["Please drag a little longer.", "もう少し長くドラッグしてください。", "请拖得长一些。", "請拖得長一些。", "Hãy kéo dài hơn một chút.", "Bitte etwas länger ziehen.", "Faites glisser un peu plus loin.", "Arraste um pouco mais.", "Arrastra un poco más.", "اسحب مسافة أطول قليلًا."],
+  "재생": ["Play", "再生", "播放", "播放", "Phát", "Abspielen", "Lire", "Reproduzir", "Reproducir", "تشغيل"],
+  "재생 멈추기": ["Stop playback", "再生を停止", "停止播放", "停止播放", "Dừng phát", "Wiedergabe stoppen", "Arrêter la lecture", "Parar reprodução", "Detener reproducción", "إيقاف التشغيل"],
+  "주소가 올바르지 않습니다.": ["The address is not valid.", "アドレスが正しくありません。", "地址无效。", "地址無效。", "Địa chỉ không hợp lệ.", "Die Adresse ist ungültig.", "L’adresse n’est pas valide.", "O endereço não é válido.", "La dirección no es válida.", "العنوان غير صحيح."],
+  "동영상 링크": ["Video link", "動画リンク", "视频链接", "影片連結", "Liên kết video", "Videolink", "Lien vidéo", "Link de vídeo", "Enlace de video", "رابط فيديو"],
+  "동영상 링크…": ["Video link…", "動画リンク…", "视频链接…", "影片連結…", "Liên kết video…", "Videolink…", "Lien vidéo…", "Link de vídeo…", "Enlace de video…", "رابط فيديو…"],
+  "유튜브 또는 mp4 주소를 넣어 주세요.": ["Enter a YouTube or mp4 address.", "YouTube または mp4 のアドレスを入力してください。", "请输入 YouTube 或 mp4 地址。", "請輸入 YouTube 或 mp4 地址。", "Nhập địa chỉ YouTube hoặc mp4.", "YouTube- oder mp4-Adresse eingeben.", "Saisissez une adresse YouTube ou mp4.", "Digite um endereço do YouTube ou mp4.", "Escribe una dirección de YouTube o mp4.", "أدخل عنوان YouTube أو mp4."],
+  "유튜브·주소 열기": ["Open on YouTube / in browser", "YouTube・ブラウザで開く", "在 YouTube/浏览器中打开", "在 YouTube/瀏覽器中開啟", "Mở trên YouTube / trình duyệt", "Auf YouTube / im Browser öffnen", "Ouvrir sur YouTube / dans le navigateur", "Abrir no YouTube / navegador", "Abrir en YouTube / navegador", "فتح في YouTube / المتصفح"],
+  "다음 단계에서 만듭니다.": ["Coming in the next stage.", "次の段階で作ります。", "将在下一阶段制作。", "將在下一階段製作。", "Sẽ làm ở giai đoạn sau.", "Kommt in der nächsten Stufe.", "Arrive à l’étape suivante.", "Vem na próxima etapa.", "Llega en la próxima etapa.", "سيُضاف في المرحلة التالية."],
+  "선": ["Line", "線", "线条", "線條", "Đường kẻ", "Linie", "Ligne", "Linha", "Línea", "خط"],
+  "펜": ["Pen", "ペン", "画笔", "畫筆", "Bút", "Stift", "Stylo", "Caneta", "Bolígrafo", "قلم"],
+  "표": ["Table", "表", "表格", "表格", "Bảng", "Tabelle", "Tableau", "Tabela", "Tabla", "جدول"],
+  "하트": ["Heart", "ハート", "心形", "心形", "Trái tim", "Herz", "Cœur", "Coração", "Corazón", "قلب"],
+  "모양": ["Shape", "形", "形状", "形狀", "Hình dạng", "Form", "Forme", "Forma", "Forma", "الشكل"],
+  "네모": ["Rectangle", "四角形", "矩形", "矩形", "Hình chữ nhật", "Rechteck", "Rectangle", "Retângulo", "Rectángulo", "مستطيل"],
+  "둥근 네모": ["Rounded rectangle", "角丸四角形", "圆角矩形", "圓角矩形", "Chữ nhật bo góc", "Abgerundetes Rechteck", "Rectangle arrondi", "Retângulo arredondado", "Rectángulo redondeado", "مستطيل مستدير"],
+  "원": ["Circle", "円", "圆形", "圓形", "Hình tròn", "Kreis", "Cercle", "Círculo", "Círculo", "دائرة"],
+  "별": ["Star", "星", "星形", "星形", "Ngôi sao", "Stern", "Étoile", "Estrela", "Estrella", "نجمة"],
+  "Shift를 누른 채 끌면 정사각형·정원이 됩니다.": ["Hold Shift while dragging for a perfect square or circle.", "Shift を押しながらドラッグすると正方形・正円になります。", "按住 Shift 拖动可得到正方形或正圆。", "按住 Shift 拖動可得到正方形或正圓。", "Giữ Shift khi kéo để có hình vuông hoặc hình tròn đều.", "Mit gedrückter Umschalttaste ziehen ergibt ein Quadrat oder einen Kreis.", "Maintenez Maj en faisant glisser pour obtenir un carré ou un cercle parfait.", "Segure Shift ao arrastar para um quadrado ou círculo perfeito.", "Mantén Shift al arrastrar para un cuadrado o círculo perfecto.", "اضغط Shift أثناء السحب للحصول على مربع أو دائرة تامة."],
+  "(빈 상자 {0})": ["({0} empty)", "(空 {0})", "(空 {0})", "(空 {0})", "({0} trống)", "({0} leer)", "({0} vide(s))", "({0} vazia(s))", "({0} vacía(s))", "(‏{0} مربع فارغ)"],
+  "HTML로 보냈습니다.": ["Exported as HTML.", "HTMLで書き出しました。", "已导出为 HTML。", "已匯出為 HTML。", "Đã xuất dạng HTML.", "Als HTML exportiert.", "Exporté en HTML.", "Exportado como HTML.", "Exportado como HTML.", "تم التصدير بصيغة HTML."],
+  "JPG는 파일이 작고, PNG는 글자가 더 또렷합니다. 여러 페이지는 위아래로 이어 붙여 한 장으로 만듭니다.": ["JPG files are smaller; PNG keeps text sharper. Multiple pages are stacked into one image.", "JPGはファイルが小さく、PNGは文字がよりくっきりします。複数ページは上下につなげて1枚にします。", "JPG 文件更小，PNG 文字更清晰。多页会上下拼接成一张图。", "JPG 檔案更小，PNG 文字更清晰。多頁會上下拼接成一張圖。", "JPG nhẹ hơn, PNG chữ sắc nét hơn. Nhiều trang sẽ được ghép dọc thành một ảnh.", "JPG ist kleiner, PNG hat schärferen Text. Mehrere Seiten werden untereinander zu einem Bild zusammengefügt.", "JPG est plus léger, PNG garde un texte plus net. Plusieurs pages sont empilées en une seule image.", "JPG é menor; PNG deixa o texto mais nítido. Várias páginas são empilhadas em uma só imagem.", "JPG es más liviano; PNG deja el texto más nítido. Varias páginas se apilan en una sola imagen.", "ملفات JPG أصغر حجمًا، وPNG تُبقي النص أوضح. تُضم الصفحات المتعددة في صورة واحدة."],
+  "PC에 설치하려면 Edge 주소창 오른쪽의 ‘앱 설치’ 단추를 누르세요.": ["To install on your PC, click the “Install app” button at the right of the Edge address bar.", "PCにインストールするには、Edgeのアドレスバー右側の「アプリをインストール」ボタンを押してください。", "要安装到电脑，请点击 Edge 地址栏右侧的“安装应用”按钮。", "要安裝到電腦，請點選 Edge 位址列右側的“安裝應用”按鈕。", "Để cài lên PC, nhấn nút “Cài đặt ứng dụng” ở bên phải thanh địa chỉ Edge.", "Zum Installieren auf dem PC auf „App installieren“ rechts in der Edge-Adressleiste klicken.", "Pour installer sur le PC, cliquez sur « Installer l’application » à droite de la barre d’adresse d’Edge.", "Para instalar no PC, clique em “Instalar aplicativo” à direita da barra de endereços do Edge.", "Para instalar en la PC, haz clic en “Instalar aplicación” a la derecha de la barra de direcciones de Edge.", "للتثبيت على الحاسوب، انقر زر «تثبيت التطبيق» على يمين شريط العنوان في Edge."],
+  "PDF로 보냈습니다.": ["Exported as PDF.", "PDFで書き出しました。", "已导出为 PDF。", "已匯出為 PDF。", "Đã xuất dạng PDF.", "Als PDF exportiert.", "Exporté en PDF.", "Exportado como PDF.", "Exportado como PDF.", "تم التصدير بصيغة PDF."],
+  "PDF를 만드는 중…": ["Creating PDF…", "PDFを作成中…", "正在生成 PDF…", "正在生成 PDF…", "Đang tạo PDF…", "PDF wird erstellt…", "Création du PDF…", "Criando PDF…", "Creando PDF…", "جارٍ إنشاء PDF…"],
+  "PDF를 만들지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not create the PDF. Please check your internet connection.", "PDFを作成できませんでした。インターネット接続を確認してください。", "无法生成 PDF。请检查网络连接。", "無法生成 PDF。請檢查網路連線。", "Không tạo được PDF. Vui lòng kiểm tra kết nối Internet.", "PDF konnte nicht erstellt werden. Bitte Internetverbindung prüfen.", "Impossible de créer le PDF. Vérifiez votre connexion Internet.", "Não foi possível criar o PDF. Verifique sua conexão com a internet.", "No se pudo crear el PDF. Revisa tu conexión a internet.", "تعذّر إنشاء PDF. تحقق من اتصال الإنترنت."],
+  "PITEX 파일로 보냈습니다.": ["Exported as a PITEX file.", "PITEXファイルで書き出しました。", "已导出为 PITEX 文件。", "已匯出為 PITEX 檔案。", "Đã xuất dạng tệp PITEX.", "Als PITEX-Datei exportiert.", "Exporté en fichier PITEX.", "Exportado como arquivo PITEX.", "Exportado como archivo PITEX.", "تم التصدير كملف PITEX."],
+  "pitex 문서 (txt · pitex)": ["pitex documents (txt · pitex)", "pitex 文書 (txt · pitex)", "pitex 文档 (txt · pitex)", "pitex 文件 (txt · pitex)", "Tài liệu pitex (txt · pitex)", "pitex-Dokumente (txt · pitex)", "Documents pitex (txt · pitex)", "Documentos pitex (txt · pitex)", "Documentos pitex (txt · pitex)", "مستندات pitex ‏(txt · pitex)"],
+  "pitex 시험판": ["pitex trial", "pitex 試用版", "pitex 试用版", "pitex 試用版", "pitex bản thử", "pitex Testversion", "pitex version d’essai", "pitex versão de teste", "pitex versión de prueba", "نسخة pitex التجريبية"],
+  "pitex 시험판에 대하여": ["About pitex trial", "pitex 試用版について", "关于 pitex 试用版", "關於 pitex 試用版", "Giới thiệu pitex bản thử", "Über die pitex Testversion", "À propos de pitex version d’essai", "Sobre o pitex versão de teste", "Acerca de pitex versión de prueba", "حول نسخة pitex التجريبية"],
+  "pitex 파일": ["pitex file", "pitex ファイル", "pitex 文件", "pitex 檔案", "Tệp pitex", "pitex-Datei", "Fichier pitex", "Arquivo pitex", "Archivo pitex", "ملف pitex"],
+  "pitex 파일을 읽지 못했습니다.": ["Could not read the pitex file.", "pitex ファイルを読み込めませんでした。", "无法读取 pitex 文件。", "無法讀取 pitex 檔案。", "Không đọc được tệp pitex.", "pitex-Datei konnte nicht gelesen werden.", "Impossible de lire le fichier pitex.", "Não foi possível ler o arquivo pitex.", "No se pudo leer el archivo pitex.", "تعذّرت قراءة ملف pitex."],
+  "txt 또는 pitex 파일을 골라 주세요.": ["Please choose a txt or pitex file.", "txt または pitex ファイルを選んでください。", "请选择 txt 或 pitex 文件。", "請選擇 txt 或 pitex 檔案。", "Vui lòng chọn tệp txt hoặc pitex.", "Bitte eine txt- oder pitex-Datei wählen.", "Choisissez un fichier txt ou pitex.", "Escolha um arquivo txt ou pitex.", "Elige un archivo txt o pitex.", "اختر ملف txt أو pitex."],
+  "{0}(으)로 다시 열었습니다.": ["Reopened as {0}.", "{0} で開き直しました。", "已用 {0} 重新打开。", "已用 {0} 重新開啟。", "Đã mở lại bằng {0}.", "Als {0} neu geöffnet.", "Rouvert en {0}.", "Reaberto como {0}.", "Reabierto como {0}.", "أُعيد الفتح بترميز {0}."],
+  "{0}(으)로 바꿀 수 없는 글자 {1}개는 ?로 저장되었습니다.": ["{1} characters could not be converted to {0} and were saved as ?.", "{0} に変換できない{1}文字は ? として保存されました。", "有 {1} 个字符无法转换为 {0}，已保存为 ?。", "有 {1} 個字元無法轉換為 {0}，已儲存為 ?。", "{1} ký tự không chuyển được sang {0} đã được lưu thành ?.", "{1} Zeichen ließen sich nicht in {0} umwandeln und wurden als ? gespeichert.", "{1} caractère(s) non convertible(s) en {0} enregistré(s) comme ?.", "{1} caracteres não puderam ser convertidos para {0} e foram salvos como ?.", "{1} caracteres no se pudieron convertir a {0} y se guardaron como ?.", "تعذّر تحويل {1} حرفًا إلى {0} فحُفظت على شكل ?."],
+  "{0}개 파일을 탭으로 열었습니다.": ["Opened {0} files in tabs.", "{0}個のファイルをタブで開きました。", "已在标签页中打开 {0} 个文件。", "已在標籤頁中開啟 {0} 個檔案。", "Đã mở {0} tệp trong các thẻ.", "{0} Dateien in Tabs geöffnet.", "{0} fichiers ouverts dans des onglets.", "{0} arquivos abertos em abas.", "{0} archivos abiertos en pestañas.", "تم فتح {0} ملفات في علامات تبويب."],
+  "{0}곳을 바꿨습니다.": ["Replaced {0}.", "{0}か所を置換しました。", "已替换 {0} 处。", "已替換 {0} 處。", "Đã thay {0} chỗ.", "{0} Stellen ersetzt.", "{0} remplacement(s) effectué(s).", "{0} substituições feitas.", "{0} reemplazos hechos.", "تم استبدال {0} موضع."],
+  "{0}쪽": ["p.{0}", "{0}ページ", "第{0}页", "第{0}頁", "Tr.{0}", "S.{0}", "p.{0}", "p.{0}", "p.{0}", "ص {0}"],
+  "‘{0}’에 저장하지 않은 글이 있습니다. 저장하지 않고 닫을까요?": ["“{0}” has unsaved changes. Close without saving?", "「{0}」に保存していない変更があります。保存せずに閉じますか？", "“{0}”有未保存的更改。不保存就关闭吗？", "“{0}”有未儲存的更改。不儲存就關閉嗎？", "“{0}” có thay đổi chưa lưu. Đóng mà không lưu?", "„{0}“ hat ungespeicherte Änderungen. Ohne Speichern schließen?", "« {0} » contient des modifications non enregistrées. Fermer sans enregistrer ?", "“{0}” tem alterações não salvas. Fechar sem salvar?", "“{0}” tiene cambios sin guardar. ¿Cerrar sin guardar?", "«{0}» يحتوي على تغييرات غير محفوظة. هل تريد الإغلاق دون حفظ؟"],
+  "‘{0}’을(를) 지울까요?": ["Clear “{0}”?", "「{0}」を消去しますか？", "要清除“{0}”吗？", "要清除“{0}”嗎？", "Xóa “{0}”?", "„{0}“ leeren?", "Effacer « {0} » ?", "Limpar “{0}”?", "¿Borrar “{0}”?", "هل تريد مسح «{0}»؟"],
+  "갤러리": ["Gallery", "ギャラリー", "图库", "相簿", "Thư viện", "Galerie", "Galerie", "Galeria", "Galería", "المعرض"],
+  "고친 내용이 없어집니다. 다시 열까요?": ["Your changes will be lost. Reopen?", "変更内容が失われます。開き直しますか？", "更改将会丢失。要重新打开吗？", "更改將會丟失。要重新開啟嗎？", "Các thay đổi sẽ mất. Mở lại?", "Änderungen gehen verloren. Neu öffnen?", "Vos modifications seront perdues. Rouvrir ?", "Suas alterações serão perdidas. Reabrir?", "Se perderán los cambios. ¿Reabrir?", "ستُفقد تعديلاتك. هل تريد إعادة الفتح؟"],
+  "그림": ["Picture", "画像", "图片", "圖片", "Hình", "Bild", "Image", "Imagem", "Imagen", "صورة"],
+  "그림 넣기": ["Insert picture", "画像を挿入", "插入图片", "插入圖片", "Chèn hình", "Bild einfügen", "Insérer une image", "Inserir imagem", "Insertar imagen", "إدراج صورة"],
+  "그림 넣기…": ["Insert picture…", "画像を挿入…", "插入图片…", "插入圖片…", "Chèn hình…", "Bild einfügen…", "Insérer une image…", "Inserir imagem…", "Insertar imagen…", "إدراج صورة…"],
+  "그림 레이어 보이기": ["Show picture layer", "画像レイヤーを表示", "显示图片图层", "顯示圖片圖層", "Hiện lớp hình", "Bildebene anzeigen", "Afficher le calque d’images", "Mostrar camada de imagens", "Mostrar capa de imágenes", "إظهار طبقة الصور"],
+  "그림 바꾸기": ["Change picture", "画像を変更", "更换图片", "更換圖片", "Đổi hình", "Bild ändern", "Changer l’image", "Trocar imagem", "Cambiar imagen", "تغيير الصورة"],
+  "그림 바꾸기…": ["Change picture…", "画像を変更…", "更换图片…", "更換圖片…", "Đổi hình…", "Bild ändern…", "Changer l’image…", "Trocar imagem…", "Cambiar imagen…", "تغيير الصورة…"],
+  "그림 불러오기": ["Load picture", "画像を読み込む", "载入图片", "載入圖片", "Tải hình", "Bild laden", "Charger une image", "Carregar imagem", "Cargar imagen", "تحميل صورة"],
+  "그림 상자": ["Picture box", "画像ボックス", "图片框", "圖片框", "Khung hình", "Bildrahmen", "Cadre d’image", "Caixa de imagem", "Cuadro de imagen", "مربع صورة"],
+  "그림 상자 {0}": ["Picture boxes {0}", "画像ボックス {0}", "图片框 {0}", "圖片框 {0}", "Khung hình {0}", "Bildrahmen {0}", "Cadres {0}", "Caixas {0}", "Cuadros {0}", "مربعات الصور {0}"],
+  "그림 상자 그리기": ["Draw picture box", "画像ボックスを描く", "绘制图片框", "繪製圖片框", "Vẽ khung hình", "Bildrahmen zeichnen", "Dessiner un cadre", "Desenhar caixa de imagem", "Dibujar cuadro de imagen", "رسم مربع صورة"],
+  "그림 상자 그리기: 대각선으로 끌어 보세요.": ["Draw picture box: drag diagonally.", "画像ボックスを描く：斜めにドラッグしてください。", "绘制图片框：请沿对角线拖动。", "繪製圖片框：請沿對角線拖動。", "Vẽ khung hình: hãy kéo chéo.", "Bildrahmen zeichnen: diagonal ziehen.", "Dessiner un cadre : faites glisser en diagonale.", "Desenhar caixa: arraste na diagonal.", "Dibujar cuadro: arrastra en diagonal.", "رسم مربع صورة: اسحب قطريًا."],
+  "그림 상자가 있어 짝꿍 파일도 저장합니다. 같은 폴더에 저장해 주세요.": ["This document has picture boxes, so the companion file is saved too. Please save it in the same folder.", "画像ボックスがあるため、ペアファイルも保存します。同じフォルダーに保存してください。", "文档中有图片框，因此也会保存配套文件。请保存在同一文件夹中。", "文件中有圖片框，因此也會儲存配套檔案。請儲存在同一資料夾中。", "Tài liệu có khung hình nên tệp đi kèm cũng được lưu. Vui lòng lưu cùng thư mục.", "Da Bildrahmen vorhanden sind, wird auch die Begleitdatei gespeichert. Bitte im selben Ordner speichern.", "Le document contient des cadres : le fichier compagnon est aussi enregistré. Enregistrez-le dans le même dossier.", "Há caixas de imagem, então o arquivo complementar também será salvo. Salve-o na mesma pasta.", "Hay cuadros de imagen, así que también se guarda el archivo complementario. Guárdalo en la misma carpeta.", "يحتوي المستند على مربعات صور، لذا يُحفظ الملف المرافق أيضًا. احفظه في المجلد نفسه."],
+  "그림 상자를 지웠습니다. ↶로 되돌릴 수 있습니다.": ["Picture box deleted. Press ↶ to undo.", "画像ボックスを削除しました。↶ で元に戻せます。", "已删除图片框。可按 ↶ 撤销。", "已刪除圖片框。可按 ↶ 撤銷。", "Đã xóa khung hình. Nhấn ↶ để hoàn tác.", "Bildrahmen gelöscht. Mit ↶ rückgängig machen.", "Cadre supprimé. Appuyez sur ↶ pour annuler.", "Caixa excluída. Toque em ↶ para desfazer.", "Cuadro eliminado. Toca ↶ para deshacer.", "تم حذف مربع الصورة. اضغط ↶ للتراجع."],
+  "그림 자리가 생겼습니다. 두 번 누르면 그림을 넣습니다.": ["Picture box created. Double-tap it to insert a picture.", "画像の枠ができました。2回押すと画像を挿入します。", "已创建图片框。双击即可插入图片。", "已建立圖片框。雙擊即可插入圖片。", "Đã tạo khung hình. Nhấn hai lần để chèn hình.", "Bildrahmen erstellt. Doppelt tippen, um ein Bild einzufügen.", "Cadre créé. Touchez-le deux fois pour insérer une image.", "Caixa criada. Toque duas vezes para inserir uma imagem.", "Cuadro creado. Tócalo dos veces para insertar una imagen.", "تم إنشاء مكان للصورة. اضغط مرتين لإدراج صورة."],
+  "그림(JPG/PNG)": ["Image (JPG/PNG)", "画像 (JPG/PNG)", "图片 (JPG/PNG)", "圖片 (JPG/PNG)", "Hình (JPG/PNG)", "Bild (JPG/PNG)", "Image (JPG/PNG)", "Imagem (JPG/PNG)", "Imagen (JPG/PNG)", "صورة (JPG/PNG)"],
+  "그림으로 보내기": ["Export as image", "画像で書き出す", "导出为图片", "匯出為圖片", "Xuất thành hình", "Als Bild exportieren", "Exporter en image", "Exportar como imagem", "Exportar como imagen", "تصدير كصورة"],
+  "그림으로 보냈습니다.": ["Exported as an image.", "画像で書き出しました。", "已导出为图片。", "已匯出為圖片。", "Đã xuất thành hình.", "Als Bild exportiert.", "Exporté en image.", "Exportado como imagem.", "Exportado como imagen.", "تم التصدير كصورة."],
+  "그림을 넣었습니다.": ["Picture inserted.", "画像を挿入しました。", "已插入图片。", "已插入圖片。", "Đã chèn hình.", "Bild eingefügt.", "Image insérée.", "Imagem inserida.", "Imagen insertada.", "تم إدراج الصورة."],
+  "그림을 만드는 중…": ["Creating image…", "画像を作成中…", "正在生成图片…", "正在生成圖片…", "Đang tạo hình…", "Bild wird erstellt…", "Création de l’image…", "Criando imagem…", "Creando imagen…", "جارٍ إنشاء الصورة…"],
+  "그림을 만들지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Could not create the image. Please check your internet connection.", "画像を作成できませんでした。インターネット接続を確認してください。", "无法生成图片。请检查网络连接。", "無法生成圖片。請檢查網路連線。", "Không tạo được hình. Vui lòng kiểm tra kết nối Internet.", "Bild konnte nicht erstellt werden. Bitte Internetverbindung prüfen.", "Impossible de créer l’image. Vérifiez votre connexion Internet.", "Não foi possível criar a imagem. Verifique sua conexão com a internet.", "No se pudo crear la imagen. Revisa tu conexión a internet.", "تعذّر إنشاء الصورة. تحقق من اتصال الإنترنت."],
+  "그림을 맞추는 중…": ["Fitting picture…", "画像を合わせています…", "正在调整图片…", "正在調整圖片…", "Đang canh hình…", "Bild wird angepasst…", "Ajustement de l’image…", "Ajustando imagem…", "Ajustando imagen…", "جارٍ ملاءمة الصورة…"],
+  "글": ["Text", "本文", "正文", "正文", "Văn bản", "Text", "Texte", "Texto", "Texto", "النص"],
+  "글 {0}자": ["{0} chars", "{0}文字", "{0} 字", "{0} 字", "{0} ký tự", "{0} Zeichen", "{0} caractères", "{0} caracteres", "{0} caracteres", "{0} حرفًا"],
+  "글꼴": ["Font", "フォント", "字体", "字型", "Phông chữ", "Schriftart", "Police", "Fonte", "Fuente", "الخط"],
+  "글꼴 목록": ["Family", "ファミリ", "字体系列", "字型系列", "Họ phông", "Familie", "Famille", "Família", "Familia", "قائمة الخطوط"],
+  "글은 순수 txt로, 그림 상자는 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.": ["A notepad that saves text as plain txt and picture boxes in a companion file (.txtx.pitex). People without pitex just see the txt.", "本文は純粋な txt で、画像ボックスはペアファイル (.txtx.pitex) で保存するメモ帳です。pitex がない人には txt だけが見えます。", "正文保存为纯 txt，图片框保存在配套文件 (.txtx.pitex) 中的记事本。没有 pitex 的人只会看到 txt。", "正文儲存為純 txt，圖片框儲存在配套檔案 (.txtx.pitex) 中的記事本。沒有 pitex 的人只會看到 txt。", "Trình ghi chú lưu văn bản dạng txt thuần và khung hình trong tệp đi kèm (.txtx.pitex). Người không có pitex chỉ thấy tệp txt.", "Ein Editor, der Text als reines txt und Bildrahmen in einer Begleitdatei (.txtx.pitex) speichert. Wer pitex nicht hat, sieht nur das txt.", "Un bloc-notes qui enregistre le texte en txt pur et les cadres dans un fichier compagnon (.txtx.pitex). Sans pitex, on ne voit que le txt.", "Um bloco de notas que salva o texto em txt puro e as caixas de imagem num arquivo complementar (.txtx.pitex). Quem não tem pitex vê só o txt.", "Un bloc de notas que guarda el texto como txt puro y los cuadros de imagen en un archivo complementario (.txtx.pitex). Quien no tiene pitex solo ve el txt.", "مفكرة تحفظ النص بصيغة txt خالصة ومربعات الصور في ملف مرافق (‎.txtx.pitex). من لا يملك pitex يرى ملف txt فقط."],
+  "기본 크기": ["Restore default zoom", "既定のズームに戻す", "恢复默认缩放", "恢復預設縮放", "Khôi phục thu phóng mặc định", "Standardzoom", "Zoom par défaut", "Zoom padrão", "Zoom predeterminado", "الحجم الافتراضي"],
+  "기본적으로 창 안에 텍스트 맞춤": ["Fit text within the window by default", "既定でウィンドウ内にテキストを合わせる", "默认使文本适应窗口", "預設使文字適應視窗", "Mặc định vừa văn bản trong cửa sổ", "Text standardmäßig an das Fenster anpassen", "Ajuster le texte à la fenêtre par défaut", "Ajustar o texto à janela por padrão", "Ajustar el texto a la ventana de forma predeterminada", "ملاءمة النص داخل النافذة افتراضيًا"],
+  "꽉 차게": ["Fill", "全体に合わせる", "填满", "填滿", "Lấp đầy", "Füllen", "Remplir", "Preencher", "Rellenar", "ملء"],
+  "꽉 차게 (가장자리 잘림)": ["Fill (edges cropped)", "全体に合わせる（端が切れる）", "填满（边缘被裁切）", "填滿（邊緣被裁切）", "Lấp đầy (cắt mép)", "Füllen (Ränder beschnitten)", "Remplir (bords rognés)", "Preencher (bordas cortadas)", "Rellenar (bordes recortados)", "ملء (تُقص الحواف)"],
+  "끌어서 크기 정하기": ["drag to size", "ドラッグしてサイズ指定", "拖动确定大小", "拖動確定大小", "kéo để chỉnh cỡ", "ziehen für Größe", "glisser pour la taille", "arraste para o tamanho", "arrastra para el tamaño", "اسحب لتحديد الحجم"],
+  "끔": ["Off", "オフ", "关", "關", "Tắt", "Aus", "Désactivé", "Desligado", "Desactivado", "إيقاف"],
+  "날짜·시간 넣기": ["Time/Date", "日付と時刻", "日期/时间", "日期/時間", "Ngày/giờ", "Datum/Uhrzeit", "Date/heure", "Data/hora", "Fecha/hora", "إدراج التاريخ والوقت"],
+  "내려받았습니다: {0}": ["Downloaded: {0}", "ダウンロードしました：{0}", "已下载：{0}", "已下載：{0}", "Đã tải xuống: {0}", "Heruntergeladen: {0}", "Téléchargé : {0}", "Baixado: {0}", "Descargado: {0}", "تم التنزيل: {0}"],
+  "다 보이게": ["Fit", "全体を表示", "完整显示", "完整顯示", "Vừa khung", "Einpassen", "Ajuster", "Ajustar", "Ajustar", "احتواء"],
+  "다 보이게 (여백 생김)": ["Fit (with margins)", "全体を表示（余白あり）", "完整显示（留白）", "完整顯示（留白）", "Vừa khung (có lề)", "Einpassen (mit Rand)", "Ajuster (avec marges)", "Ajustar (com margens)", "Ajustar (con márgenes)", "احتواء (مع هوامش)"],
+  "다른 이름으로 저장": ["Save as", "名前を付けて保存", "另存为", "另存為", "Lưu thành", "Speichern unter", "Enregistrer sous", "Salvar como", "Guardar como", "حفظ باسم"],
+  "다른 이름으로 저장…": ["Save as…", "名前を付けて保存…", "另存为…", "另存為…", "Lưu thành…", "Speichern unter…", "Enregistrer sous…", "Salvar como…", "Guardar como…", "حفظ باسم…"],
+  "다른 인코딩으로 다시 열기": ["Reopen with encoding", "エンコードを指定して開き直す", "用其他编码重新打开", "用其他編碼重新開啟", "Mở lại với mã hóa khác", "Mit Codierung neu öffnen", "Rouvrir avec un encodage", "Reabrir com codificação", "Reabrir con codificación", "إعادة الفتح بترميز آخر"],
+  "다시 불러오기": ["Load again", "再読み込み", "重新载入", "重新載入", "Tải lại", "Erneut laden", "Recharger", "Carregar novamente", "Volver a cargar", "إعادة التحميل"],
+  "다시 실행": ["Redo", "やり直し", "重做", "重做", "Làm lại", "Wiederholen", "Rétablir", "Refazer", "Rehacer", "إعادة"],
+  "다시 실행 (Ctrl+Y)": ["Redo (Ctrl+Y)", "やり直し (Ctrl+Y)", "重做 (Ctrl+Y)", "重做 (Ctrl+Y)", "Làm lại (Ctrl+Y)", "Wiederholen (Strg+Y)", "Rétablir (Ctrl+Y)", "Refazer (Ctrl+Y)", "Rehacer (Ctrl+Y)", "إعادة (Ctrl+Y)"],
+  "다음 단계": ["Next stage", "次の段階", "下一阶段", "下一階段", "Giai đoạn sau", "Nächste Stufe", "Étape suivante", "Próxima etapa", "Próxima etapa", "المرحلة التالية"],
+  "다음 찾기": ["Find next", "次を検索", "查找下一个", "查詢下一個", "Tìm tiếp", "Weitersuchen", "Suivant", "Localizar próxima", "Buscar siguiente", "بحث عن التالي"],
+  "닫기": ["Close", "閉じる", "关闭", "關閉", "Đóng", "Schließen", "Fermer", "Fechar", "Cerrar", "إغلاق"],
+  "대소문자 구분": ["Match case", "大文字と小文字を区別", "区分大小写", "區分大小寫", "Phân biệt hoa thường", "Groß-/Kleinschreibung", "Respecter la casse", "Diferenciar maiúsculas", "Coincidir mayúsculas", "مطابقة حالة الأحرف"],
+  "도움말": ["Help", "ヘルプ", "帮助", "幫助", "Trợ giúp", "Hilfe", "Aide", "Ajuda", "Ayuda", "مساعدة"],
+  "되돌리기": ["Undo", "元に戻す", "撤销", "撤銷", "Hoàn tác", "Rückgängig", "Défaire", "Desfazer", "Deshacer", "تراجع"],
+  "되살렸습니다.": ["Restored.", "元に戻しました。", "已恢复。", "已恢復。", "Đã khôi phục.", "Wiederhergestellt.", "Restauré.", "Restaurado.", "Restaurado.", "تمت الاستعادة."],
+  "메뉴": ["Menu", "メニュー", "菜单", "選單", "Menu", "Menü", "Menu", "Menu", "Menú", "القائمة"],
+  "모두 바꾸기": ["Replace all", "すべて置換", "全部替换", "全部替換", "Thay tất cả", "Alle ersetzen", "Tout remplacer", "Substituir tudo", "Reemplazar todo", "استبدال الكل"],
+  "모두 선택": ["Select all", "すべて選択", "全选", "全選", "Chọn tất cả", "Alles auswählen", "Tout sélectionner", "Selecionar tudo", "Seleccionar todo", "تحديد الكل"],
+  "바꾸기": ["Replace", "置換", "替换", "替換", "Thay", "Ersetzen", "Remplacer", "Substituir", "Reemplazar", "استبدال"],
+  "바꾸기…": ["Replace…", "置換…", "替换…", "替換…", "Thay…", "Ersetzen…", "Remplacer…", "Substituir…", "Reemplazar…", "استبدال…"],
+  "바꿀 말": ["Replace with", "置換後の文字列", "替换为", "替換為", "Thay bằng", "Ersetzen durch", "Remplacer par", "Substituir por", "Reemplazar con", "استبدال بـ"],
+  "바다의 파도 소리가 내 영혼을 차분하게 합니다.": ["The sound of ocean waves calms my soul.", "海の波の音が私の心を落ち着かせてくれます。", "海浪的声音让我的心灵平静。", "海浪的聲音讓我的心靈平靜。", "Tiếng sóng biển làm tâm hồn tôi lắng dịu.", "Das Rauschen der Meereswellen beruhigt meine Seele.", "Le bruit des vagues apaise mon âme.", "O som das ondas do mar acalma minha alma.", "El sonido de las olas del mar calma mi alma.", "صوت أمواج البحر يهدّئ روحي."],
+  "밝게 / 다크": ["Light / Dark", "ライト / ダーク", "浅色 / 深色", "淺色 / 深色", "Sáng / Tối", "Hell / Dunkel", "Clair / Sombre", "Claro / Escuro", "Claro / Oscuro", "فاتح / داكن"],
+  "보기": ["View", "表示", "查看", "檢視", "Xem", "Ansicht", "Affichage", "Exibir", "Ver", "عرض"],
+  "보내기": ["Export", "エクスポート", "导出", "匯出", "Xuất", "Exportieren", "Exporter", "Exportar", "Exportar", "تصدير"],
+  "삭제": ["Delete", "削除", "删除", "刪除", "Xóa", "Löschen", "Supprimer", "Excluir", "Eliminar", "حذف"],
+  "상자 지우기": ["Delete box", "ボックスを削除", "删除图片框", "刪除圖片框", "Xóa khung", "Rahmen löschen", "Supprimer le cadre", "Excluir caixa", "Eliminar cuadro", "حذف المربع"],
+  "상자 크기는 그대로 두고, 그림을 상자에 맞춥니다.": ["The box keeps its size; the picture is fitted to the box.", "ボックスの大きさはそのままで、画像をボックスに合わせます。", "图片框大小不变，图片会适应图片框。", "圖片框大小不變，圖片會適應圖片框。", "Khung giữ nguyên kích thước; hình được canh vừa khung.", "Der Rahmen behält seine Größe; das Bild wird angepasst.", "Le cadre garde sa taille ; l’image s’y adapte.", "A caixa mantém o tamanho; a imagem se ajusta a ela.", "El cuadro mantiene su tamaño; la imagen se ajusta a él.", "يبقى حجم المربع كما هو، وتُلاءَم الصورة مع المربع."],
+  "상자를 먼저 고르세요": ["Select a box first", "先にボックスを選択", "请先选择图片框", "請先選擇圖片框", "Hãy chọn khung trước", "Zuerst einen Rahmen wählen", "Sélectionnez d’abord un cadre", "Selecione uma caixa primeiro", "Selecciona un cuadro primero", "اختر مربعًا أولًا"],
+  "상자에 맞추는 방법 (fit in box)": ["Fit in box", "ボックスへの合わせ方", "适应图片框的方式", "適應圖片框的方式", "Cách canh vào khung", "In den Rahmen einpassen", "Ajustement au cadre", "Ajuste à caixa", "Ajuste al cuadro", "طريقة الملاءمة داخل المربع"],
+  "상태 표시줄": ["Status bar", "ステータス バー", "状态栏", "狀態列", "Thanh trạng thái", "Statusleiste", "Barre d’état", "Barra de status", "Barra de estado", "شريط الحالة"],
+  "새 글입니다.": ["New document.", "新しい文書です。", "新文档。", "新文件。", "Tài liệu mới.", "Neues Dokument.", "Nouveau document.", "Novo documento.", "Documento nuevo.", "مستند جديد."],
+  "새 탭": ["New tab", "新しいタブ", "新标签页", "新標籤頁", "Thẻ mới", "Neuer Tab", "Nouvel onglet", "Nova aba", "Nueva pestaña", "علامة تبويب جديدة"],
+  "새 파일 이름": ["New file name", "新しいファイル名", "新文件名", "新檔名", "Tên tệp mới", "Neuer Dateiname", "Nouveau nom de fichier", "Novo nome do arquivo", "Nuevo nombre de archivo", "اسم الملف الجديد"],
+  "새로 만들기": ["New", "新規", "新建", "新建", "Mới", "Neu", "Nouveau", "Novo", "Nuevo", "جديد"],
+  "서유럽": ["Western European", "西ヨーロッパ", "西欧", "西歐", "Tây Âu", "Westeuropäisch", "Europe occidentale", "Europa Ocidental", "Europa occidental", "أوروبا الغربية"],
+  "설정": ["Settings", "設定", "设置", "設定", "Cài đặt", "Einstellungen", "Paramètres", "Configurações", "Configuración", "الإعدادات"],
+  "설정…": ["Settings…", "設定…", "设置…", "設定…", "Cài đặt…", "Einstellungen…", "Paramètres…", "Configurações…", "Configuración…", "الإعدادات…"],
+  "설치된 글꼴 {0}개": ["{0} installed fonts", "インストール済みフォント {0}個", "已安装字体 {0} 个", "已安裝字型 {0} 個", "{0} phông đã cài", "{0} installierte Schriftarten", "{0} polices installées", "{0} fontes instaladas", "{0} fuentes instaladas", "{0} خطًا مثبّتًا"],
+  "설치된 글꼴을 보려면 허락이 필요합니다. ": ["Permission is needed to list installed fonts. ", "インストール済みフォントを表示するには許可が必要です。", "需要授权才能显示已安装的字体。", "需要授權才能顯示已安裝的字型。", "Cần cho phép để hiện các phông đã cài. ", "Zum Anzeigen installierter Schriftarten ist eine Erlaubnis nötig. ", "Une autorisation est nécessaire pour lister les polices installées. ", "É preciso permitir para listar as fontes instaladas. ", "Se necesita permiso para listar las fuentes instaladas. ", "يلزم إذن لعرض الخطوط المثبّتة."],
+  "설치된 글꼴을 불러오는 중… ": ["Loading installed fonts… ", "インストール済みフォントを読み込み中… ", "正在载入已安装字体… ", "正在載入已安裝字型… ", "Đang tải phông đã cài… ", "Installierte Schriftarten werden geladen… ", "Chargement des polices installées… ", "Carregando fontes instaladas… ", "Cargando fuentes instaladas… ", "جارٍ تحميل الخطوط المثبّتة…"],
+  "스타일": ["Style", "スタイル", "字形", "字形", "Kiểu", "Schriftschnitt", "Style", "Estilo", "Estilo", "النمط"],
+  "시작점을 누른 채 대각선으로 끌면 그림 자리(X 상자)가 생깁니다. □ 그림 상자를 다시 누르면 그리기를 끕니다.": ["Press and drag diagonally to create a picture box (X box). Press □ Picture box again to stop drawing.", "始点を押したまま斜めにドラッグすると画像の枠（Xボックス）ができます。□ 画像ボックスをもう一度押すと描画を終了します。", "按住起点沿对角线拖动即可创建图片框（X 框）。再次点击 □ 图片框可结束绘制。", "按住起點沿對角線拖動即可建立圖片框（X 框）。再次點選 □ 圖片框可結束繪製。", "Giữ điểm bắt đầu rồi kéo chéo để tạo khung hình (khung X). Nhấn lại □ Khung hình để tắt vẽ.", "Startpunkt halten und diagonal ziehen, um einen Bildrahmen (X-Rahmen) zu erstellen. □ Bildrahmen erneut drücken, um das Zeichnen zu beenden.", "Maintenez le point de départ et glissez en diagonale pour créer un cadre (cadre X). Appuyez à nouveau sur □ Cadre pour arrêter.", "Segure o ponto inicial e arraste na diagonal para criar uma caixa (caixa X). Toque de novo em □ Caixa para parar.", "Mantén el punto inicial y arrastra en diagonal para crear un cuadro (cuadro X). Toca de nuevo □ Cuadro para dejar de dibujar.", "اضغط واسحب قطريًا لإنشاء مكان للصورة (مربع X). اضغط □ مربع الصورة مرة أخرى لإيقاف الرسم."],
+  "실행 취소": ["Undo", "元に戻す", "撤销", "撤銷", "Hoàn tác", "Rückgängig", "Annuler", "Desfazer", "Deshacer", "تراجع"],
+  "실행 취소 (Ctrl+Z)": ["Undo (Ctrl+Z)", "元に戻す (Ctrl+Z)", "撤销 (Ctrl+Z)", "撤銷 (Ctrl+Z)", "Hoàn tác (Ctrl+Z)", "Rückgängig (Strg+Z)", "Annuler (Ctrl+Z)", "Desfazer (Ctrl+Z)", "Deshacer (Ctrl+Z)", "تراجع (Ctrl+Z)"],
+  "언어": ["Language", "言語", "语言", "語言", "Ngôn ngữ", "Sprache", "Langue", "Idioma", "Idioma", "اللغة"],
+  "언어 · Language": ["Language", "言語 · Language", "语言 · Language", "語言 · Language", "Ngôn ngữ · Language", "Sprache · Language", "Langue · Language", "Idioma · Language", "Idioma · Language", "اللغة · Language"],
+  "언어는 smartDir 번역표와 같고, 중국어 번체를 더했습니다. (아랍어는 나중에 결정)": ["Languages follow the smartDir translation table, plus Traditional Chinese. (Arabic to be decided later)", "言語は smartDir の翻訳表と同じです。（アラビア語は後で決定）", "语言与 smartDir 翻译表相同。（阿拉伯语以后再定）", "語言與 smartDir 翻譯表相同。（阿拉伯語以後再定）", "Ngôn ngữ giống bảng dịch của smartDir. (Tiếng Ả Rập sẽ quyết định sau)", "Die Sprachen entsprechen der smartDir-Übersetzungstabelle. (Arabisch wird später entschieden)", "Les langues suivent la table de traduction de smartDir. (L’arabe sera décidé plus tard)", "Os idiomas seguem a tabela de tradução do smartDir. (Árabe será decidido depois)", "Los idiomas siguen la tabla de traducción de smartDir. (El árabe se decidirá después)", "اللغات مطابقة لجدول ترجمة smartDir مع إضافة الصينية التقليدية والعربية."],
+  "열기": ["Open", "開く", "打开", "開啟", "Mở", "Öffnen", "Ouvrir", "Abrir", "Abrir", "فتح"],
+  "열기…": ["Open…", "開く…", "打开…", "開啟…", "Mở…", "Öffnen…", "Ouvrir…", "Abrir…", "Abrir…", "فتح…"],
+  "열었습니다: {0}": ["Opened: {0}", "開きました：{0}", "已打开：{0}", "已開啟：{0}", "Đã mở: {0}", "Geöffnet: {0}", "Ouvert : {0}", "Aberto: {0}", "Abierto: {0}", "تم الفتح: {0}"],
+  "이 그림을 읽지 못했습니다. 다른 그림을 골라 주세요.": ["Could not read this picture. Please choose another.", "この画像を読み込めませんでした。別の画像を選んでください。", "无法读取此图片。请选择其他图片。", "無法讀取此圖片。請選擇其他圖片。", "Không đọc được hình này. Vui lòng chọn hình khác.", "Dieses Bild konnte nicht gelesen werden. Bitte ein anderes wählen.", "Impossible de lire cette image. Choisissez-en une autre.", "Não foi possível ler esta imagem. Escolha outra.", "No se pudo leer esta imagen. Elige otra.", "تعذّرت قراءة هذه الصورة. اختر صورة أخرى."],
+  "이 브라우저는 설치된 글꼴 목록을 보여 줄 수 없어 자주 쓰는 글꼴만 보입니다.": ["This browser cannot list installed fonts, so only common fonts are shown.", "このブラウザーはインストール済みフォントを一覧表示できないため、よく使うフォントだけを表示します。", "此浏览器无法列出已安装的字体，因此只显示常用字体。", "此瀏覽器無法列出已安裝的字型，因此只顯示常用字型。", "Trình duyệt này không liệt kê được phông đã cài nên chỉ hiện các phông phổ biến.", "Dieser Browser kann installierte Schriftarten nicht auflisten; es werden nur gängige angezeigt.", "Ce navigateur ne peut pas lister les polices installées ; seules les polices courantes sont affichées.", "Este navegador não lista as fontes instaladas; só as mais comuns aparecem.", "Este navegador no puede listar las fuentes instaladas; solo se muestran las más comunes.", "هذا المتصفح لا يستطيع عرض الخطوط المثبّتة، لذا تظهر الخطوط الشائعة فقط."],
+  "이 브라우저는 파일 창을 쓸 수 없어 내려받기로 저장합니다.": ["This browser has no file dialog, so the file is saved as a download.", "このブラウザーはファイルダイアログを使えないため、ダウンロードで保存します。", "此浏览器无法使用文件对话框，将以下载方式保存。", "此瀏覽器無法使用檔案對話方塊，將以下載方式儲存。", "Trình duyệt này không có hộp thoại tệp nên sẽ lưu bằng cách tải xuống.", "Dieser Browser hat keinen Dateidialog; die Datei wird heruntergeladen.", "Ce navigateur n’a pas de boîte de dialogue de fichiers ; le fichier sera téléchargé.", "Este navegador não tem janela de arquivos; o arquivo será baixado.", "Este navegador no tiene ventana de archivos; el archivo se descargará.", "هذا المتصفح لا يدعم نافذة الملفات، لذا يُحفظ الملف كتنزيل."],
+  "이 시험판(PWA)에서는 화면의 글만 지우고, PC의 파일은 그대로 둡니다. 파일을 휴지통으로 보내는 기능은 Tauri(.exe) 판에서 넣습니다.": ["This trial (PWA) only clears the document on screen; files on your PC are kept. Sending files to the Recycle Bin comes in the Tauri (.exe) version.", "この試用版（PWA）では画面の文書だけを消去し、PCのファイルはそのまま残します。ファイルをごみ箱に送る機能は Tauri（.exe）版で追加します。", "此试用版（PWA）只清除屏幕上的文档，电脑中的文件保持不变。将文件移到回收站的功能会在 Tauri（.exe）版中加入。", "此試用版（PWA）只清除螢幕上的文件，電腦中的檔案保持不變。將檔案移到回收站的功能會在 Tauri（.exe）版中加入。", "Bản thử (PWA) này chỉ xóa tài liệu trên màn hình, tệp trên PC vẫn giữ nguyên. Tính năng chuyển tệp vào Thùng rác sẽ có ở bản Tauri (.exe).", "Diese Testversion (PWA) leert nur das Dokument auf dem Bildschirm; Dateien auf dem PC bleiben erhalten. Das Verschieben in den Papierkorb kommt in der Tauri-Version (.exe).", "Cette version d’essai (PWA) n’efface que le document à l’écran ; les fichiers du PC sont conservés. L’envoi à la Corbeille viendra avec la version Tauri (.exe).", "Esta versão de teste (PWA) só limpa o documento na tela; os arquivos do PC são mantidos. Enviar à Lixeira virá na versão Tauri (.exe).", "Esta versión de prueba (PWA) solo borra el documento en pantalla; los archivos de la PC se conservan. Enviar a la Papelera llegará en la versión Tauri (.exe).", "هذه النسخة التجريبية (PWA) تمسح النص على الشاشة فقط وتُبقي ملفات الحاسوب كما هي. إرسال الملفات إلى سلة المحذوفات سيُضاف في نسخة Tauri ‏(‎.exe)."],
+  "이름 바꾸기": ["Rename", "名前の変更", "重命名", "重新命名", "Đổi tên", "Umbenennen", "Renommer", "Renomear", "Cambiar nombre", "إعادة التسمية"],
+  "이름에 / \\ : * ? \" < > | 는 쓸 수 없습니다.": ["Names cannot contain / \\ : * ? \" < > |", "名前に / \\ : * ? \" < > | は使えません。", "名称中不能包含 / \\ : * ? \" < > |", "名稱中不能包含 / \\ : * ? \" < > |", "Tên không được chứa / \\ : * ? \" < > |", "Namen dürfen / \\ : * ? \" < > | nicht enthalten.", "Le nom ne peut pas contenir / \\ : * ? \" < > |", "O nome não pode conter / \\ : * ? \" < > |", "El nombre no puede contener / \\ : * ? \" < > |", "لا يمكن استخدام / \\ : * ? \" < > | في الأسماء."],
+  "이름을 넣어 주세요.": ["Please enter a name.", "名前を入力してください。", "请输入名称。", "請輸入名稱。", "Vui lòng nhập tên.", "Bitte einen Namen eingeben.", "Saisissez un nom.", "Digite um nome.", "Escribe un nombre.", "أدخل اسمًا."],
+  "이번에 바뀐 것: 그림 고정·끌어 놓기, 자(mm)와 Ctrl+R, 모든 페이지 3cm 여백, 큰 십자 커서, 인코딩 10가지, 여러 파일 탭, 폰 화면 맞춤과 두 손가락 확대, 인쇄 여백.": ["What’s new: fixed pictures you can drag anywhere, mm rulers with Ctrl+R, 3 cm margins on every page, full-screen crosshair cursor, 10 encodings, tabs for multiple files, fit-to-screen and pinch zoom on phones, print margins.", "今回の変更：画像の固定とドラッグ配置、mm 定規と Ctrl+R、全ページ 3cm 余白、大きな十字カーソル、10種類のエンコード、複数ファイルのタブ、スマホの画面合わせと2本指拡大、印刷余白。", "本次更新：图片固定并可拖放、毫米标尺与 Ctrl+R、所有页面 3 厘米边距、大十字光标、10 种编码、多文件标签页、手机适配屏幕与双指缩放、打印边距。", "本次更新：圖片固定並可拖放、毫米標尺與 Ctrl+R、所有頁面 3 釐米邊距、大十字游標、10 種編碼、多檔案標籤頁、手機適配螢幕與雙指縮放、列印邊距。", "Thay đổi lần này: hình cố định và kéo thả, thước mm và Ctrl+R, lề 3 cm mọi trang, con trỏ chữ thập lớn, 10 kiểu mã hóa, thẻ nhiều tệp, vừa màn hình điện thoại và phóng to hai ngón, lề in.", "Neu: fixierte, frei verschiebbare Bilder, mm-Lineale mit Strg+R, 3 cm Ränder auf jeder Seite, Vollbild-Fadenkreuz, 10 Codierungen, Tabs für mehrere Dateien, Bildschirmanpassung und Zwei-Finger-Zoom am Handy, Druckränder.", "Nouveautés : images fixes déplaçables partout, règles en mm avec Ctrl+R, marges de 3 cm sur chaque page, curseur en croix plein écran, 10 encodages, onglets multi-fichiers, ajustement à l’écran et zoom à deux doigts sur téléphone, marges d’impression.", "Novidades: imagens fixas que podem ser arrastadas, réguas em mm com Ctrl+R, margens de 3 cm em todas as páginas, cursor em cruz de tela cheia, 10 codificações, abas para vários arquivos, ajuste à tela e zoom com dois dedos no celular, margens de impressão.", "Novedades: imágenes fijas que se pueden arrastrar, reglas en mm con Ctrl+R, márgenes de 3 cm en todas las páginas, cursor en cruz de pantalla completa, 10 codificaciones, pestañas para varios archivos, ajuste a la pantalla y zoom con dos dedos en el celular, márgenes de impresión.", "الجديد في هذه النسخة: صور ثابتة تُسحب إلى أي مكان، مسطرة بالمليمتر مع Ctrl+R، هوامش لكل الصفحات، مؤشر متقاطع كبير، 10 ترميزات، علامات تبويب لعدة ملفات، ملاءمة الشاشة والتكبير بإصبعين على الهاتف، هوامش الطباعة."],
+  "인쇄…": ["Print…", "印刷…", "打印…", "列印…", "In…", "Drucken…", "Imprimer…", "Imprimir…", "Imprimir…", "طباعة…"],
+  "인코딩": ["Encoding", "エンコード", "编码", "編碼", "Mã hóa", "Codierung", "Encodage", "Codificação", "Codificación", "الترميز"],
+  "자": ["Ruler", "ルーラー", "标尺", "標尺", "Thước", "Lineal", "Règle", "Régua", "Regla", "المسطرة"],
+  "자 (Ctrl+R)": ["Ruler (Ctrl+R)", "ルーラー (Ctrl+R)", "标尺 (Ctrl+R)", "標尺 (Ctrl+R)", "Thước (Ctrl+R)", "Lineal (Strg+R)", "Règle (Ctrl+R)", "Régua (Ctrl+R)", "Regla (Ctrl+R)", "المسطرة (Ctrl+R)"],
+  "자동 줄 바꿈": ["Word wrap", "右端で折り返す", "自动换行", "自動換行", "Tự xuống dòng", "Zeilenumbruch", "Retour automatique à la ligne", "Quebra automática de linha", "Ajuste de línea", "التفاف تلقائي للأسطر"],
+  "저장": ["Save", "保存", "保存", "儲存", "Lưu", "Speichern", "Enregistrer", "Salvar", "Guardar", "حفظ"],
+  "저장 (Ctrl+S)": ["Save (Ctrl+S)", "保存 (Ctrl+S)", "保存 (Ctrl+S)", "儲存 (Ctrl+S)", "Lưu (Ctrl+S)", "Speichern (Strg+S)", "Enregistrer (Ctrl+S)", "Salvar (Ctrl+S)", "Guardar (Ctrl+S)", "حفظ (Ctrl+S)"],
+  "저장 안 됨": ["Not saved", "未保存", "未保存", "未儲存", "Chưa lưu", "Nicht gespeichert", "Non enregistré", "Não salvo", "Sin guardar", "غير محفوظ"],
+  "저장됨": ["Saved", "保存済み", "已保存", "已儲存", "Đã lưu", "Gespeichert", "Enregistré", "Salvo", "Guardado", "محفوظ"],
+  "저장하지 못했습니다.": ["Could not save.", "保存できませんでした。", "无法保存。", "無法儲存。", "Không lưu được.", "Speichern fehlgeschlagen.", "Impossible d’enregistrer.", "Não foi possível salvar.", "No se pudo guardar.", "تعذّر الحفظ."],
+  "저장할 때 {0}(으)로 저장합니다.": ["Will be saved as {0}.", "{0} で保存します。", "将以 {0} 保存。", "將以 {0} 儲存。", "Sẽ lưu dạng {0}.", "Wird als {0} gespeichert.", "Sera enregistré en {0}.", "Será salvo como {0}.", "Se guardará como {0}.", "سيُحفظ بترميز {0}."],
+  "저장했습니다: {0}": ["Saved: {0}", "保存しました：{0}", "已保存：{0}", "已儲存：{0}", "Đã lưu: {0}", "Gespeichert: {0}", "Enregistré : {0}", "Salvo: {0}", "Guardado: {0}", "تم الحفظ: {0}"],
+  "제목": ["Heading", "見出し", "标题", "標題", "Tiêu đề", "Überschrift", "Titre", "Título", "Título", "عنوان"],
+  "목록": ["List", "リスト", "列表", "清單", "Danh sách", "Liste", "Liste", "Lista", "Lista", "قائمة"],
+  "굵게 (Ctrl+B)": ["Bold (Ctrl+B)", "太字 (Ctrl+B)", "加粗 (Ctrl+B)", "粗體 (Ctrl+B)", "Đậm (Ctrl+B)", "Fett (Strg+B)", "Gras (Ctrl+B)", "Negrito (Ctrl+B)", "Negrita (Ctrl+B)", "غامق (Ctrl+B)"],
+  "기울임 (Ctrl+I)": ["Italic (Ctrl+I)", "斜体 (Ctrl+I)", "斜体 (Ctrl+I)", "斜體 (Ctrl+I)", "Nghiêng (Ctrl+I)", "Kursiv (Strg+I)", "Italique (Ctrl+I)", "Itálico (Ctrl+I)", "Cursiva (Ctrl+I)", "مائل (Ctrl+I)"],
+  "취소선": ["Strikethrough", "取り消し線", "删除线", "刪除線", "Gạch ngang", "Durchgestrichen", "Barré", "Tachado", "Tachado", "يتوسطه خط"],
+  "본문": ["Body text", "本文", "正文", "內文", "Văn bản thường", "Fließtext", "Texte normal", "Texto normal", "Texto normal", "نص عادي"],
+  "제목 {0}": ["Heading {0}", "見出し {0}", "标题 {0}", "標題 {0}", "Tiêu đề {0}", "Überschrift {0}", "Titre {0}", "Título {0}", "Título {0}", "عنوان {0}"],
+  "목록 없음": ["No list", "リストなし", "无列表", "無清單", "Không danh sách", "Keine Liste", "Aucune liste", "Sem lista", "Sin lista", "بلا قائمة"],
+  "• 글머리 기호": ["• Bullets", "• 箇条書き", "• 项目符号", "• 項目符號", "• Dấu đầu dòng", "• Aufzählung", "• Puces", "• Marcadores", "• Viñetas", "• تعداد نقطي"],
+  "1. 번호 매기기": ["1. Numbering", "1. 番号付き", "1. 编号", "1. 編號", "1. Đánh số", "1. Nummerierung", "1. Numérotation", "1. Numeração", "1. Numeración", "1. ترقيم"],
+  "☐ 체크 상자": ["☐ Checkboxes", "☐ チェックボックス", "☐ 复选框", "☐ 核取方塊", "☐ Hộp kiểm", "☐ Kontrollkästchen", "☐ Cases à cocher", "☐ Caixas de seleção", "☐ Casillas", "☐ مربعات اختيار"],
+  "글 파일 이름은 .txt로 끝나야 합니다. 이름을 확인해 주세요.": ["The text file name must end in .txt. Please check the name.", "テキストファイル名は .txt で終わる必要があります。名前を確認してください。", "文本文件名必须以 .txt 结尾。请检查名称。", "文字檔名稱必須以 .txt 結尾。請檢查名稱。", "Tên tệp văn bản phải kết thúc bằng .txt. Vui lòng kiểm tra tên.", "Der Name der Textdatei muss auf .txt enden. Bitte Namen prüfen.", "Le nom du fichier texte doit se terminer par .txt. Vérifiez le nom.", "O nome do arquivo de texto deve terminar em .txt. Verifique o nome.", "El nombre del archivo de texto debe terminar en .txt. Revisa el nombre.", "يجب أن ينتهي اسم ملف النص بـ ‎.txt. تحقق من الاسم."],
+  "예: 1-3, 5 (전체 {0}쪽)": ["e.g. 1-3, 5 ({0} pages in total)", "例: 1-3, 5 (全 {0} ページ)", "例如: 1-3, 5 (共 {0} 页)", "例如: 1-3, 5 (共 {0} 頁)", "VD: 1-3, 5 (tổng {0} trang)", "z. B. 1-3, 5 ({0} Seiten insgesamt)", "ex. : 1-3, 5 ({0} pages au total)", "ex.: 1-3, 5 ({0} páginas no total)", "p. ej.: 1-3, 5 ({0} páginas en total)", "مثال: 1-3, 5 (الإجمالي {0} صفحة)"],
+  "모두": ["All", "すべて", "全部", "全部", "Tất cả", "Alle", "Toutes", "Todas", "Todas", "الكل"],
+  "홀수 페이지만": ["Odd pages only", "奇数ページのみ", "仅奇数页", "僅奇數頁", "Chỉ trang lẻ", "Nur ungerade Seiten", "Pages impaires seulement", "Somente páginas ímpares", "Solo páginas impares", "الصفحات الفردية فقط"],
+  "짝수 페이지만": ["Even pages only", "偶数ページのみ", "仅偶数页", "僅偶數頁", "Chỉ trang chẵn", "Nur gerade Seiten", "Pages paires seulement", "Somente páginas pares", "Solo páginas pares", "الصفحات الزوجية فقط"],
+  "페이지 범위": ["Page range", "ページ範囲", "页面范围", "頁面範圍", "Phạm vi trang", "Seitenbereich", "Plage de pages", "Intervalo de páginas", "Intervalo de páginas", "نطاق الصفحات"],
+  "페이지 번호를 1~{0} 안에서 넣어 주세요. 예: 1-3, 5": ["Enter page numbers from 1 to {0}. e.g. 1-3, 5", "1～{0} のページ番号を入力してください。例: 1-3, 5", "请输入 1~{0} 之间的页码。例如: 1-3, 5", "請輸入 1~{0} 之間的頁碼。例如: 1-3, 5", "Nhập số trang từ 1 đến {0}. VD: 1-3, 5", "Seitenzahlen von 1 bis {0} eingeben. z. B. 1-3, 5", "Saisissez des numéros de page de 1 à {0}. ex. : 1-3, 5", "Digite números de página de 1 a {0}. ex.: 1-3, 5", "Escribe números de página del 1 al {0}. p. ej.: 1-3, 5", "أدخل أرقام الصفحات من 1 إلى {0}. مثال: 1-3, 5"],
+  "인쇄할 페이지가 없습니다.": ["There are no pages to print.", "印刷するページがありません。", "没有要打印的页面。", "沒有要列印的頁面。", "Không có trang nào để in.", "Keine Seiten zum Drucken.", "Aucune page à imprimer.", "Não há páginas para imprimir.", "No hay páginas para imprimir.", "لا توجد صفحات للطباعة."],
+  "인쇄": ["Print", "印刷", "打印", "列印", "In", "Drucken", "Imprimer", "Imprimir", "Imprimir", "طباعة"],
+  "전체 {0}쪽": ["{0} pages in total", "全 {0} ページ", "共 {0} 页", "共 {0} 頁", "Tổng {0} trang", "{0} Seiten insgesamt", "{0} pages au total", "{0} páginas no total", "{0} páginas en total", "الإجمالي {0} صفحة"],
+  "인쇄할 페이지를 준비하는 중…": ["Preparing pages to print…", "印刷するページを準備しています…", "正在准备要打印的页面…", "正在準備要列印的頁面…", "Đang chuẩn bị trang để in…", "Seiten werden zum Drucken vorbereitet…", "Préparation des pages à imprimer…", "Preparando as páginas para impressão…", "Preparando las páginas para imprimir…", "جارٍ تجهيز الصفحات للطباعة…"],
+  "{0}쪽을 인쇄합니다.": ["Printing {0} page(s).", "{0} ページを印刷します。", "将打印 {0} 页。", "將列印 {0} 頁。", "Đang in {0} trang.", "{0} Seite(n) werden gedruckt.", "Impression de {0} page(s).", "Imprimindo {0} página(s).", "Imprimiendo {0} página(s).", "ستُطبع {0} صفحة."],
+  "인쇄를 준비하지 못했습니다. 인터넷 연결을 확인해 주세요.": ["Couldn't prepare printing. Please check your internet connection.", "印刷を準備できませんでした。インターネット接続を確認してください。", "无法准备打印。请检查网络连接。", "無法準備列印。請檢查網路連線。", "Không thể chuẩn bị in. Vui lòng kiểm tra kết nối internet.", "Drucken konnte nicht vorbereitet werden. Bitte Internetverbindung prüfen.", "Impossible de préparer l'impression. Vérifiez votre connexion Internet.", "Não foi possível preparar a impressão. Verifique sua conexão com a internet.", "No se pudo preparar la impresión. Revisa tu conexión a internet.", "تعذّر تجهيز الطباعة. تحقق من اتصال الإنترنت."],
+  "사용법": ["How to use", "使い方", "使用方法", "使用方法", "Cách dùng", "Anleitung", "Mode d'emploi", "Como usar", "Cómo usar", "طريقة الاستخدام"],
+  "동영상": ["Video", "動画", "视频", "影片", "Video", "Video", "Vidéo", "Vídeo", "Vídeo", "فيديو"],
+  "동영상이 너무 커서 이 기기에 기억하지 못했습니다. 다음에 열 때 다시 골라 주세요.": ["The video is too large to remember on this device. Please pick it again next time.", "動画が大きすぎてこの端末に記憶できませんでした。次回もう一度選んでください。", "视频太大，无法记在此设备上。下次打开时请重新选择。", "影片太大，無法記在此裝置上。下次開啟時請重新選擇。", "Video quá lớn nên không thể ghi nhớ trên thiết bị này. Lần sau hãy chọn lại.", "Das Video ist zu groß, um es auf diesem Gerät zu merken. Bitte beim nächsten Mal erneut wählen.", "La vidéo est trop volumineuse pour être mémorisée sur cet appareil. Choisissez-la à nouveau la prochaine fois.", "O vídeo é grande demais para ser lembrado neste dispositivo. Escolha-o novamente da próxima vez.", "El vídeo es demasiado grande para recordarlo en este dispositivo. Vuelve a elegirlo la próxima vez.", "الفيديو كبير جدًا فلم يُحفظ على هذا الجهاز. اختره مجددًا عند الفتح التالي."],
+  "‘{0}’ 파일을 다시 골라 주세요.": ["Please pick ‘{0}’ again.", "‘{0}’ をもう一度選んでください。", "请重新选择“{0}”。", "請重新選擇「{0}」。", "Hãy chọn lại tệp ‘{0}’.", "Bitte ‘{0}’ erneut auswählen.", "Veuillez choisir à nouveau « {0} ».", "Escolha ‘{0}’ novamente.", "Vuelve a elegir ‘{0}’.", "اختر الملف «{0}» مجددًا."],
+  "내 PC·폰의 동영상 고르기…": ["Choose a video on this PC/phone…", "この PC・スマホの動画を選ぶ…", "选择本机/手机中的视频…", "選擇本機/手機中的影片…", "Chọn video trong máy tính/điện thoại…", "Video auf diesem PC/Handy wählen…", "Choisir une vidéo sur ce PC/téléphone…", "Escolher um vídeo deste PC/celular…", "Elegir un vídeo de este PC/móvil…", "اختيار فيديو من هذا الحاسوب/الهاتف…"],
+  "또는 이 기기에 있는 동영상 파일:": ["Or a video file on this device:", "または、この端末にある動画ファイル:", "或此设备上的视频文件：", "或此裝置上的影片檔：", "Hoặc tệp video trên thiết bị này:", "Oder eine Videodatei auf diesem Gerät:", "Ou un fichier vidéo sur cet appareil :", "Ou um arquivo de vídeo neste dispositivo:", "O un archivo de vídeo de este dispositivo:", "أو ملف فيديو على هذا الجهاز:"],
+  "동영상 상자 지우기": ["Delete video box", "動画ボックスを削除", "删除视频框", "刪除影片框", "Xóa khung video", "Videorahmen löschen", "Supprimer le cadre vidéo", "Excluir caixa de vídeo", "Eliminar cuadro de vídeo", "حذف مربع الفيديو"],
+  "종료": ["Exit", "終了", "退出", "結束", "Thoát", "Beenden", "Quitter", "Sair", "Salir", "خروج"],
+  "브라우저 탭에서는 닫을 수 없습니다. 탭의 ✕를 눌러 닫아 주세요.": ["Can't close from a browser tab. Please close it with the tab's ✕.", "ブラウザーのタブからは閉じられません。タブの ✕ で閉じてください。", "无法在浏览器标签页中关闭。请点击标签页上的 ✕ 关闭。", "無法在瀏覽器分頁中關閉。請按分頁上的 ✕ 關閉。", "Không thể đóng từ thẻ trình duyệt. Hãy bấm ✕ trên thẻ để đóng.", "Im Browser-Tab nicht möglich. Bitte mit dem ✕ des Tabs schließen.", "Impossible de fermer depuis un onglet du navigateur. Fermez-le avec le ✕ de l'onglet.", "Não é possível fechar numa aba do navegador. Feche pelo ✕ da aba.", "No se puede cerrar desde una pestaña del navegador. Ciérrala con la ✕ de la pestaña.", "لا يمكن الإغلاق من علامة تبويب المتصفح. أغلقها بزر ✕."],
+  "유튜브에서 보기": ["Watch on YouTube", "YouTube で見る", "在 YouTube 上观看", "在 YouTube 上觀看", "Xem trên YouTube", "Auf YouTube ansehen", "Regarder sur YouTube", "Assistir no YouTube", "Ver en YouTube", "المشاهدة على YouTube"],
+  "미리보기·인쇄": ["Preview & print", "プレビュー・印刷", "预览·打印", "預覽·列印", "Xem trước & in", "Vorschau & Drucken", "Aperçu et impression", "Visualizar e imprimir", "Vista previa e imprimir", "معاينة وطباعة"],
+  "시험판 {0} · {1}": ["Beta {0} · {1}", "試用版 {0} · {1}", "测试版 {0} · {1}", "測試版 {0} · {1}", "Bản thử {0} · {1}", "Testversion {0} · {1}", "Version d'essai {0} · {1}", "Versão de teste {0} · {1}", "Versión de prueba {0} · {1}", "نسخة تجريبية {0} · {1}"],
+  "주소 복사": ["Copy address", "アドレスをコピー", "复制地址", "複製網址", "Sao chép địa chỉ", "Adresse kopieren", "Copier l'adresse", "Copiar endereço", "Copiar dirección", "نسخ العنوان"],
+  "앱 주소를 복사했습니다.": ["App address copied.", "アプリのアドレスをコピーしました。", "已复制应用地址。", "已複製應用程式網址。", "Đã sao chép địa chỉ ứng dụng.", "App-Adresse kopiert.", "Adresse de l'app copiée.", "Endereço do app copiado.", "Dirección de la app copiada.", "تم نسخ عنوان التطبيق."],
+  "pitex 정보": ["About pitex", "pitex について", "关于 pitex", "關於 pitex", "Giới thiệu pitex", "Über pitex", "À propos de pitex", "Sobre o pitex", "Acerca de pitex", "حول pitex"],
+  "pitex 정보 (버전·설치)": ["About pitex (version & install)", "pitex について (バージョン・インストール)", "关于 pitex (版本·安装)", "關於 pitex (版本·安裝)", "Giới thiệu pitex (phiên bản & cài đặt)", "Über pitex (Version & Installation)", "À propos de pitex (version et installation)", "Sobre o pitex (versão e instalação)", "Acerca de pitex (versión e instalación)", "حول pitex (الإصدار والتثبيت)"],
+  "글은 순수 txt로, 그림·선·표·꾸밈은 짝꿍 파일(.txtx.pitex)로 저장하는 메모장입니다. pitex가 없는 사람에게는 txt 하나만 보입니다.": ["A notepad that saves text as plain txt and pictures, lines, tables and formatting in a companion file (.txtx.pitex). People without pitex just see the txt.", "本文は純粋な txt で、画像・線・表・書式はペアファイル (.txtx.pitex) で保存するメモ帳です。pitex がない人には txt だけが見えます。", "正文保存为纯 txt，图片、线条、表格和格式保存在配套文件 (.txtx.pitex) 中的记事本。没有 pitex 的人只会看到 txt。", "正文儲存為純 txt，圖片、線條、表格和格式儲存在配套檔案 (.txtx.pitex) 中的記事本。沒有 pitex 的人只會看到 txt。", "Trình ghi chú lưu văn bản dạng txt thuần, còn hình, đường, bảng và định dạng trong tệp đi kèm (.txtx.pitex). Người không có pitex chỉ thấy tệp txt.", "Ein Editor, der Text als reines txt und Bilder, Linien, Tabellen und Formatierung in einer Begleitdatei (.txtx.pitex) speichert. Wer pitex nicht hat, sieht nur das txt.", "Un bloc-notes qui enregistre le texte en txt pur et les images, lignes, tableaux et mises en forme dans un fichier compagnon (.txtx.pitex). Sans pitex, on ne voit que le txt.", "Um bloco de notas que salva o texto em txt puro e imagens, linhas, tabelas e formatação num arquivo complementar (.txtx.pitex). Quem não tem pitex vê só o txt.", "Un bloc de notas que guarda el texto como txt puro y las imágenes, líneas, tablas y formato en un archivo complementario (.txtx.pitex). Quien no tiene pitex solo ve el txt.", "مفكرة تحفظ النص بصيغة txt خالصة والصور والخطوط والجداول والتنسيق في ملف مرافق (‎.txtx.pitex). من لا يملك pitex يرى ملف txt فقط."],
+  "앱 주소": ["App address", "アプリのアドレス", "应用地址", "應用程式網址", "Địa chỉ ứng dụng", "App-Adresse", "Adresse de l'app", "Endereço do app", "Dirección de la app", "عنوان التطبيق"],
+  "PC에 설치하기 (Windows)": ["Install on PC (Windows)", "PC にインストール (Windows)", "在电脑上安装 (Windows)", "在電腦上安裝 (Windows)", "Cài trên máy tính (Windows)", "Auf dem PC installieren (Windows)", "Installer sur PC (Windows)", "Instalar no PC (Windows)", "Instalar en el PC (Windows)", "التثبيت على الحاسوب (Windows)"],
+  "Edge로 위 주소를 엽니다.": ["Open the address above in Edge.", "Edge で上のアドレスを開きます。", "用 Edge 打开上面的地址。", "用 Edge 開啟上面的網址。", "Mở địa chỉ trên bằng Edge.", "Öffnen Sie die obige Adresse in Edge.", "Ouvrez l'adresse ci-dessus dans Edge.", "Abra o endereço acima no Edge.", "Abre la dirección de arriba en Edge.", "افتح العنوان أعلاه في Edge."],
+  "주소창 오른쪽의 ‘앱 설치’(⊞) 단추를 누르고 [설치]를 누릅니다.": ["Click the ‘Install app’ (⊞) button at the right of the address bar, then [Install].", "アドレスバー右の「アプリのインストール」(⊞) を押し、[インストール] を押します。", "点击地址栏右侧的“安装应用”(⊞) 按钮，然后点击 [安装]。", "按下網址列右側的「安裝應用程式」(⊞) 按鈕，再按 [安裝]。", "Bấm nút ‘Cài đặt ứng dụng’ (⊞) bên phải thanh địa chỉ, rồi bấm [Cài đặt].", "Klicken Sie rechts in der Adressleiste auf ‘App installieren’ (⊞) und dann auf [Installieren].", "Cliquez sur ‘Installer l'application’ (⊞) à droite de la barre d'adresse, puis sur [Installer].", "Clique em ‘Instalar app’ (⊞) à direita da barra de endereço e depois em [Instalar].", "Pulsa ‘Instalar aplicación’ (⊞) a la derecha de la barra de direcciones y luego [Instalar].", "انقر زر «تثبيت التطبيق» (⊞) على يمين شريط العنوان ثم [تثبيت]."],
+  "시작 메뉴와 바탕화면에 pitex 아이콘이 생기고, 창 하나짜리 앱으로 열립니다.": ["A pitex icon appears in the Start menu and on the desktop, and it opens as its own app window.", "スタートメニューとデスクトップに pitex のアイコンができ、専用のアプリ画面で開きます。", "开始菜单和桌面上会出现 pitex 图标，并以独立的应用窗口打开。", "開始功能表和桌面會出現 pitex 圖示，並以獨立的應用程式視窗開啟。", "Biểu tượng pitex xuất hiện trong menu Start và trên màn hình nền, mở như một cửa sổ ứng dụng riêng.", "Im Startmenü und auf dem Desktop erscheint ein pitex-Symbol; es öffnet sich als eigenes App-Fenster.", "Une icône pitex apparaît dans le menu Démarrer et sur le bureau, et s'ouvre dans sa propre fenêtre.", "Um ícone do pitex aparece no menu Iniciar e na área de trabalho, e ele abre como um app em janela própria.", "Aparece un icono de pitex en el menú Inicio y en el escritorio, y se abre como una ventana de aplicación propia.", "تظهر أيقونة pitex في قائمة ابدأ وعلى سطح المكتب، ويُفتح كتطبيق في نافذة مستقلة."],
+  "폰에 설치하기": ["Install on phone", "スマホにインストール", "在手机上安装", "在手機上安裝", "Cài trên điện thoại", "Auf dem Handy installieren", "Installer sur le téléphone", "Instalar no celular", "Instalar en el móvil", "التثبيت على الهاتف"],
+  "Chrome으로 위 주소를 엽니다.": ["Open the address above in Chrome.", "Chrome で上のアドレスを開きます。", "用 Chrome 打开上面的地址。", "用 Chrome 開啟上面的網址。", "Mở địa chỉ trên bằng Chrome.", "Öffnen Sie die obige Adresse in Chrome.", "Ouvrez l'adresse ci-dessus dans Chrome.", "Abra o endereço acima no Chrome.", "Abre la dirección de arriba en Chrome.", "افتح العنوان أعلاه في Chrome."],
+  "오른쪽 위 ⋮ 메뉴 → ‘앱 설치’ 또는 ‘홈 화면에 추가’를 누릅니다.": ["Tap the ⋮ menu at the top right → ‘Install app’ or ‘Add to Home screen’.", "右上の ⋮ メニュー →「アプリをインストール」または「ホーム画面に追加」を押します。", "点右上角 ⋮ 菜单 →“安装应用”或“添加到主屏幕”。", "點右上角 ⋮ 選單 →「安裝應用程式」或「加到主畫面」。", "Chạm menu ⋮ ở góc trên bên phải → ‘Cài đặt ứng dụng’ hoặc ‘Thêm vào màn hình chính’.", "Tippen Sie oben rechts auf ⋮ → ‘App installieren’ oder ‘Zum Startbildschirm hinzufügen’.", "Touchez le menu ⋮ en haut à droite → ‘Installer l'application’ ou ‘Ajouter à l'écran d'accueil’.", "Toque no menu ⋮ no canto superior direito → ‘Instalar app’ ou ‘Adicionar à tela inicial’.", "Toca el menú ⋮ arriba a la derecha → ‘Instalar aplicación’ o ‘Añadir a pantalla de inicio’.", "اضغط قائمة ⋮ أعلى الشاشة ← «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»."],
+  "새 버전 받기": ["Getting new versions", "新しいバージョンを受け取る", "获取新版本", "取得新版本", "Nhận phiên bản mới", "Neue Versionen erhalten", "Obtenir les nouvelles versions", "Receber novas versões", "Obtener versiones nuevas", "الحصول على الإصدارات الجديدة"],
+  "따로 내려받을 필요가 없습니다. 인터넷이 연결된 상태에서 pitex를 껐다 켜면 새 버전으로 바뀝니다.": ["No separate download is needed. Close and reopen pitex while online and it updates to the new version.", "別途ダウンロードする必要はありません。インターネットにつながった状態で pitex を開き直すと新しいバージョンになります。", "无需另外下载。联网时关闭并重新打开 pitex，就会更新为新版本。", "不需另外下載。連網時關閉並重新開啟 pitex，就會更新為新版本。", "Không cần tải riêng. Khi có mạng, tắt rồi mở lại pitex là lên phiên bản mới.", "Kein separater Download nötig. Schließen und öffnen Sie pitex online erneut, dann wird es aktualisiert.", "Aucun téléchargement séparé. Fermez puis rouvrez pitex en étant connecté : il passe à la nouvelle version.", "Não é preciso baixar nada. Feche e abra o pitex com internet e ele passa para a nova versão.", "No hace falta descargar nada. Cierra y vuelve a abrir pitex con internet y se actualiza a la nueva versión.", "لا حاجة إلى تنزيل منفصل. أغلق pitex وأعد فتحه مع اتصال الإنترنت فيتحدّث إلى الإصدار الجديد."],
+  "인터넷이 없어도 마지막으로 받은 버전으로 열립니다.": ["Without internet, it opens with the last version received.", "インターネットがなくても、最後に受け取ったバージョンで開きます。", "没有网络时，也会以最后获取的版本打开。", "沒有網路時，也會以最後取得的版本開啟。", "Không có mạng vẫn mở được bằng phiên bản nhận gần nhất.", "Ohne Internet öffnet es sich mit der zuletzt erhaltenen Version.", "Sans Internet, il s'ouvre avec la dernière version reçue.", "Sem internet, abre com a última versão recebida.", "Sin internet, se abre con la última versión recibida.", "يُفتح بآخر إصدار تم تنزيله حتى دون إنترنت."],
+  "버전 숫자는 이 창 위쪽에서 확인합니다.": ["Check the version number at the top of this window.", "バージョン番号はこの画面の上で確認できます。", "版本号可在此窗口上方查看。", "版本號可在此視窗上方查看。", "Xem số phiên bản ở phía trên cửa sổ này.", "Die Versionsnummer steht oben in diesem Fenster.", "Le numéro de version figure en haut de cette fenêtre.", "Veja o número da versão no topo desta janela.", "Consulta el número de versión en la parte superior de esta ventana.", "تجد رقم الإصدار أعلى هذه النافذة."],
+  "버전·설치 안내 ›": ["Version & install ›", "バージョン・インストール ›", "版本·安装 ›", "版本·安裝 ›", "Phiên bản & cài đặt ›", "Version & Installation ›", "Version et installation ›", "Versão e instalação ›", "Versión e instalación ›", "الإصدار والتثبيت ›"],
+  "동영상 상자: 한 번 누르면 기본 크기(16:9), 끌면 원하는 크기로 만듭니다.": ["Video box: tap once for the default size (16:9), or drag for any size.", "動画ボックス：1 回押すと標準サイズ (16:9)、ドラッグすると好きな大きさで作ります。", "视频框：点一下为默认大小 (16:9)，拖动可设为任意大小。", "影片框：點一下為預設大小 (16:9)，拖曳可設為任意大小。", "Khung video: chạm một lần để có cỡ mặc định (16:9), kéo để chọn cỡ tùy ý.", "Videorahmen: einmal tippen für Standardgröße (16:9), ziehen für beliebige Größe.", "Cadre vidéo : touchez une fois pour la taille par défaut (16:9), ou faites glisser pour la taille voulue.", "Caixa de vídeo: toque uma vez para o tamanho padrão (16:9) ou arraste para o tamanho que quiser.", "Cuadro de vídeo: toca una vez para el tamaño predeterminado (16:9) o arrastra para el tamaño que quieras.", "مربع الفيديو: ضغطة واحدة للحجم الافتراضي (16:9)، أو اسحب لأي حجم."],
+  "정식판: 30일 무료 체험 · 평생이용권": ["Full version: 30-day free trial · Lifetime pass", "製品版：30 日間無料体験・永久ライセンス", "正式版：30 天免费试用 · 终身使用权", "正式版：30 天免費試用 · 終身使用權", "Bản chính thức: dùng thử 30 ngày · Vé trọn đời", "Vollversion: 30 Tage gratis testen · Lebenslange Lizenz", "Version complète : 30 jours d'essai · Licence à vie", "Versão completa: 30 dias grátis · Licença vitalícia", "Versión completa: 30 días de prueba · Licencia de por vida", "النسخة الكاملة: تجربة مجانية 30 يومًا · ترخيص مدى الحياة"],
+  "정식판과 평생이용권": ["Full version and lifetime pass", "製品版と永久ライセンス", "正式版与终身使用权", "正式版與終身使用權", "Bản chính thức và vé trọn đời", "Vollversion und lebenslange Lizenz", "Version complète et licence à vie", "Versão completa e licença vitalícia", "Versión completa y licencia de por vida", "النسخة الكاملة وترخيص مدى الحياة"],
+  "정식판은 마이크로소프트 스토어에서 받습니다. (준비 중)": ["The full version will be available from the Microsoft Store. (Coming soon)", "製品版は Microsoft Store で入手します。(準備中)", "正式版将在 Microsoft Store 提供。(准备中)", "正式版將在 Microsoft Store 提供。(準備中)", "Bản chính thức sẽ có trên Microsoft Store. (Sắp ra mắt)", "Die Vollversion gibt es im Microsoft Store. (In Vorbereitung)", "La version complète sera disponible sur le Microsoft Store. (Bientôt)", "A versão completa estará na Microsoft Store. (Em breve)", "La versión completa estará en Microsoft Store. (Próximamente)", "النسخة الكاملة ستتوفر في متجر Microsoft. (قريبًا)"],
+  "설치 후 30일 동안은 모든 기능을 무료로 씁니다.": ["For 30 days after installing, every feature is free.", "インストール後 30 日間はすべての機能を無料で使えます。", "安装后 30 天内所有功能均可免费使用。", "安裝後 30 天內所有功能均可免費使用。", "Trong 30 ngày sau khi cài, mọi tính năng đều miễn phí.", "30 Tage nach der Installation sind alle Funktionen kostenlos.", "Pendant 30 jours après l'installation, toutes les fonctions sont gratuites.", "Durante 30 dias após a instalação, todos os recursos são gratuitos.", "Durante 30 días tras instalarla, todas las funciones son gratis.", "كل الميزات مجانية لمدة 30 يومًا بعد التثبيت."],
+  "30일이 지나면 PDF 보내기와 HTML 보내기만 잠기고, 나머지 기능은 계속 무료입니다.": ["After 30 days only PDF and HTML export are locked; everything else stays free.", "30 日を過ぎると PDF と HTML への書き出しだけが使えなくなり、ほかの機能は引き続き無料です。", "30 天后仅锁定 PDF 和 HTML 导出，其他功能继续免费。", "30 天後僅鎖定 PDF 和 HTML 匯出，其他功能繼續免費。", "Sau 30 ngày chỉ khóa xuất PDF và HTML; mọi tính năng khác vẫn miễn phí.", "Nach 30 Tagen werden nur PDF- und HTML-Export gesperrt; alles andere bleibt kostenlos.", "Après 30 jours, seuls les exports PDF et HTML sont verrouillés ; le reste reste gratuit.", "Após 30 dias, só a exportação em PDF e HTML fica bloqueada; o resto continua grátis.", "Tras 30 días solo se bloquean la exportación a PDF y HTML; lo demás sigue gratis.", "بعد 30 يومًا يُقفل تصدير PDF وHTML فقط، وتبقى بقية الميزات مجانية."],
+  "평생이용권(한국 1,100원 부가세 포함, 그 밖의 나라 1$)을 한 번 사면 두 기능이 다시 열리고, 평생 무료 업그레이드가 포함됩니다.": ["Buy the lifetime pass once ($1; ₩1,100 incl. VAT in Korea) to unlock both again, with free upgrades for life.", "永久ライセンス (1$、韓国は付加価値税込み 1,100 ウォン) を一度買うと 2 つの機能が再び使え、生涯無料アップグレード付きです。", "购买一次终身使用权 (1$，韩国含税 1,100 韩元) 即可重新开启这两项功能，并终身免费升级。", "購買一次終身使用權 (1$，韓國含稅 1,100 韓元) 即可重新開啟這兩項功能，並終身免費升級。", "Mua vé trọn đời một lần (1$; tại Hàn Quốc 1.100₩ gồm VAT) để mở lại hai tính năng, kèm nâng cấp miễn phí trọn đời.", "Mit der einmal gekauften lebenslangen Lizenz (1 $; in Korea 1.100 ₩ inkl. MwSt.) sind beide wieder frei – inklusive lebenslanger kostenloser Upgrades.", "Achetez une fois la licence à vie (1 $ ; 1 100 ₩ TTC en Corée) pour les débloquer, avec mises à niveau gratuites à vie.", "Compre uma vez a licença vitalícia (US$ 1; ₩1.100 com imposto na Coreia) para desbloquear os dois, com atualizações grátis para sempre.", "Compra una vez la licencia de por vida (1 $; 1.100 ₩ con IVA en Corea) para desbloquear ambas, con actualizaciones gratis de por vida.", "اشترِ ترخيص مدى الحياة مرة واحدة (1$؛ في كوريا 1,100₩ شاملة الضريبة) لفتح الميزتين مجددًا، مع ترقيات مجانية مدى الحياة."],
+  "제목 없음": ["Untitled", "無題", "无标题", "無標題", "Không tên", "Unbenannt", "Sans titre", "Sem título", "Sin título", "بلا عنوان"],
+  "조금 더 크게 끌어 주세요.": ["Please drag a bit larger.", "もう少し大きくドラッグしてください。", "请拖得大一些。", "請拖得大一些。", "Hãy kéo lớn hơn một chút.", "Bitte etwas größer ziehen.", "Faites glisser un peu plus grand.", "Arraste um pouco maior.", "Arrastra un poco más grande.", "اسحب مسافة أكبر قليلًا."],
+  "줄 {0}, 열 {1}": ["Ln {0}, Col {1}", "{0} 行、{1} 列", "第 {0} 行，第 {1} 列", "第 {0} 行，第 {1} 列", "Dòng {0}, Cột {1}", "Zeile {0}, Spalte {1}", "Ligne {0}, Col {1}", "Lin {0}, Col {1}", "Lín {0}, Col {1}", "سطر {0}، عمود {1}"],
+  "줄 끝: Unix (LF) — 폰 방식": ["Line ending: Unix (LF) — phone style", "改行コード：Unix (LF) — スマホ方式", "行尾：Unix (LF) — 手机方式", "行尾：Unix (LF) — 手機方式", "Kết thúc dòng: Unix (LF) — kiểu điện thoại", "Zeilenende: Unix (LF) — Handy-Stil", "Fin de ligne : Unix (LF) — style téléphone", "Fim de linha: Unix (LF) — estilo celular", "Fin de línea: Unix (LF) — estilo celular", "نهاية السطر: Unix (LF) — أسلوب الهاتف"],
+  "줄 끝: Unix·폰 (LF)": ["Line ending: Unix·phone (LF)", "改行コード：Unix・スマホ (LF)", "行尾：Unix·手机 (LF)", "行尾：Unix·手機 (LF)", "Kết thúc dòng: Unix·điện thoại (LF)", "Zeilenende: Unix·Handy (LF)", "Fin de ligne : Unix·téléphone (LF)", "Fim de linha: Unix·celular (LF)", "Fin de línea: Unix·celular (LF)", "نهاية السطر: Unix·الهاتف (LF)"],
+  "줄 끝: Windows (CR LF)": ["Line ending: Windows (CR LF)", "改行コード：Windows (CR LF)", "行尾：Windows (CR LF)", "行尾：Windows (CR LF)", "Kết thúc dòng: Windows (CR LF)", "Zeilenende: Windows (CR LF)", "Fin de ligne : Windows (CR LF)", "Fim de linha: Windows (CR LF)", "Fin de línea: Windows (CR LF)", "نهاية السطر: Windows (CR LF)"],
+  "줄 끝: Windows (CR LF) — PC 메모장과 같게": ["Line ending: Windows (CR LF) — same as PC Notepad", "改行コード：Windows (CR LF) — PCのメモ帳と同じ", "行尾：Windows (CR LF) — 与电脑记事本相同", "行尾：Windows (CR LF) — 與電腦記事本相同", "Kết thúc dòng: Windows (CR LF) — giống Notepad trên PC", "Zeilenende: Windows (CR LF) — wie der PC-Editor", "Fin de ligne : Windows (CR LF) — comme le Bloc-notes du PC", "Fim de linha: Windows (CR LF) — igual ao Bloco de Notas do PC", "Fin de línea: Windows (CR LF) — igual que el Bloc de notas de la PC", "نهاية السطر: Windows (CR LF) — مثل مفكرة الحاسوب"],
+  "줄 번호": ["Line numbers", "行番号", "行号", "行號", "Số dòng", "Zeilennummern", "Numéros de ligne", "Números de linha", "Números de línea", "أرقام الأسطر"],
+  "지역 인코딩": ["Regional encodings", "地域のエンコード", "区域编码", "區域編碼", "Mã hóa khu vực", "Regionale Codierungen", "Encodages régionaux", "Codificações regionais", "Codificaciones regionales", "ترميزات إقليمية"],
+  "지우기": ["Clear", "消去", "清除", "清除", "Xóa", "Leeren", "Effacer", "Limpar", "Borrar", "مسح"],
+  "지웠습니다: {0}": ["Cleared: {0}", "消去しました：{0}", "已清除：{0}", "已清除：{0}", "Đã xóa: {0}", "Geleert: {0}", "Effacé : {0}", "Limpo: {0}", "Borrado: {0}", "تم المسح: {0}"],
+  "짝꿍 파일만으로는 열 수 없습니다. 같은 이름의 txt도 함께 골라 주세요.": ["The companion file alone cannot be opened. Please select the txt with the same name too.", "ペアファイルだけでは開けません。同じ名前の txt も一緒に選んでください。", "仅配套文件无法打开。请同时选择同名的 txt。", "僅配套檔案無法開啟。請同時選擇同名的 txt。", "Không thể mở chỉ với tệp đi kèm. Hãy chọn cùng tệp txt cùng tên.", "Die Begleitdatei allein kann nicht geöffnet werden. Bitte das gleichnamige txt mit auswählen.", "Le fichier compagnon seul ne peut pas être ouvert. Sélectionnez aussi le txt du même nom.", "O arquivo complementar sozinho não abre. Selecione também o txt com o mesmo nome.", "El archivo complementario solo no se puede abrir. Selecciona también el txt del mismo nombre.", "لا يمكن فتح الملف المرافق وحده. اختر معه ملف txt بالاسم نفسه."],
+  "찾기": ["Find", "検索", "查找", "查詢", "Tìm", "Suchen", "Rechercher", "Localizar", "Buscar", "بحث"],
+  "찾기 (Ctrl+F)": ["Find (Ctrl+F)", "検索 (Ctrl+F)", "查找 (Ctrl+F)", "查詢 (Ctrl+F)", "Tìm (Ctrl+F)", "Suchen (Strg+F)", "Rechercher (Ctrl+F)", "Localizar (Ctrl+F)", "Buscar (Ctrl+F)", "بحث (Ctrl+F)"],
+  "찾기…": ["Find…", "検索…", "查找…", "查詢…", "Tìm…", "Suchen…", "Rechercher…", "Localizar…", "Buscar…", "بحث…"],
+  "찾는 말이 없습니다.": ["Not found.", "見つかりません。", "找不到。", "找不到。", "Không tìm thấy.", "Nicht gefunden.", "Introuvable.", "Não encontrado.", "No se encontró.", "لم يُعثر على النص."],
+  "찾을 말": ["Find", "検索する文字列", "查找内容", "查詢內容", "Tìm gì", "Suchen nach", "Rechercher", "Localizar", "Buscar", "النص المطلوب"],
+  "축소": ["Zoom out", "縮小", "缩小", "縮小", "Thu nhỏ", "Verkleinern", "Zoom arrière", "Diminuir zoom", "Alejar", "تصغير"],
+  "취소": ["Cancel", "キャンセル", "取消", "取消", "Hủy", "Abbrechen", "Annuler", "Cancelar", "Cancelar", "إلغاء"],
+  "카메라": ["Camera", "カメラ", "相机", "相機", "Máy ảnh", "Kamera", "Appareil photo", "Câmera", "Cámara", "الكاميرا"],
+  "커서": ["Cursor", "カーソル", "光标", "游標", "Con trỏ", "Cursor", "Curseur", "Cursor", "Cursor", "المؤشر"],
+  "켬": ["On", "オン", "开", "開", "Bật", "Ein", "Activé", "Ligado", "Activado", "تشغيل"],
+  "크기": ["Size", "サイズ", "大小", "大小", "Cỡ", "Größe", "Taille", "Tamanho", "Tamaño", "الحجم"],
+  "텍스트": ["Text", "テキスト", "文本", "文字", "Văn bản", "Text", "Texte", "Texto", "Texto", "نص"],
+  "텍스트 문서": ["Text document", "テキスト文書", "文本文档", "文字文件", "Tài liệu văn bản", "Textdokument", "Document texte", "Documento de texto", "Documento de texto", "مستند نصي"],
+  "텍스트 서식": ["Text formatting", "テキストの書式", "文本格式", "文字格式", "Định dạng văn bản", "Textformatierung", "Mise en forme du texte", "Formatação de texto", "Formato de texto", "تنسيق النص"],
+  "텍스트로 보냈습니다.": ["Exported as text.", "テキストで書き出しました。", "已导出为文本。", "已匯出為文字。", "Đã xuất dạng văn bản.", "Als Text exportiert.", "Exporté en texte.", "Exportado como texto.", "Exportado como texto.", "تم التصدير كنص."],
+  "파일": ["File", "ファイル", "文件", "檔案", "Tệp", "Datei", "Fichier", "Arquivo", "Archivo", "ملف"],
+  "파일 이름": ["File name", "ファイル名", "文件名", "檔名", "Tên tệp", "Dateiname", "Nom du fichier", "Nome do arquivo", "Nombre del archivo", "اسم الملف"],
+  "파일에 쓸 허락을 받지 못했습니다.": ["Permission to write the file was not granted.", "ファイルへの書き込みが許可されませんでした。", "未获得写入文件的权限。", "未獲得寫入檔案的許可權。", "Không được phép ghi tệp.", "Keine Berechtigung zum Schreiben der Datei.", "L’autorisation d’écrire le fichier n’a pas été accordée.", "A permissão para gravar o arquivo não foi concedida.", "No se concedió permiso para escribir el archivo.", "لم يُمنح إذن الكتابة في الملف."],
+  "파일에서 연 글만 다시 열 수 있습니다.": ["Only documents opened from a file can be reopened.", "ファイルから開いた文書だけ開き直せます。", "只有从文件打开的文档才能重新打开。", "只有從檔案開啟的文件才能重新開啟。", "Chỉ mở lại được tài liệu mở từ tệp.", "Nur aus einer Datei geöffnete Dokumente können neu geöffnet werden.", "Seuls les documents ouverts depuis un fichier peuvent être rouverts.", "Só documentos abertos de um arquivo podem ser reabertos.", "Solo se pueden reabrir documentos abiertos desde un archivo.", "يمكن إعادة فتح المستندات المفتوحة من ملف فقط."],
+  "페이지 {0} / {1}": ["Page {0} / {1}", "{0} / {1} ページ", "第 {0} / {1} 页", "第 {0} / {1} 頁", "Trang {0} / {1}", "Seite {0} / {1}", "Page {0} / {1}", "Página {0} / {1}", "Página {0} / {1}", "صفحة {0} / {1}"],
+  "편집": ["Edit", "編集", "编辑", "編輯", "Sửa", "Bearbeiten", "Édition", "Editar", "Editar", "تحرير"],
+  "한 번 더 누르면 종료됩니다": ["Press back again to exit", "もう一度押すと終了します", "再按一次退出", "再按一次退出", "Nhấn lần nữa để thoát", "Zum Beenden erneut drücken", "Appuyez à nouveau pour quitter", "Toque em Voltar de novo para sair", "Presiona Atrás otra vez para salir", "اضغط مرة أخرى للخروج"],
+  "한국어": ["Korean", "韓国語", "韩语", "韓語", "Tiếng Hàn", "Koreanisch", "Coréen", "Coreano", "Coreano", "الكورية"],
+  "확대": ["Zoom in", "拡大", "放大", "放大", "Phóng to", "Vergrößern", "Zoom avant", "Aumentar zoom", "Acercar", "تكبير"],
+  "확인": ["OK", "OK", "确定", "確定", "OK", "OK", "OK", "OK", "Aceptar", "موافق"],
+  "휴지통으로 보내기": ["Send to Recycle Bin", "ごみ箱に送る", "移到回收站", "移到回收站", "Chuyển vào Thùng rác", "In den Papierkorb", "Envoyer à la Corbeille", "Enviar para a Lixeira", "Enviar a la Papelera", "إرسال إلى سلة المحذوفات"],
 };
-const ORDER = ['en', 'ja', 'zh', 'zh-TW', 'vi', 'de', 'fr', 'pt', 'es'];   // 위 줄의 칸 순서
+const ORDER = ['en', 'ja', 'zh', 'zh-TW', 'vi', 'de', 'fr', 'pt', 'es', 'ar'];   // 위 줄의 칸 순서
 ORDER.forEach((lg, i) => { I18N[lg] = {}; Object.entries(ROWS).forEach(([k, v]) => { if (v[i]) I18N[lg][k] = v[i]; }); });
 start();
 </script>
